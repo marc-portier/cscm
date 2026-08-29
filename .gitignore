@@ -1,0 +1,8 @@
+data/
+.venv/
+experimenting/
+.env
+*.bsp
+qgis/
+**/cmems/data_store/
+*.pyc

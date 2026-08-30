@@ -12,7 +12,7 @@ import copernicusmarine as cmems
 # ✅ get current_vector(time,x,y) data between dates >> group downloads from new moon to new moon
 # ✅ > margin with two days extra on both sides
 # ✅ keep catalog / metadata of the cycles we have: update-time, start, end, lunar-cycle-info, ...
-# mark datasets that have predictive data >> so we do remove and update those in later runs
+# ✅ mark datasets that have predictive data >> so we do remove and update those in later runs
 
 
 def _cmems_storage_folder() -> Path:
@@ -261,10 +261,20 @@ class CMEMSDataManager:
                 (self.catalog["nwmn_start_dt"] >= nwmn_start_dt_min.isoformat()) &
                 (self.catalog["nwmn_start_dt"] <= nwmn_start_dt_max.isoformat()) &
                 (self.catalog["nwmn_end_dt"] >= nwmn_end_dt_min.isoformat()) &
-                (self.catalog["nwmn_end_dt"] <= nwmn_end_dt_max.isoformat()) &
-                (self.catalog["historic_complete"])
+                (self.catalog["nwmn_end_dt"] <= nwmn_end_dt_max.isoformat())
             ]
 
-            if existing_entry.empty or force:
-                # If not, download the data and add it to the catalog
+            if existing_entry.empty or force or not existing_entry.iloc[0]["historic_complete"]:
+                # prepare to download - but remove any existing data first
+                if not existing_entry.empty:
+                    # remove existing data and metadata files
+                    existing_data_file = Path(existing_entry.iloc[0]["data_file"])
+                    existing_metadata_file = Path(existing_entry.iloc[0]["metadata_file"])
+                    if existing_data_file.exists():
+                        existing_data_file.unlink()
+                    if existing_metadata_file.exists():
+                        existing_metadata_file.unlink()
+                    # remove from catalog
+                    self.catalog = self.catalog.drop(existing_entry.index)
+                # Download the data and add it to the catalog
                 self.add_cmems_data_to_catalog(mc)

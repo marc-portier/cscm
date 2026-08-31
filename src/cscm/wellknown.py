@@ -12,6 +12,12 @@ POSITIONS = dict(
     KOKSIJDE=LabeledPosition(
         label="Koksijde",
         lat=51.11940, lon=2.62575),
+    KOKSIJDE_END_316_HT=LabeledPosition(
+        label="From Koksijde (projected end of swim 316° at HT)",
+        lat=51.264652, lon=2.402563),
+    KOKSIJDE_END_333_LT=LabeledPosition(
+        label="From Koksijde (projected end of swim 333° at LT)",
+        lat=51.298858, lon=2.479862),
     ORFORD=LabeledPosition(
         label="Orford Ness",
         lat=52.08333, lon=1.58333),

@@ -8,7 +8,7 @@ A tactical routing, tidal analysis, and trajectory optimization system designed 
 
 ## 🎯 Project Goals
 
-The ultimate objective of `cscm` is to solve **Zermelo's Navigation Problem** [85] for human athletes. In open-water swimming, currents can easily equal or exceed a swimmer's cruising speed. By vectorially combining localized tidal stream velocities with human endurance profiles, `cscm` computes the optimal steering angles (headings) over time to yield the fastest path from A to B.
+The ultimate objective of `cscm` is to solve **Zermelo's Navigation Problem** for human athletes. In open-water swimming, currents can easily equal or exceed a swimmer's cruising speed. By vectorially combining localized tidal stream velocities with human endurance profiles, `cscm` computes the optimal steering angles (headings) over time to yield the fastest path from A to B.
 
 ### Major Milestones:
 * **Short-Term (September 2026 - Active):** Validate the kinematics model to support a 6-hour experimental test swim in Koksijde, Belgium. Models will predict the exact trajectories of two alternative courses (316° at high tide vs. 333° at low tide) designed to safely clear the local Colruyt mussel farm.

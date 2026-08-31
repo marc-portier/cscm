@@ -247,7 +247,8 @@ class CMEMSDataManager:
         newmoon_cycles: list[Mooncycle] = get_newmoon_cycles(start_date, end_date)
 
         for mc in newmoon_cycles:
-            tolerance: timedelta = timedelta(hours=1)  # 1 hour tolerance for date comparisons -- as there is some variation on the newmoon exact times
+            # tolerance needed because the newmoon times are not always exactly the same as the data times in the catalog
+            tolerance: timedelta = timedelta(hours=1)  # 1 hour tolerance for date comparisons
             nwmn_start_dt: datetime = mc[0]
             nwmn_start_dt_min: datetime = nwmn_start_dt - tolerance
             nwmn_start_dt_max: datetime = nwmn_start_dt + tolerance

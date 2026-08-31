@@ -191,13 +191,13 @@ class CMEMSDataManager:
         and the _make_metadata_file method to create the metadata file.
         The metadata itself is appended to the internal catalog.
         The actual data is not loaded into memory, only the metadata is kept in the catalog.
-        The data-ranges are extended by 2 days on both sides as well as rounded to whole days (UTC) 
+        The data-ranges are extended by 2 days leading and 5 days trailing and rounded to whole days (UTC) 
         to ensure we have the full data for the moon cycle.
         """
         nwmn_start_dt: datetime = mc[0]
         nwmn_end_dt: datetime = mc[1]
         request_data_start_dt: datetime = (nwmn_start_dt - timedelta(days=2)).replace(hour=0, minute=0, second=0, microsecond=0)
-        request_data_end_dt: datetime = (nwmn_end_dt + timedelta(days=2)).replace(hour=0, minute=0, second=0, microsecond=0)
+        request_data_end_dt: datetime = (nwmn_end_dt + timedelta(days=5)).replace(hour=0, minute=0, second=0, microsecond=0)
         max_date_end_dt: datetime = _cmems_max_date()
         if request_data_end_dt > max_date_end_dt:
             request_data_end_dt = max_date_end_dt
@@ -232,9 +232,9 @@ class CMEMSDataManager:
         self._write_metadata_file(metadict)
         self.catalog = pd.concat([self.catalog, pd.DataFrame([metadict], columns=CMEMSDataManager.COLUMNS)], ignore_index=True)
 
-    def update_cmems_date(self, start_date: datetime = None, end_date: datetime = None, force: bool = False) -> None:
+    def update_cmems_data(self, start_date: datetime = None, end_date: datetime = None, force: bool = False) -> None:
         """
-        Updates the date range for Copernicus CMEMS data retrieval.
+        Updates the CMEMS data in the specified date range.
         Checks the current catalog of downloaded data and downloads any missing data for the specified date range.
         If 'force' is True, re-downloads data even if it already exists in the catalog.
         If start_date or end_date are not provided, they will be determined based on the current catalog

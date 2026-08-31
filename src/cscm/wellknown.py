@@ -9,6 +9,9 @@ POSITIONS = dict(
     NIEUWPOORT=LabeledPosition(
         label="Nieuwpoort",
         lat=51.15667, lon=2.72333),
+    BREDENE_POST4=LabeledPosition(
+        label="Bredene Reddingspost 4",
+        lat=51.25743146659003, lon=2.9704106714146716),
     KOKSIJDE=LabeledPosition(
         label="Koksijde",
         lat=51.11940, lon=2.62575),

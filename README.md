@@ -1,4 +1,4 @@
-# cscm (Coastal Swimmer Crossing Module) 
+# cscm (Channel Swimmer Crossing Module) 
 
 Assists in Current Modeling & Trajectory Optimization for swimmers in the North Sea.
 

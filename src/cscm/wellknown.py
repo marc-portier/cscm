@@ -1,6 +1,6 @@
 # src/cscm/wellknown.py
-from .model import LabeledPosition, Swimmer
-from .current import UniformCurrentsModel, TriangularCurrentsModel, CmemsActualsCurrentModel, CmemsAverageCurrentsModel
+from cscm.model import LabeledPosition, Swimmer
+from cscm.current.current_model import UniformCurrentsModel
 import random
 
 
@@ -85,11 +85,5 @@ SWIMMERS = dict(
 
 # Current Models
 CURRENT_MODELS = dict(
-    BCH_UNIFORM=UniformCurrentsModel(
-        v_peak_mps=3.8,
-        tide_period_s=6.21 * 60 * 60,
-        tide_factor=1,
-        lunar_period_s=28 * 6.21 * 60 * 60,
-        lunar_factor=0.8,
-    ),
+    BCH_UNIFORM=UniformCurrentsModel(),
 )

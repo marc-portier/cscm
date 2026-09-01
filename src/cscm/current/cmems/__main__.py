@@ -50,7 +50,7 @@ def main():
     # 3. Resolve focal points for plot generation
     focal_position_labels: list[str] = os.environ.get("CMEMS_FOCAL_POSITIONS", "KOKSIJDE,BREDENE_POST4").split(",")
     focal_positions: list[Position] = [wkPositions[label] for label in focal_position_labels if label in wkPositions]
-    print(f"Processing CMEMS data for focal positions: {', '.join([focal_positions])}")
+    print(f"Processing CMEMS data for focal positions: {', '.join([str(pos) for pos in focal_positions])}")
 
     # 4. Limit catalog processing if limit is specified
     catalog_to_process = cmems_data_manager.catalog

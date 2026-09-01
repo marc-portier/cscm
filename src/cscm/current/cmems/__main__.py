@@ -48,8 +48,13 @@ def main():
         cmems_data_manager.update_cmems_data(force=args.force, limit=args.limit)
 
     # 3. Resolve focal points for plot generation
-    focal_position_labels: list[str] = os.environ.get("CMEMS_FOCAL_POSITIONS", "KOKSIJDE,BREDENE_POST4").split(",")
-    focal_positions: list[Position] = [wkPositions[label] for label in focal_position_labels if label in wkPositions]
+    focal_position_env: str = os.environ.get("CMEMS_FOCAL_POSITIONS", "KOKSIJDE,BREDENE_POST4")
+    if focal_position_env == "*":
+        focal_positions: list[Position] = list(wkPositions.values())
+        print("Processing CMEMS data for all well-known positions.")
+    else:
+        focal_position_labels: list[str] = focal_position_env.split(",")
+        focal_positions: list[Position] = [wkPositions[label] for label in focal_position_labels if label in wkPositions]
     print(f"Processing CMEMS data for focal positions: {', '.join([str(pos) for pos in focal_positions])}")
 
     # 4. Limit catalog processing if limit is specified

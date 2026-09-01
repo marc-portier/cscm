@@ -567,7 +567,8 @@ def process_nc_file(
             closest_lat, closest_lon = valid_coords[best_idx]
             cell_id = f"cell_{closest_lat:.5f}_{closest_lon:.5f}"
 
-            pos_label = str(f_pos).replace(' ', '_').lower()
+            # make as safe filename for plot - ensuring all spaces and weird characters are replaced
+            pos_label = "".join(c if c.isalnum() or c in ('-', '_') else '_' for c in str(f_pos))
             plot_name = f"{nc_path.stem}_verify_cell_{pos_label}.png"
             plot_path = nc_path.parent / plot_name
 

@@ -73,6 +73,9 @@ class Position:
 
         return Position(lat=self.lat + delta_lat, lon=self.lon + delta_lon)
 
+    def __str__(self):
+        return f"[{self.lat}, {self.lon}]"
+
 
 @dataclass
 class LabeledPosition(Position):
@@ -81,6 +84,9 @@ class LabeledPosition(Position):
     uses WGS84 coordinates (EPSG:4326).
     """
     label: str
+
+    def __str__(self):
+        return f"{self.label}"
 
 
 class Environment(ABC):

@@ -1,5 +1,4 @@
 # src/cscm/current/cmems/retrieve.py
-
 from cscm.moon.phases import get_newmoon_cycles, Mooncycle
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -7,12 +6,15 @@ import os
 import json
 import pandas as pd
 import copernicusmarine as cmems
+from logging import getLogger
 
-# ✅ manage gets in a local data folder >> do not get what you already have (unless it was incomplete)
-# ✅ get current_vector(time,x,y) data between dates >> group downloads from new moon to new moon
-# ✅ > margin with two days extra on both sides
-# ✅ keep catalog / metadata of the cycles we have: update-time, start, end, lunar-cycle-info, ...
-# ✅ mark datasets that have predictive data >> so we do remove and update those in later runs
+log = getLogger(__name__)
+
+# manage gets in a local data folder >> do not get what you already have (unless it was incomplete)
+# get current_vector(time,x,y) data between dates >> group downloads from new moon to new moon
+# margin with two days extra on both sides, asymmetrically extended to 5 days on trailing end for tide age
+# keep catalog / metadata of the cycles we have: update-time, start, end, lunar-cycle-info, ...
+# mark datasets that have predictive data >> so we do remove and update those in later runs
 
 
 def _cmems_storage_folder() -> Path:
@@ -103,7 +105,6 @@ class CMEMSDataManager:
         "data_status",
         "historic_complete",
     ]
-
     """
     Manages the retrieval and storage of Copernicus CMEMS data.
     Maintains an internal catalog of downloaded data to avoid re-downloading.
@@ -120,11 +121,20 @@ class CMEMSDataManager:
         self.catalog: pd.DataFrame = None
         all_md_json: list = []
         for metadata_file in self.storage_folder.glob("*.json"):
+            # Skip any analysis JSON files (_analysis.json)
+            if metadata_file.name.endswith("_analysis.json"):
+                continue
             # read metadata file and append to catalog
-            with open(metadata_file, "r") as f:
-                md_json = json.load(f)
+            try:
+                with open(metadata_file, "r") as f:
+                    md_json = json.load(f)
                 all_md_json.append(md_json)
+            except Exception as e:
+                log.warning(f"Could not read metadata file {metadata_file}: {e}")
+
         self.catalog = pd.DataFrame(all_md_json, columns=CMEMSDataManager.COLUMNS)
+        if self.catalog.empty:
+            self.catalog = pd.DataFrame(columns=CMEMSDataManager.COLUMNS)
 
     @staticmethod
     def _metadata_filepath(data_file: Path) -> Path:
@@ -148,6 +158,7 @@ class CMEMSDataManager:
         Filename format as decided by the CMEMS API.
         returns path to the downloaded data file.
         """
+        log.info(f"Downloading CMEMS data from {data_start_dt.isoformat()} to {data_end_dt.isoformat()}...")
         cmems_meta: cmems.ResponseSubset = cmems.subset(
             output_directory=self.storage_folder,
             dataset_id="cmems_mod_nws_phy-cur_anfc_1.5km-2D_PT15M-i",
@@ -163,18 +174,20 @@ class CMEMSDataManager:
             netcdf_compression_level=1,
             disable_progress_bar=True,
         )
+
         lat_extend: cmems.GeographicalExtent = [
-            ext for ext in cmems_meta.coordinates_extent
+            ext for ext in cmems_meta.coordinates_extent 
             if isinstance(ext, cmems.GeographicalExtent) and ext.coordinate_id == 'latitude'
         ][0]
         lon_extend: cmems.GeographicalExtent = [
-            ext for ext in cmems_meta.coordinates_extent
+            ext for ext in cmems_meta.coordinates_extent 
             if isinstance(ext, cmems.GeographicalExtent) and ext.coordinate_id == 'longitude'
         ][0]
         dt_extend: cmems.TimeExtent = [
-            ext for ext in cmems_meta.coordinates_extent
+            ext for ext in cmems_meta.coordinates_extent 
             if isinstance(ext, cmems.TimeExtent)
         ][0]
+
         return dict(
             data_file=cmems_meta.file_path,
             data_size=cmems_meta.file_size,
@@ -187,26 +200,29 @@ class CMEMSDataManager:
     def add_cmems_data_to_catalog(self, mc: Mooncycle) -> None:
         """
         Adds the Copernicus CMEMS data for the given moon cycle to the catalog.
-        uses the _download_cmems_data method to download the data 
-        and the _make_metadata_file method to create the metadata file.
+        uses the _download_cmems_data method to download the data and the _make_metadata_file method to create the metadata file.
         The metadata itself is appended to the internal catalog.
         The actual data is not loaded into memory, only the metadata is kept in the catalog.
-        The data-ranges are extended by 2 days leading and 5 days trailing and rounded to whole days (UTC) 
+        The data-ranges are extended by 2 days leading and 5 days trailing and rounded to whole days (UTC)
         to ensure we have the full data for the moon cycle.
         """
         nwmn_start_dt: datetime = mc[0]
         nwmn_end_dt: datetime = mc[1]
         request_data_start_dt: datetime = (nwmn_start_dt - timedelta(days=2)).replace(hour=0, minute=0, second=0, microsecond=0)
         request_data_end_dt: datetime = (nwmn_end_dt + timedelta(days=5)).replace(hour=0, minute=0, second=0, microsecond=0)
+
         max_date_end_dt: datetime = _cmems_max_date()
         if request_data_end_dt > max_date_end_dt:
             request_data_end_dt = max_date_end_dt
+
         cmems_meta: dict = self._download_cmems_data(request_data_start_dt, request_data_end_dt)
         data_file: Path = Path(cmems_meta["data_file"])
         actual_data_start_dt: datetime = cmems_meta["data_time_extent"].minimum
         actual_data_end_dt: datetime = cmems_meta["data_time_extent"].maximum
+
         now = datetime.now(timezone.utc)
         has_future_data: bool = bool(datetime.fromisoformat(actual_data_end_dt) > now)
+
         actual_geo_extent: GeoExtent = (
             cmems_meta["data_geo_extent"][1].minimum,  # min_lon
             cmems_meta["data_geo_extent"][1].maximum,  # max_lon
@@ -232,19 +248,29 @@ class CMEMSDataManager:
         self._write_metadata_file(metadict)
         self.catalog = pd.concat([self.catalog, pd.DataFrame([metadict], columns=CMEMSDataManager.COLUMNS)], ignore_index=True)
 
-    def update_cmems_data(self, start_date: datetime = None, end_date: datetime = None, force: bool = False) -> None:
+    def update_cmems_data(
+            self,
+            start_date: datetime = None,
+            end_date: datetime = None,
+            force: bool = False,
+            limit: int = None) -> None:
         """
         Updates the CMEMS data in the specified date range.
         Checks the current catalog of downloaded data and downloads any missing data for the specified date range.
         If 'force' is True, re-downloads data even if it already exists in the catalog.
-        If start_date or end_date are not provided, they will be determined based on the current catalog
-        and the default start and end dates.
+        If start_date or end_date are not provided, they will be determined based on the current catalog.
+        If 'limit' is provided, only retrieves the last N (most recent) mooncycles in the requested range.
         """
         start_date = start_date or _cmems_start_date()
         end_date = end_date or _cmems_end_date()
 
         # Get the new moon cycles between the start and end dates
         newmoon_cycles: list[Mooncycle] = get_newmoon_cycles(start_date, end_date)
+
+        # Apply the limit to get the last N (most recent) cycles
+        if limit is not None and limit > 0:
+            log.info(f"Limiting data retrieval to the last {limit} moon cycles.")
+            newmoon_cycles = newmoon_cycles[-limit:]
 
         for mc in newmoon_cycles:
             # tolerance needed because the newmoon times are not always exactly the same as the data times in the catalog
@@ -257,7 +283,7 @@ class CMEMSDataManager:
             nwmn_end_dt_max: datetime = nwmn_end_dt + tolerance
 
             # Check if this moon cycle is already in the catalog
-            # and if it is, and it is historic_complete we can skip it, unless force is True 
+            # and if it is, and it is historic_complete we can skip it, unless force is True
             existing_entry = self.catalog[
                 (self.catalog["nwmn_start_dt"] >= nwmn_start_dt_min.isoformat()) &
                 (self.catalog["nwmn_start_dt"] <= nwmn_start_dt_max.isoformat()) &
@@ -272,10 +298,20 @@ class CMEMSDataManager:
                     existing_data_file = Path(existing_entry.iloc[0]["data_file"])
                     existing_metadata_file = Path(existing_entry.iloc[0]["metadata_file"])
                     if existing_data_file.exists():
-                        existing_data_file.unlink()
+                        try:
+                            existing_data_file.unlink()
+                        except Exception as e:
+                            log.warning(f"Could not delete {existing_data_file}: {e}")
                     if existing_metadata_file.exists():
-                        existing_metadata_file.unlink()
+                        try:
+                            existing_metadata_file.unlink()
+                        except Exception as e:
+                            log.warning(f"Could not delete {existing_metadata_file}: {e}")
                     # remove from catalog
                     self.catalog = self.catalog.drop(existing_entry.index)
+
                 # Download the data and add it to the catalog
-                self.add_cmems_data_to_catalog(mc)
+                try:
+                    self.add_cmems_data_to_catalog(mc)
+                except Exception as e:
+                    log.error(f"Failed to retrieve data for moon cycle starting {nwmn_start_dt}: {e}")

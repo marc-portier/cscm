@@ -1,6 +1,5 @@
 # src/cscm/current/cmems/__main__.py
 import os
-import sys
 import argparse
 from dotenv import load_dotenv
 from cscm.model import Position

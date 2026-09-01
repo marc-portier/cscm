@@ -18,10 +18,10 @@ from shapely.geometry import Point
 from shapely.geometry.base import BaseGeometry
 import json
 import math
+import warnings
 from pathlib import Path
 from logging import getLogger
 from cscm.model import Position
-
 
 # Set up logging matching cscm logger standards
 log = getLogger(__name__)
@@ -30,42 +30,63 @@ log = getLogger(__name__)
 EARTH_RADIUS_KM = 6371.0
 
 
-def calculate_principal_axis(u: np.ndarray, v: np.ndarray) -> float:
+def calculate_grid_principal_angles(ds: xr.Dataset) -> np.ndarray:
     """
-    Computes the principal axis of a 2D vector series (u, v) using covariance PCA.
-    Returns the angle in radians of the dominant flow axis (major axis of the tidal ellipse).
-    Aligns the axis to point Eastward (or Northward if purely vertical).
+    Computes the principal flow angle in radians for the entire 2D grid in one fast vectorised NumPy call.
+    Aligns the angle to point Eastward (Oostwaartse Aligned) or Northward if purely vertical.
     """
-    # Filter out NaNs
-    mask = ~np.isnan(u) & ~np.isnan(v)
-    u_clean = u[mask]
-    v_clean = v[mask]
+    u = ds['uo'].values  # Shape: (time, lat, lon)
+    v = ds['vo'].values  # Shape: (time, lat, lon)
 
-    if len(u_clean) < 2:
-        return 0.0  # Default to East
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        with np.errstate(invalid='ignore'):
+            # Mean center along the time dimension (axis 0)
+            u_mean = u - np.nanmean(u, axis=0)
+            v_mean = v - np.nanmean(v, axis=0)
 
-    cov = np.cov(u_clean, v_clean)
-    if cov.shape != (2, 2) or np.all(cov == 0):
-        return 0.0
+            # Number of valid time steps per grid cell
+            n_valid = np.sum(~np.isnan(u) & ~np.isnan(v), axis=0)
+            n_valid = np.where(n_valid < 2, np.nan, n_valid)  # Avoid divide-by-zero on dry/land cells
 
-    eigenvalues, eigenvectors = np.linalg.eigh(cov)
-    # The major axis corresponds to the largest eigenvalue
-    major_idx = np.argmax(eigenvalues)
-    major_vector = eigenvectors[:, major_idx]
+            # Covariance matrix components
+            cuu = np.nansum(u_mean**2, axis=0) / (n_valid - 1)
+            cvv = np.nansum(v_mean**2, axis=0) / (n_valid - 1)
+            cuv = np.nansum(u_mean * v_mean, axis=0) / (n_valid - 1)
 
-    # Angle of the principal axis in radians
-    angle_rad = np.arctan2(major_vector[1], major_vector[0])
+    # Create 2x2 covariance matrices for each cell, shape: (lat, lon, 2, 2)
+    shape = cuu.shape
+    cov = np.zeros((shape[0], shape[1], 2, 2))
+    cov[..., 0, 0] = cuu
+    cov[..., 0, 1] = cuv
+    cov[..., 1, 0] = cuv
+    cov[..., 1, 1] = cvv
 
-    # "Oostwaartse Vloed" alignment rule:
+    # Mask cells with NaNs (e.g. land cells)
+    mask = ~np.isnan(cuu) & ~np.isnan(cvv) & ~np.isnan(cuv)
+    cov_safe = np.where(np.isnan(cov), 0.0, cov)
+
+    # Solve symmetric eigenvalue decomposition in a single vectorised call
+    eigenvalues, eigenvectors = np.linalg.eigh(cov_safe)
+
+    # Major eigenvector corresponds to the largest eigenvalue (index 1 of eigh output)
+    major_vectors = eigenvectors[..., 1]  # Shape: (lat, lon, 2)
+
     # Tide, as time, flows to the east, forced by the spinning Earth, moving under the tidal bulge.
     # Therefore, the principal axis should be oriented such that the Eastward component is positive.
-    # Ensure the projection axis always has a positive Eastward component (cos(angle_rad) > 0).
-    # If it is purely North-South, align it with a positive Northward component (sin(angle_rad) > 0).
-    cos_val = np.cos(angle_rad)
-    if cos_val < 0 or (np.isclose(cos_val, 0) and np.sin(angle_rad) < 0):
-        angle_rad += np.pi
+    # Align the major vector to point Eastward:
+    # - If East component is negative (x < 0), flip the vector
+    # - If East component is zero and North is negative (y < 0), flip it too
+    x_comp = major_vectors[..., 0]
+    y_comp = major_vectors[..., 1]
+    flip = (x_comp < 0) | ((x_comp == 0) & (y_comp < 0))
+    major_vectors = np.where(flip[..., np.newaxis], -major_vectors, major_vectors)
 
-    return float(angle_rad % (2 * np.pi))
+    # Calculate final angles in radians
+    angles_rad = np.arctan2(major_vectors[..., 1], major_vectors[..., 0])
+    angles_rad[~mask] = np.nan
+
+    return angles_rad
 
 
 def project_to_principal_axis(u: np.ndarray, v: np.ndarray, angle_rad: float):
@@ -186,11 +207,12 @@ def get_cells_in_geometry(ds: xr.Dataset, geom: BaseGeometry) -> list:
 
 
 def get_moon_cycle_context_direct(
-        t: datetime,
-        nwmn_start_dt: datetime,
-        nwmn_end_dt: datetime,
-        lunarperiod_d: float,
-        tidalperiod_h: float) -> dict:
+    t: datetime,
+    nwmn_start_dt: datetime,
+    nwmn_end_dt: datetime,
+    lunarperiod_d: float,
+    tidalperiod_h: float
+) -> dict:
     """
     Calculates the relative phase angle (0-360 deg) and offset in days for time 't'
     directly using the parameters of the enclosing new moon cycle from the catalog.
@@ -199,7 +221,7 @@ def get_moon_cycle_context_direct(
     s_utc = nwmn_start_dt.astimezone(timezone.utc) if nwmn_start_dt.tzinfo else nwmn_start_dt.replace(tzinfo=timezone.utc)
     e_utc = nwmn_end_dt.astimezone(timezone.utc) if nwmn_end_dt.tzinfo else nwmn_end_dt.replace(tzinfo=timezone.utc)
 
-    dt_s: float = (t_utc - s_utc).total_seconds()
+    dt_s = (t_utc - s_utc).total_seconds()
     total_cycle_s = (e_utc - s_utc).total_seconds()
 
     # Lunar phase angle
@@ -254,16 +276,18 @@ def calculate_dynamic_tidal_phase(t: datetime, zero_crossings: list) -> float:
 
 
 def analyse_grid_cell(
-        ds: xr.Dataset,
-        y_idx: int,
-        x_idx: int,
-        nwmn_start_dt: datetime,
-        nwmn_end_dt: datetime,
-        lunarperiod_d: float,
-        tidalperiod_h: float) -> dict:
+    ds: xr.Dataset,
+    y_idx: int,
+    x_idx: int,
+    principal_angle_rad: float,
+    nwmn_start_dt: datetime,
+    nwmn_end_dt: datetime,
+    lunarperiod_d: float,
+    tidalperiod_h: float
+) -> dict:
     """
     Processes the time series of a single grid cell adaptively.
-    Computes cell-specific principal tidal ellipse axis and projects currents onto it.
+    Projects currents onto the precalculated PCA principal flow axis.
     Extracts peak currents, reversals, amplitudes, bearings, and relative phases.
     Reduces memory size dramatically by only caching the top 6 (Spring) and bottom 6 (Neap) peaks.
     """
@@ -277,8 +301,6 @@ def analyse_grid_cell(
     uo = ds['uo'][:, y_idx, x_idx].values
     vo = ds['vo'][:, y_idx, x_idx].values
 
-    # Compute principal axis of flow for this specific grid cell using PCA
-    principal_angle_rad = calculate_principal_axis(uo, vo)
     principal_angle_deg = (math.degrees(principal_angle_rad)) % 360.0
 
     # Project vectors onto cell's major and minor tidal axes
@@ -394,15 +416,19 @@ def plot_cell_analysis(ds: xr.Dataset, y_idx: int, x_idx: int, cell_analytics: d
     if spring_peaks:
         largest_peak = max(spring_peaks, key=lambda p: abs(p["amplitude_mps"]))
         peak_time = pd.to_datetime(largest_peak["peak_time"])
-        ax1.scatter(peak_time, largest_peak["amplitude_mps"], color="crimson", s=100, zorder=6, marker="o", 
+        ax1.scatter(peak_time, largest_peak["amplitude_mps"], color="crimson", s=100, zorder=6, marker="o",
                     label=f"Max Spring Peak ({largest_peak['amplitude_mps']:.2f} m/s)")
         ax1.axvline(peak_time, color="crimson", linestyle="-.", alpha=0.4, label="Spring Peak Alignment Marker")
 
     ax1.axhline(0, color="gray", linewidth=0.8, linestyle="-", alpha=0.5)
 
-    plt.title(f"Adaptive Tidal Profile - Cell [{cell_analytics['latitude']:.5f}N, {cell_analytics['longitude']:.5f}E]\n"
-              f"Principal Flow Axis: {cell_analytics['principal_flow_angle_deg']:.1f}° True North",
-              fontsize=12, fontweight="bold")
+    plt.title(
+        f"Adaptive Tidal Profile Verification - Cell [{cell_analytics['latitude']:.5f}N, "
+        f"{cell_analytics['longitude']:.5f}E]\n"
+        f"Principal Flow Axis: {cell_analytics['principal_flow_angle_deg']:.1f}° "
+        f"True North (Oostwaartse Aligned)",
+        fontsize=12, fontweight="bold"
+    )
     ax1.set_xlabel("Time (UTC)", fontsize=10)
     ax1.grid(True, linestyle="--", alpha=0.3)
 
@@ -418,14 +444,15 @@ def plot_cell_analysis(ds: xr.Dataset, y_idx: int, x_idx: int, cell_analytics: d
 
 
 def process_nc_file(
-        nc_path: Path,
-        nwmn_start_dt: datetime,
-        nwmn_end_dt: datetime,
-        lunarperiod_d: float,
-        tidalperiod_h: float,
-        geom_to_filter: BaseGeometry = None,
-        force_recalculate: bool = False,
-        focal_positions: list[Position] = None):
+    nc_path: Path,
+    nwmn_start_dt: datetime,
+    nwmn_end_dt: datetime,
+    lunarperiod_d: float,
+    tidalperiod_h: float,
+    geom_to_filter: BaseGeometry = None,
+    force_recalculate: bool = False,
+    focal_positions: list[Position] = None
+):
     """
     Processes a Copernicus CMEMS NetCDF file, runs spatial and temporal analysis,
     checks caching to skip if up-to-date, applies land cell masking, and generates
@@ -450,7 +477,11 @@ def process_nc_file(
     # 1. Grid Verification
     grid_meta = verify_grid_metadata(ds)
 
-    # 2. Geometry Filter or cell compilation
+    # 2. Pre-calculate principal flow angles for all cells in one fast vectorised call
+    log.info("Computing principal tidal axes across entire grid in vectorised NumPy step...")
+    principal_angles_rad = calculate_grid_principal_angles(ds)
+
+    # 3. Geometry Filter or cell compilation
     lat_coord = 'latitude' if 'latitude' in ds.coords else 'lat'
     lon_coord = 'longitude' if 'longitude' in ds.coords else 'lon'
     lats = ds[lat_coord].values
@@ -466,7 +497,7 @@ def process_nc_file(
             for x_idx in range(len(lons)):
                 matching_cells.append((y_idx, x_idx, float(lats[y_idx]), float(lons[x_idx])))
 
-    # 3. Analyze Cells with land-masking
+    # 4. Analyze Cells with land-masking
     cells_analytics = {}
     skipped_land_cells = 0
     for y_idx, x_idx, lat, lon in matching_cells:
@@ -478,7 +509,15 @@ def process_nc_file(
             skipped_land_cells += 1
             continue
 
-        cell_data = analyse_grid_cell(ds, y_idx, x_idx, nwmn_start_dt, nwmn_end_dt, lunarperiod_d, tidalperiod_h)
+        # Look up pre-calculated principal angle
+        p_angle_rad = principal_angles_rad[y_idx, x_idx]
+        if np.isnan(p_angle_rad):
+            skipped_land_cells += 1
+            continue
+
+        cell_data = analyse_grid_cell(
+            ds, y_idx, x_idx, p_angle_rad, nwmn_start_dt, nwmn_end_dt, lunarperiod_d, tidalperiod_h
+        )
 
         # Skip static dry cells with negligible tidal currents (noise threshold < 0.01 m/s)
         if cell_data["max_peak_mps"] < 0.01:
@@ -487,7 +526,10 @@ def process_nc_file(
 
         cells_analytics[cell_data["cell_id"]] = cell_data
 
-    log.info(f"Land masking completed: analyzed {len(cells_analytics)} water cells, skipped {skipped_land_cells} dry/static cells.")
+    log.info(
+        f"Land masking completed: analyzed {len(cells_analytics)} water cells, "
+        f"skipped {skipped_land_cells} dry/static cells."
+    )
 
     output_meta = {
         "source_file": nc_path.name,
@@ -504,42 +546,44 @@ def process_nc_file(
 
     log.info(f"Successfully processed and generated analytics JSON: {out_json_path.name}")
 
-    # 4. Generate visual verification plot for selected focal coordinates
-    if focal_positions:
+    # 5. Generate visual verification plot for selected focal coordinates (nearest water cell snapping)
+    if focal_positions and cells_analytics:
+        # Build coordinates of valid, unmasked water cells
+        valid_coords = []
+        valid_indices = []
+        for cid, cdata in cells_analytics.items():
+            valid_coords.append((cdata["latitude"], cdata["longitude"]))
+            valid_indices.append(cdata["grid_indices"])
+
+        valid_coords = np.array(valid_coords)  # Shape: (M, 2)
+
         for f_idx, f_pos in enumerate(focal_positions):
             f_lat, f_lon = f_pos.lat, f_pos.lon
-            f_name: str = str(f_pos.name) if f_pos.name else f"focal_{f_idx+1}"
-            f_name_safe: str = f_name.replace(" ", "_").lower()
-            # Find closest grid indices
-            dist = (lats[:, np.newaxis] - f_lat)**2 + (lons[np.newaxis, :] - f_lon)**2
-            y_idx, x_idx = np.unravel_index(np.argmin(dist), dist.shape)
-            closest_lat, closest_lon = float(lats[y_idx]), float(lons[x_idx])
+
+            # Find nearest analyzed water cell (lazy-friendly, snaps away from dry land)
+            dists = (valid_coords[:, 0] - f_lat)**2 + (valid_coords[:, 1] - f_lon)**2
+            best_idx = np.argmin(dists)
+            y_idx, x_idx = valid_indices[best_idx]
+            closest_lat, closest_lon = valid_coords[best_idx]
             cell_id = f"cell_{closest_lat:.5f}_{closest_lon:.5f}"
 
-            # Retrieve from cache if water cell, otherwise generate on-the-fly specifically for the plot!
-            if cell_id in cells_analytics:
-                plot_name = f"{nc_path.stem}_verify_cell_{f_name_safe}.png"
-                plot_path = nc_path.parent / plot_name
-                plot_cell_analysis(ds, y_idx, x_idx, cells_analytics[cell_id], plot_path)
-            else:
-                log.info(f"Focal position {f_pos.name} closest cell {cell_id} was filtered as land/static. Calculating specifically for visual diagnostic...")
-                try:
-                    cell_data_for_plot = analyse_grid_cell(ds, y_idx, x_idx, nwmn_start_dt, nwmn_end_dt, lunarperiod_d, tidalperiod_h)
-                    plot_name = f"{nc_path.stem}_verify_cell_{f_name_safe}.png"
-                    plot_path = nc_path.parent / plot_name
-                    plot_cell_analysis(ds, y_idx, x_idx, cell_data_for_plot, plot_path)
-                except Exception as e:
-                    log.warning(f"Could not generate visual verification plot for focal position {f_pos.name}: {e}")
+            pos_label = str(f_pos).replace(' ', '_').lower()
+            plot_name = f"{nc_path.stem}_verify_cell_{pos_label}.png"
+            plot_path = nc_path.parent / plot_name
+
+            log.info(f"Snapping focal position '{str(f_pos)}' to closest valid water cell: {cell_id}")
+            plot_cell_analysis(ds, y_idx, x_idx, cells_analytics[cell_id], plot_path)
 
     return out_json_path
 
 
 def process_catalog(
-        catalog: pd.DataFrame,
-        *,
-        geom_to_filter: BaseGeometry = None,
-        force_recalculate: bool = False,
-        focal_positions: list[Position] = None):
+    catalog: pd.DataFrame,
+    *,
+    geom_to_filter: BaseGeometry = None,
+    force_recalculate: bool = False,
+    focal_positions: list[Position] = None
+):
     """
     Helper function to process all NetCDF files listed in the CMEMSDataManager catalog
     using their specific astronomical metadata parameters.

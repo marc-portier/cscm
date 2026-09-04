@@ -3,6 +3,7 @@ data/
 experimenting/
 .env
 *.bsp
+*.log
 qgis/
 **/cmems/data_store/
 *.pyc

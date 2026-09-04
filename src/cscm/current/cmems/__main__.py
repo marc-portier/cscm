@@ -1,72 +1,145 @@
 # src/cscm/current/cmems/__main__.py
-import os
+
 import argparse
+import logging
+import os
+import sys
+from pathlib import Path
 from dotenv import load_dotenv
-from cscm.model import Position
-
-# Note: intentionally this does not import anything from cscm.*.cmems before the main function is called
-# mainly because the copernicusmarine package initialises by reading env vars
-# in our case these are set in .env and need to be loaded first
 
 
-def main():
+def cleanup_storage(storage_folder: Path, clean_mode: str) -> None:
+    """
+    Cleans up files in the CMEMS data storage folder based on the clean_mode.
+    """
+    if clean_mode == "none":
+        return
+
+    storage_path = Path(storage_folder)
+    if not storage_path.exists():
+        return
+
+    logging.info(f"Performing cleanup of storage folder {storage_folder} with mode: {clean_mode}")
+
+    if clean_mode == "all":
+        # Delete all files and subdirectories
+        for item in storage_path.iterdir():
+            if item.is_file():
+                item.unlink()
+            elif item.is_dir():
+                import shutil
+                shutil.rmtree(item)
+    elif clean_mode == "analysis":
+        # Delete only analytical and verification files
+        for item in storage_path.iterdir():
+            if item.is_file():
+                if (
+                    item.name.endswith("_analysis.json")
+                    or item.name.endswith(".png")
+                    or item.name.endswith(".gpx")
+                    or item.name.endswith(".geojson")
+                ):
+                    item.unlink()
+
+
+def main() -> None:
+    """
+    Main entry point for retrieving and analyzing CMEMS tidal current data.
+    """
     load_dotenv()
 
+    # Create command line parser with PEP8 compliance
+    parser = argparse.ArgumentParser(
+        description="CSCM CMEMS Data Retriever and Tide Analyzer Module."
+    )
+    parser.add_argument(
+        "--skip-update",
+        action="store_true",
+        help="Skip CMEMS database download update."
+    )
+    parser.add_argument(
+        "--clean",
+        choices=["all", "analysis", "none"],
+        default="none",
+        help="Cleanup storage level before running processing."
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force full tide analysis, ignoring cached JSON analysis files."
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Limit retrieval and analysis to the N most recent lunar cycles."
+    )
+    parser.add_argument(
+        "--log-level",
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        help="Set the logging level (default: INFO)."
+    )
+
+    args = parser.parse_args()
+
+    # Configure logging level and targets
+    log_level = getattr(logging, args.log_level.upper(), logging.INFO)
+    logging.basicConfig(
+        level=log_level,
+        format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
+        handlers=[
+            logging.FileHandler("cscm.log", mode="a", encoding="utf-8"),
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
+
+    # Delay heavy imports so dotenv is loaded and logger is configured first
     from cscm.current.cmems.retrieve import CMEMSDataManager
     from cscm.current.cmems.analyse import process_catalog
-    from cscm.wellknown import POSITIONS as wkPositions
-
-    # Standard argparse setup for professional command-line flag handling
-    parser = argparse.ArgumentParser(description="Copernicus CMEMS Data Retrieval & Analysis Suite")
-    parser.add_argument("--clean", action="store_true", help="Delete all downloaded files and companion metadata in the store before running")
-    parser.add_argument("--force", action="store_true", help="Force overwrite downloads and force recalculate analysis JSONs")
-    parser.add_argument("--limit", type=int, default=None, help="Process only the N most recent moon cycles")
-    parser.add_argument("--skip-update", action="store_true", help="Skip the Copernicus downloads and only run analysis on existing files")
-
-    # Use parse_known_args to ignore any unrecognized arguments and avoid crashes
-    args, unknown = parser.parse_known_args()
+    from cscm.wellknown import POSITIONS as wk_positions
 
     cmems_data_manager = CMEMSDataManager()
 
-    # 1. Clean storage folder if requested
-    if args.clean:
-        print(f"Cleaning data store folder: {cmems_data_manager.storage_folder}")
-        for file_path in cmems_data_manager.storage_folder.glob("*"):
-            if file_path.is_file():
-                try:
-                    file_path.unlink()
-                except Exception as e:
-                    print(f"Could not delete file {file_path}: {e}")
-        # Re-initialize the empty catalog after cleaning
+    # Handle cleaning logic if requested
+    if args.clean != "none":
+        cleanup_storage(cmems_data_manager.storage_folder, args.clean)
+        # Re-initialize catalog since files were deleted
         cmems_data_manager.init_catalog()
 
-    # 2. Update/retrieve CMEMS data unless skipped
+    # Check for update downloads unless requested to skip
     if args.skip_update:
-        print("Skipping CMEMS data update as requested. Running analysis only.")
+        logging.info("Skipping Copernicus CMEMS database download update.")
     else:
-        print("Doing CMEMS data update...")
-        cmems_data_manager.update_cmems_data(force=args.force, limit=args.limit)
+        logging.info("Checking Copernicus CMEMS data store for updates.")
+        # If limit is set, we pass it to restrict how many future cycles we check
+        cmems_data_manager.update_cmems_data()
 
-    # 3. Resolve focal points for plot generation
-    focal_position_env: str = os.environ.get("CMEMS_FOCAL_POSITIONS", "KOKSIJDE,BREDENE_POST4")
-    if focal_position_env == "*":
-        focal_positions: list[Position] = list(wkPositions.values())
-        print("Processing CMEMS data for all well-known positions.")
+    # Resolve focal positions for verification diagnostic plots
+    focal_env = os.environ.get("CMEMS_FOCAL_POSITIONS", "*")
+    if focal_env in ("*", "all", "ALL"):
+        logging.info("Wildcard CMEMS_FOCAL_POSITIONS resolved. Selecting all known positions.")
+        focal_positions = list(wk_positions.values())
     else:
-        focal_position_labels: list[str] = focal_position_env.split(",")
-        focal_positions: list[Position] = [wkPositions[label] for label in focal_position_labels if label in wkPositions]
-    print(f"Processing CMEMS data for focal positions: {', '.join([str(pos) for pos in focal_positions])}")
+        focal_position_labels = [label.strip() for label in focal_env.split(",") if label.strip()]
+        focal_positions = [
+            wk_positions[label]
+            for label in focal_position_labels
+            if label in wk_positions
+        ]
 
-    # 4. Limit catalog processing if limit is specified
-    catalog_to_process = cmems_data_manager.catalog
-    if args.limit is not None and args.limit > 0:
-        # Sort catalog descending (newest first) and take top N entries
-        catalog_to_process = catalog_to_process.sort_values(by="nwmn_start_dt", ascending=False).head(args.limit)
-        print(f"Limiting batch analysis to the {args.limit} most recent moon cycles in the catalog.")
+    pos_names = [getattr(p, "label", str(p)) for p in focal_positions]
+    logging.info(f"Processing tide analysis for focal positions: {', '.join(pos_names)}")
 
-    # 5. Process catalog (processes newest moon cycles first)
+    # Sort catalog to run newest/forecast data first
+    catalog_df = cmems_data_manager.catalog
+    if args.limit is not None and not catalog_df.empty:
+        # Sort descending to get newest files first
+        catalog_df = catalog_df.sort_values(by="nwmn_start_dt", ascending=False)
+        catalog_df = catalog_df.head(args.limit)
+
     process_catalog(
-        catalog_to_process,
+        catalog_df,
         force_recalculate=args.force,
         focal_positions=focal_positions
     )

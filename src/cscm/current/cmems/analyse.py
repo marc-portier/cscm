@@ -1,11 +1,11 @@
-"""
-Support for analysis of Copernicus CMEMS data.
-Fully adaptive spatial analysis using localized tidal ellipse principal axes (PCA),
-incremental processing (caching), visual verification plotting, and direct catalog integration.
-This script provides tools to analyze ocean currents, verify NetCDF grid parameters,
-detect peak flow timings, compute offsets relative to lunar/tidal cycles, and filter
-cells based on spatial geometries.
-"""
+# src/cscm/current/cmems/analyse.py
+
+import json
+import math
+import warnings
+from datetime import datetime, timezone
+from pathlib import Path
+from logging import getLogger
 
 import numpy as np
 import pandas as pd
@@ -13,14 +13,9 @@ import xarray as xr
 import matplotlib
 matplotlib.use('Agg')  # Headless mode for sandboxed environments
 import matplotlib.pyplot as plt
-from datetime import datetime, timezone
 from shapely.geometry import Point
 from shapely.geometry.base import BaseGeometry
-import json
-import math
-import warnings
-from pathlib import Path
-from logging import getLogger
+
 from cscm.model import Position
 
 # Set up logging matching cscm logger standards
@@ -38,55 +33,186 @@ def calculate_grid_principal_angles(ds: xr.Dataset) -> np.ndarray:
     u = ds['uo'].values  # Shape: (time, lat, lon)
     v = ds['vo'].values  # Shape: (time, lat, lon)
 
+    # Calculate means along time axis (axis 0)
+    u_mean = np.nanmean(u, axis=0)
+    v_mean = np.nanmean(v, axis=0)
+
+    u_centered = u - u_mean
+    v_centered = v - v_mean
+
+    # Covariance components
+    cuu = np.nanmean(u_centered * u_centered, axis=0)
+    cvv = np.nanmean(v_centered * v_centered, axis=0)
+    cuv = np.nanmean(u_centered * v_centered, axis=0)
+
+    # Analytical principal angle of covariance tensor:
+    # angle = 0.5 * arctan2(2 * cuv, cuu - cvv)
     with warnings.catch_warnings():
-        warnings.simplefilter("ignore", category=RuntimeWarning)
-        with np.errstate(invalid='ignore'):
-            # Mean center along the time dimension (axis 0)
-            u_mean = u - np.nanmean(u, axis=0)
-            v_mean = v - np.nanmean(v, axis=0)
+        warnings.simplefilter("ignore", RuntimeWarning)
+        angle_rad = 0.5 * np.arctan2(2.0 * cuv, cuu - cvv)
 
-            # Number of valid time steps per grid cell
-            n_valid = np.sum(~np.isnan(u) & ~np.isnan(v), axis=0)
-            n_valid = np.where(n_valid < 2, np.nan, n_valid)  # Avoid divide-by-zero on dry/land cells
+    cos_val = np.cos(angle_rad)
+    sin_val = np.sin(angle_rad)
 
-            # Covariance matrix components
-            cuu = np.nansum(u_mean**2, axis=0) / (n_valid - 1)
-            cvv = np.nansum(v_mean**2, axis=0) / (n_valid - 1)
-            cuv = np.nansum(u_mean * v_mean, axis=0) / (n_valid - 1)
+    # Aligns the major flow axis so that Vloed has a positive Eastward component (cos(angle_rad) > 0).
+    # If cos is close to 0 (purely North-South), ensure positive Northward component (sin(angle_rad) > 0).
+    flip_mask = (cos_val < 0) | (np.isclose(cos_val, 0) & (sin_val < 0))
+    angle_rad = np.where(flip_mask, angle_rad + np.pi, angle_rad)
 
-    # Create 2x2 covariance matrices for each cell, shape: (lat, lon, 2, 2)
-    shape = cuu.shape
-    cov = np.zeros((shape[0], shape[1], 2, 2))
-    cov[..., 0, 0] = cuu
-    cov[..., 0, 1] = cuv
-    cov[..., 1, 0] = cuv
-    cov[..., 1, 1] = cvv
+    return angle_rad % (2 * np.pi)
 
-    # Mask cells with NaNs (e.g. land cells)
-    mask = ~np.isnan(cuu) & ~np.isnan(cvv) & ~np.isnan(cuv)
-    cov_safe = np.where(np.isnan(cov), 0.0, cov)
 
-    # Solve symmetric eigenvalue decomposition in a single vectorised call
-    eigenvalues, eigenvectors = np.linalg.eigh(cov_safe)
+def classify_grid_cells(ds: xr.Dataset) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Classifies each cell in the NetCDF grid as Land (0), Boundary (1), or Water (2).
+    Land is defined as any cell where 'uo' is completely NaN or constant 0.
+    Boundary is defined as any water cell adjacent (including diagonals) to a land cell.
+    Water is a water cell with no adjacent land cells.
+    Returns:
+        status_mask: 2D array of ints (0: Land, 1: Boundary, 2: Water)
+        is_boundary_mask: 2D array of bools (True for boundary cells)
+    """
+    u = ds['uo'].values  # Shape: (time, lat, lon)
 
-    # Major eigenvector corresponds to the largest eigenvalue (index 1 of eigh output)
-    major_vectors = eigenvectors[..., 1]  # Shape: (lat, lon, 2)
+    # Land check: any cell where all timesteps are NaN or 0.0
+    is_nan = np.all(np.isnan(u), axis=0)
+    is_zero = np.all(u == 0.0, axis=0)
+    is_land = is_nan | is_zero
 
-    # Tide, as time, flows to the east, forced by the spinning Earth, moving under the tidal bulge.
-    # Therefore, the principal axis should be oriented such that the Eastward component is positive.
-    # Align the major vector to point Eastward:
-    # - If East component is negative (x < 0), flip the vector
-    # - If East component is zero and North is negative (y < 0), flip it too
-    x_comp = major_vectors[..., 0]
-    y_comp = major_vectors[..., 1]
-    flip = (x_comp < 0) | ((x_comp == 0) & (y_comp < 0))
-    major_vectors = np.where(flip[..., np.newaxis], -major_vectors, major_vectors)
+    num_lats, num_lons = is_land.shape
+    status_mask = np.zeros((num_lats, num_lons), dtype=int)  # Default to 0 (Land)
 
-    # Calculate final angles in radians
-    angles_rad = np.arctan2(major_vectors[..., 1], major_vectors[..., 0])
-    angles_rad[~mask] = np.nan
+    # Default all water cells to 2 (Water)
+    status_mask[~is_land] = 2
 
-    return angles_rad
+    # Adjacency check for boundary cell classification
+    for y in range(num_lats):
+        for x in range(num_lons):
+            if is_land[y, x]:
+                continue
+
+            # Check 8 neighbors (diagonals included)
+            has_land_neighbor = False
+            for dy in [-1, 0, 1]:
+                for dx in [-1, 0, 1]:
+                    if dy == 0 and dx == 0:
+                        continue
+                    ny, nx = y + dy, x + dx
+                    if 0 <= ny < num_lats and 0 <= nx < num_lons:
+                        if is_land[ny, nx]:
+                            has_land_neighbor = True
+                            break
+                    else:
+                        # Out of grid bounds is considered a boundary limit
+                        has_land_neighbor = True
+                        break
+                if has_land_neighbor:
+                    break
+
+            if has_land_neighbor:
+                status_mask[y, x] = 1  # Boundary (grey)
+
+    is_boundary_mask = (status_mask == 1)
+    return status_mask, is_boundary_mask
+
+
+def generate_gis_files(
+    nc_path: Path,
+    ds: xr.Dataset,
+    status_mask: np.ndarray,
+    lat_step: float,
+    lon_step: float
+) -> None:
+    """
+    Generates a stylized GeoJSON Polygon layer and a GPX Waypoints file representing the grid.
+    Polygons are naturally colored (Land=Brown, Boundary=Grey, Water=Blue) with a strakke black border.
+    """
+    lat_coord = 'latitude' if 'latitude' in ds.coords else 'lat'
+    lon_coord = 'longitude' if 'longitude' in ds.coords else 'lon'
+    lats = ds[lat_coord].values
+    lons = ds[lon_coord].values
+
+    geojson_path = nc_path.parent / f"{nc_path.stem}_grid.geojson"
+    gpx_path = nc_path.parent / f"{nc_path.stem}_grid.gpx"
+
+    features = []
+    gpx_wpts = []
+
+    # Map styles for Land, Boundary, and Water
+    styles = {
+        0: {"name": "Land", "fill": "#8B4513", "gpx_sym": "Scenic Area"},
+        1: {"name": "Boundary", "fill": "#808080", "gpx_sym": "Reference"},
+        2: {"name": "Water", "fill": "#0000FF", "gpx_sym": "Water"}
+    }
+
+    half_lat = float(abs(lat_step)) / 2.0
+    half_lon = float(abs(lon_step)) / 2.0
+
+    for y_idx, lat in enumerate(lats):
+        for x_idx, lon in enumerate(lons):
+            lat_f = float(lat)
+            lon_f = float(lon)
+            status = int(status_mask[y_idx, x_idx])
+            style = styles[status]
+
+            # 1. GeoJSON Polygon element (converting numpy float32/64 to standard Python floats for JSON serialisation)
+            coords = [
+                [lon_f - half_lon, lat_f - half_lat],
+                [lon_f + half_lon, lat_f - half_lat],
+                [lon_f + half_lon, lat_f + half_lat],
+                [lon_f - half_lon, lat_f + half_lat],
+                [lon_f - half_lon, lat_f - half_lat]
+            ]
+
+            feature = {
+                "type": "Feature",
+                "properties": {
+                    "cell_id": f"cell_{lat_f:.5f}_{lon_f:.5f}",
+                    "status": style["name"],
+                    "fill": style["fill"],
+                    "stroke": "#000000",
+                    "stroke-width": 1.5,
+                    "fill-opacity": 0.45
+                },
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [coords]
+                }
+            }
+            features.append(feature)
+
+            # 2. GPX Waypoint element representing cell centroid
+            wpt_name = f"[{style['name'][0]}] {lat_f:.4f}_{lon_f:.4f}"
+            wpt_xml = f"""  <wpt lat='{lat_f:.5f}' lon='{lon_f:.5f}'>
+    <name>{wpt_name}</name>
+    <sym>{style['gpx_sym']}</sym>
+    <type>{style['name']}</type>
+  </wpt>"""
+            gpx_wpts.append(wpt_xml)
+
+    # Write GeoJSON
+    geojson_collection = {
+        "type": "FeatureCollection",
+        "features": features
+    }
+    with open(geojson_path, "w") as f:
+        json.dump(geojson_collection, f, indent=2)
+
+    # Write GPX
+    wpts_str = "\n".join(gpx_wpts)
+    gpx_xml = f"""<?xml version='1.0' encoding='UTF-8'?>
+<gpx version='1.1' creator='CSCM Grid Classifier'
+     xmlns='http://www.topografix.com/GPX/1/1'>
+  <metadata>
+    <name>CSCM Tidal Analysis Grid Centroids</name>
+    <desc>Grid classification for NetCDF: {nc_path.name}</desc>
+  </metadata>
+{wpts_str}
+</gpx>"""
+    with open(gpx_path, "w") as f:
+        f.write(gpx_xml)
+
+    log.info(f"Successfully generated grid files: {geojson_path.name} and {gpx_path.name}")
 
 
 def project_to_principal_axis(u: np.ndarray, v: np.ndarray, angle_rad: float):
@@ -211,8 +337,7 @@ def get_moon_cycle_context_direct(
     nwmn_start_dt: datetime,
     nwmn_end_dt: datetime,
     lunarperiod_d: float,
-    tidalperiod_h: float
-) -> dict:
+    tidalperiod_h: float) -> dict:
     """
     Calculates the relative phase angle (0-360 deg) and offset in days for time 't'
     directly using the parameters of the enclosing new moon cycle from the catalog.
@@ -234,8 +359,7 @@ def get_moon_cycle_context_direct(
     return {
         "lunar_phase_deg": float(lunar_phase % 360.0),
         "nominal_tidal_phase_deg": float(nominal_tidal_phase % 360.0),
-        "offset_days": float(dt_s / 86400.0),
-        "offset_seconds": float(dt_s)
+        "offset_days": float(dt_s / 86400.0)
     }
 
 
@@ -283,8 +407,7 @@ def analyse_grid_cell(
     nwmn_start_dt: datetime,
     nwmn_end_dt: datetime,
     lunarperiod_d: float,
-    tidalperiod_h: float
-) -> dict:
+    tidalperiod_h: float) -> dict:
     """
     Processes the time series of a single grid cell adaptively.
     Projects currents onto the precalculated PCA principal flow axis.
@@ -301,9 +424,10 @@ def analyse_grid_cell(
     uo = ds['uo'][:, y_idx, x_idx].values
     vo = ds['vo'][:, y_idx, x_idx].values
 
+    # Angle of the principal axis in degrees
     principal_angle_deg = (math.degrees(principal_angle_rad)) % 360.0
 
-    # Project vectors onto cell's major and minor tidal axes
+    # Project vectors onto cell's major and minor axes
     v_parallel, v_perpendicular = project_to_principal_axis(uo, vo, principal_angle_rad)
 
     # Find Slack Water zero crossings
@@ -378,11 +502,32 @@ def analyse_grid_cell(
     }
 
 
+def find_first_peak_after(peaks_list: list, target_time: datetime) -> dict:
+    """
+    Finds the first positive flow peak (amplitude_mps > 0) chronologically after target_time.
+    """
+    target_utc = target_time.replace(tzinfo=timezone.utc) if target_time.tzinfo is None else target_time.astimezone(timezone.utc)
+    chronological_peaks = sorted(peaks_list, key=lambda p: p["peak_time"])
+
+    for p in chronological_peaks:
+        peak_time = pd.to_datetime(p["peak_time"]).replace(tzinfo=timezone.utc)
+        if peak_time >= target_utc and p["amplitude_mps"] > 0:
+            return p
+
+    # Fallback to any positive peak if none matches after
+    for p in chronological_peaks:
+        if p["amplitude_mps"] > 0:
+            return p
+
+    return None
+
+
 def plot_cell_analysis(ds: xr.Dataset, y_idx: int, x_idx: int, cell_analytics: dict, output_path: Path):
     """
-    Generates a high-quality dual-axis verification plot of tidal current velocities (Pythagoras magnitude,
-    major parallel flow axis, minor transverse axis) on the left axis, and current bearing on the right axis.
-    Displays the maximum spring tide peak timing. Saves plot as PNG.
+    Generates a high-quality dual-axis verification plot of tidal current velocities on the left axis,
+    and current bearing on the right axis.
+    Displays Vloed and Eb horizontal reference bearing lines.
+    Saves plot as PNG.
     """
     times = pd.to_datetime(ds['time'].values)
     uo = ds['uo'][:, y_idx, x_idx].values
@@ -397,45 +542,75 @@ def plot_cell_analysis(ds: xr.Dataset, y_idx: int, x_idx: int, cell_analytics: d
 
     fig, ax1 = plt.subplots(figsize=(14, 6))
 
-    # Plot velocities on left Y axis
-    ax1.plot(times, v_magnitude, label="Nominal Speed (Magnitude)", color="black", alpha=0.3, linewidth=1.2)
-    ax1.plot(times, v_parallel, label="Major Flow Speed (Projected Parallel)", color="royalblue", linewidth=1.8)
-    ax1.plot(times, v_perpendicular, label="Minor Flow Speed (Orthogonal Transverse)", color="mediumseagreen", linewidth=1.2)
+    # Left Axis: Velocities
+    ax1.plot(times, v_magnitude, label=r"$|V|$", color="black", alpha=0.25, linewidth=1.1)
+    ax1.plot(times, v_parallel, label=r"$V_{\parallel}$", color="royalblue", linewidth=1.7)
+    ax1.plot(times, v_perpendicular, label=r"$V_{\perp}$", color="mediumseagreen", linestyle="--", alpha=0.55)
     ax1.set_ylabel("Velocity (m/s)", color="black", fontsize=10)
     ax1.tick_params(axis='y', labelcolor="black")
 
-    # Plot current bearings on right Y axis
+    # Right Axis: Bearings in degrees
     ax2 = ax1.twinx()
-    ax2.scatter(times, bearings, label="Current Direction (Bearing)", color="orange", s=3, alpha=0.5, zorder=1)
+    ax2.scatter(times, bearings, label=r"$\alpha$", color="orange", s=2, alpha=0.4, zorder=1)
     ax2.set_ylabel("Direction (Degrees True North)", color="orange", fontsize=10)
     ax2.tick_params(axis='y', labelcolor="orange")
     ax2.set_ylim(0, 360)
 
-    # Highlight the absolute largest Spring Tide peak
-    spring_peaks = cell_analytics.get("spring_peaks", [])
-    if spring_peaks:
-        largest_peak = max(spring_peaks, key=lambda p: abs(p["amplitude_mps"]))
-        peak_time = pd.to_datetime(largest_peak["peak_time"])
-        ax1.scatter(peak_time, largest_peak["amplitude_mps"], color="crimson", s=100, zorder=6, marker="o",
-                    label=f"Max Spring Peak ({largest_peak['amplitude_mps']:.2f} m/s)")
-        ax1.axvline(peak_time, color="crimson", linestyle="-.", alpha=0.4, label="Spring Peak Alignment Marker")
+    # Draw horizontal Flood/Eb reference bearing lines
+    flood_angle = cell_analytics["principal_flow_angle_deg"]
+    eb_angle = (flood_angle + 180) % 360
 
-    ax1.axhline(0, color="gray", linewidth=0.8, linestyle="-", alpha=0.5)
+    ax2.axhline(flood_angle, color="orange", linestyle="-.", linewidth=0.8, alpha=0.5)
+    ax2.axhline(eb_angle, color="darkgoldenrod", linestyle="-.", linewidth=0.8, alpha=0.5)
 
-    plt.title(
-        f"Adaptive Tidal Profile Verification - Cell [{cell_analytics['latitude']:.5f}N, "
-        f"{cell_analytics['longitude']:.5f}E]\n"
-        f"Principal Flow Axis: {cell_analytics['principal_flow_angle_deg']:.1f}° "
-        f"True North (Oostwaartse Aligned)",
-        fontsize=12, fontweight="bold"
-    )
+    # Add text labels on right-hand edge
+    ax2.text(times[-1], flood_angle, f" {flood_angle:.1f}° Flood", color="orange", va="center", fontsize=8, ha="left")
+    ax2.text(times[-1], eb_angle, f" {eb_angle:.1f}° Eb", color="darkgoldenrod", va="center", fontsize=8, ha="left")
+
+    # Cycle markings dual anchors
+    all_peaks = cell_analytics.get("spring_peaks", []) + cell_analytics.get("neap_peaks", [])
+    begin_peak = cell_analytics.get("calibration", {}).get("begin_peak_ref")
+    end_peak = cell_analytics.get("calibration", {}).get("end_peak_ref")
+
+    if begin_peak:
+        p1_time = pd.to_datetime(begin_peak["peak_time"])
+        ax1.scatter(
+            p1_time, begin_peak["amplitude_mps"], color="crimson", s=120, zorder=6, marker="o",
+            label="Begin"
+        )
+        ax1.axvline(p1_time, color="crimson", linestyle="-.", alpha=0.45)
+
+    if end_peak:
+        p2_time = pd.to_datetime(end_peak["peak_time"])
+        ax1.scatter(
+            p2_time, end_peak["amplitude_mps"], color="crimson", s=120, zorder=6, marker="o",
+            label="End"
+        )
+        ax1.axvline(p2_time, color="crimson", linestyle="-.", alpha=0.45)
+
+    ax1.axhline(0, color="gray", linewidth=0.8, linestyle="-", alpha=0.4)
+
+    # Plot title
+    title_label = output_path.stem.split("_verify_cell_")[-1].replace("_", " ").title()
+    plt.title(f"{title_label} [{cell_analytics['latitude']:.5f}N, {cell_analytics['longitude']:.5f}E]",
+              fontsize=12, fontweight="bold")
+
     ax1.set_xlabel("Time (UTC)", fontsize=10)
-    ax1.grid(True, linestyle="--", alpha=0.3)
+    ax1.grid(True, linestyle="--", alpha=0.2)
 
-    # Combine legend curves
+    # Legende at the bottom center
     lines1, labels1 = ax1.get_legend_handles_labels()
     lines2, labels2 = ax2.get_legend_handles_labels()
-    ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper right", frameon=True, facecolor="white", edgecolor="none")
+    ax1.legend(
+        lines1 + lines2, labels1 + labels2,
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.22),
+        ncol=6,
+        frameon=True,
+        facecolor="white",
+        edgecolor="none",
+        fontsize=9
+    )
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=150)
@@ -451,8 +626,7 @@ def process_nc_file(
     tidalperiod_h: float,
     geom_to_filter: BaseGeometry = None,
     force_recalculate: bool = False,
-    focal_positions: list[Position] = None
-):
+    focal_positions: list[Position] = None):
     """
     Processes a Copernicus CMEMS NetCDF file, runs spatial and temporal analysis,
     checks caching to skip if up-to-date, applies land cell masking, and generates
@@ -477,15 +651,21 @@ def process_nc_file(
     # 1. Grid Verification
     grid_meta = verify_grid_metadata(ds)
 
-    # 2. Pre-calculate principal flow angles for all cells in one fast vectorised call
-    log.info("Computing principal tidal axes across entire grid in vectorised NumPy step...")
-    principal_angles_rad = calculate_grid_principal_angles(ds)
+    # 2. Cell spatial classifications (Land/Boundary/Water mapping)
+    status_mask, is_boundary_mask = classify_grid_cells(ds)
 
-    # 3. Geometry Filter or cell compilation
+    # Generate GeoJSON Polygons and GPX Waypoints of centroids for style verification
     lat_coord = 'latitude' if 'latitude' in ds.coords else 'lat'
     lon_coord = 'longitude' if 'longitude' in ds.coords else 'lon'
     lats = ds[lat_coord].values
     lons = ds[lon_coord].values
+    d_lat = np.mean(np.diff(lats)) if len(lats) > 1 else 0.01
+    d_lon = np.mean(np.diff(lons)) if len(lons) > 1 else 0.02
+    generate_gis_files(nc_path, ds, status_mask, d_lat, d_lon)
+
+    # 3. Vectorised grid PCA computation (Oostwaartse Aligned)
+    log.info("Pre-computing localized tidal ellipse principal axes using vectorised PCA...")
+    principal_angles_rad = calculate_grid_principal_angles(ds)
 
     if geom_to_filter:
         log.info("Applying spatial filter geometry...")
@@ -497,47 +677,73 @@ def process_nc_file(
             for x_idx in range(len(lons)):
                 matching_cells.append((y_idx, x_idx, float(lats[y_idx]), float(lons[x_idx])))
 
-    # 4. Analyze Cells with land-masking
-    cells_analytics = {}
+    # 4. Analyze Cells with land-masking and reduced JSON database compilation
+    cells_analytics_rich = {}
+    stripped_cells_analytics = {}
     skipped_land_cells = 0
+
     for y_idx, x_idx, lat, lon in matching_cells:
-        uo = ds['uo'][:, y_idx, x_idx].values
-        vo = ds['vo'][:, y_idx, x_idx].values
-
-        # Fast land-masking check: skip cell if all values are NaN or constant zeros
-        if np.all(np.isnan(uo)) or np.all(uo == 0.0) or np.all(np.isnan(vo)) or np.all(vo == 0.0):
+        # Check land status
+        if status_mask[y_idx, x_idx] == 0:  # 0: Land
             skipped_land_cells += 1
             continue
 
-        # Look up pre-calculated principal angle
-        p_angle_rad = principal_angles_rad[y_idx, x_idx]
-        if np.isnan(p_angle_rad):
-            skipped_land_cells += 1
-            continue
-
-        cell_data = analyse_grid_cell(
-            ds, y_idx, x_idx, p_angle_rad, nwmn_start_dt, nwmn_end_dt, lunarperiod_d, tidalperiod_h
+        angle_rad = principal_angles_rad[y_idx, x_idx]
+        cell_rich_data = analyse_grid_cell(
+            ds, y_idx, x_idx, angle_rad, nwmn_start_dt, nwmn_end_dt, lunarperiod_d, tidalperiod_h
         )
 
-        # Skip static dry cells with negligible tidal currents (noise threshold < 0.01 m/s)
-        if cell_data["max_peak_mps"] < 0.01:
-            skipped_land_cells += 1
-            continue
+        cell_id = cell_rich_data["cell_id"]
+        cells_analytics_rich[cell_id] = cell_rich_data
 
-        cells_analytics[cell_data["cell_id"]] = cell_data
+        # Determine Begin/End Anchors for calibration
+        spring_peaks = cell_rich_data.get("spring_peaks", [])
+        neap_peaks = cell_rich_data.get("neap_peaks", [])
+        all_peaks = spring_peaks + neap_peaks
 
-    log.info(
-        f"Land masking completed: analyzed {len(cells_analytics)} water cells, "
-        f"skipped {skipped_land_cells} dry/static cells."
-    )
+        begin_peak = find_first_peak_after(all_peaks, nwmn_start_dt)
+        end_peak = find_first_peak_after(all_peaks, nwmn_end_dt)
+
+        if begin_peak and end_peak:
+            t_begin = pd.to_datetime(begin_peak["peak_time"]).replace(tzinfo=timezone.utc)
+            nwmn_start_utc = nwmn_start_dt.replace(tzinfo=timezone.utc)
+            tidal_age_lag = (t_begin - nwmn_start_utc).total_seconds() / 86400.0
+
+            # Cache peak details in rich data dictionary specifically for rendering on plot
+            cell_rich_data["calibration"] = {
+                "begin_peak_ref": begin_peak,
+                "end_peak_ref": end_peak
+            }
+
+            # Stripped database representation (extreme size reduction > 99%)
+            stripped_cells_analytics[cell_id] = {
+                "cell_id": cell_id,
+                "latitude": lat,
+                "longitude": lon,
+                "is_boundary": bool(is_boundary_mask[y_idx, x_idx]),
+                "principal_flow_angle_deg": cell_rich_data["principal_flow_angle_deg"],
+                "calibration": {
+                    "begin_time": begin_peak["peak_time"],
+                    "begin_amplitude_mps": begin_peak["amplitude_mps"],
+                    "begin_lunar_phase_deg": begin_peak["lunar_phase_deg"],
+                    "end_time": end_peak["peak_time"],
+                    "end_amplitude_mps": end_peak["amplitude_mps"],
+                    "end_lunar_phase_deg": end_peak["lunar_phase_deg"],
+                    "tidal_age_lag_days": float(tidal_age_lag)
+                }
+            }
+        else:
+            # If anchors can't be resolved, skip from stripped database
+            pass
+
+    log.info(f"Processed {len(stripped_cells_analytics)} water/boundary cells.")
 
     output_meta = {
         "source_file": nc_path.name,
         "processed_at": datetime.now(timezone.utc).isoformat(),
         "grid_metadata": grid_meta,
-        "num_cells": len(cells_analytics),
-        "skipped_land_cells": skipped_land_cells,
-        "cells": cells_analytics
+        "num_cells": len(stripped_cells_analytics),
+        "cells": stripped_cells_analytics
     }
 
     # Save output metadata
@@ -546,34 +752,34 @@ def process_nc_file(
 
     log.info(f"Successfully processed and generated analytics JSON: {out_json_path.name}")
 
-    # 5. Generate visual verification plot for selected focal coordinates (nearest water cell snapping)
-    if focal_positions and cells_analytics:
-        # Build coordinates of valid, unmasked water cells
-        valid_coords = []
-        valid_indices = []
-        for cid, cdata in cells_analytics.items():
-            valid_coords.append((cdata["latitude"], cdata["longitude"]))
-            valid_indices.append(cdata["grid_indices"])
+    # 5. Generate visual verification plot for selected focal coordinates
+    # Filters out boundary shoreline/wet-dry grid cells from snaps pool to avoid wrijving distortion!
+    if focal_positions and cells_analytics_rich:
+        valid_cells = [c for c in stripped_cells_analytics.values() if not c["is_boundary"]]
+        if not valid_cells:
+            # Fallback to all water cells if no open water exists
+            valid_cells = list(stripped_cells_analytics.values())
 
-        valid_coords = np.array(valid_coords)  # Shape: (M, 2)
+        valid_coords = np.array([[c["latitude"], c["longitude"]] for c in valid_cells])
+        valid_ids = [c["cell_id"] for c in valid_cells]
 
-        for f_idx, f_pos in enumerate(focal_positions):
+        for f_pos in focal_positions:
             f_lat, f_lon = f_pos.lat, f_pos.lon
 
-            # Find nearest analyzed water cell (lazy-friendly, snaps away from dry land)
-            dists = (valid_coords[:, 0] - f_lat)**2 + (valid_coords[:, 1] - f_lon)**2
-            best_idx = np.argmin(dists)
-            y_idx, x_idx = valid_indices[best_idx]
-            closest_lat, closest_lon = valid_coords[best_idx]
-            cell_id = f"cell_{closest_lat:.5f}_{closest_lon:.5f}"
+            # Find closest cell from strictly validated pool
+            dist = (valid_coords[:, 0] - f_lat)**2 + (valid_coords[:, 1] - f_lon)**2
+            closest_idx = np.argmin(dist)
+            closest_cell_id = valid_ids[closest_idx]
+
+            cell_data_rich = cells_analytics_rich[closest_cell_id]
+            y_idx, x_idx = cell_data_rich["grid_indices"]
 
             # make as safe filename for plot - ensuring all spaces and weird characters are replaced
             pos_label = "".join(c if c.isalnum() or c in ('-', '_') else '_' for c in str(f_pos))
             plot_name = f"{nc_path.stem}_verify_cell_{pos_label}.png"
             plot_path = nc_path.parent / plot_name
 
-            log.info(f"Snapping focal position '{str(f_pos)}' to closest valid water cell: {cell_id}")
-            plot_cell_analysis(ds, y_idx, x_idx, cells_analytics[cell_id], plot_path)
+            plot_cell_analysis(ds, y_idx, x_idx, cell_data_rich, plot_path)
 
     return out_json_path
 
@@ -583,8 +789,7 @@ def process_catalog(
     *,
     geom_to_filter: BaseGeometry = None,
     force_recalculate: bool = False,
-    focal_positions: list[Position] = None
-):
+    focal_positions: list[Position] = None):
     """
     Helper function to process all NetCDF files listed in the CMEMSDataManager catalog
     using their specific astronomical metadata parameters.
@@ -625,7 +830,6 @@ def process_catalog(
         )
 
 
-# worskapce scratch test script for local development and verification
 if __name__ == "__main__":
     # Test script with dummy mock data
     import logging
@@ -634,7 +838,6 @@ if __name__ == "__main__":
     end_dt = datetime(2026, 9, 8, tzinfo=timezone.utc)
     mock_nc = Path("/workspace/scratch/mock_tide.nc")
     if mock_nc.exists():
-        # Process the mock file with focal plotting at Koksijde start
         koksijde_start = Position(51.11940, 2.62575)
         process_nc_file(
             nc_path=mock_nc,

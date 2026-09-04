@@ -58,6 +58,11 @@ def main() -> None:
         help="Skip CMEMS database download update."
     )
     parser.add_argument(
+        "--skip-analysis",
+        action="store_true",
+        help="Skip CMEMS data analysis workflow."
+    )
+    parser.add_argument(
         "--clean",
         choices=["all", "analysis", "none"],
         default="none",
@@ -114,6 +119,11 @@ def main() -> None:
         logging.info("Checking Copernicus CMEMS data store for updates.")
         # If limit is set, we pass it to restrict how many future cycles we check
         cmems_data_manager.update_cmems_data()
+
+    if args.skip_analysis:
+        logging.info("Skipping CMEMS data analysis workflow.")
+        return
+    # else:
 
     # Resolve focal positions for verification diagnostic plots
     focal_env = os.environ.get("CMEMS_FOCAL_POSITIONS", "*")

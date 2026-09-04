@@ -342,7 +342,8 @@ def plot_daily_simulations(
         line_style = "-" if idx % 2 == 0 else "--"
 
         # Display time in CEST (local time window)
-        local_time_str = start_dt.strftime('%H:%M')
+        local_dt = start_dt + timedelta(hours=2)   # TODO - fix this quickhack more elegantly with pytz or zoneinfo
+        local_time_str = local_dt.strftime('%H:%M')
         label = f"{style['label']} ({local_time_str} CEST, max {df.iloc[-1]['v_magnitude']:.2f} m/s)"
 
         plt.plot(df['lon'], df['lat'], color=style["color"], linestyle=line_style,

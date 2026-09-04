@@ -10,6 +10,7 @@ from typing import Optional
 from dotenv import load_dotenv
 
 import pandas as pd
+import numpy as np
 import xarray as xr
 import yaml
 from jinja2 import Template
@@ -135,7 +136,30 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
             # If dynamic peak detection is enabled
             if calc.start_time_detect:
                 # Find tidal current peaks near start position
-                peaks = find_daily_tide_peaks(ds, calc.from_pos, day_start, day_end)
+                status_mask, is_boundary_mask = classify_grid_cells(ds)
+
+                # Filter open-water cellen (status 2 = Water, status 1 = Boundary, status 0 = Land)
+                valid_coords = []
+                for y in range(len(lats)):
+                    for x in range(len(lons)):
+                        if status_mask[y, x] == 2:  # Alleen zuiver open water
+                            valid_coords.append((lats[y], lons[x]))
+
+                if not valid_coords:
+                    # Fallback naar alle watercellen als er geen open water is
+                    valid_coords = [(lats[y], lons[x]) for y in range(len(lats)) for x in range(len(lons)) if status_mask[y, x] in (1, 2)]
+
+                valid_coords = np.array(valid_coords)
+
+                # Snap de startpositie naar het dichtstbijzijnde open water
+                dists = (valid_coords[:, 0] - calc.from_pos.lat)**2 + (valid_coords[:, 1] - calc.from_pos.lon)**2
+                best_idx = np.argmin(dists)
+                snapped_pos = Position(valid_coords[best_idx, 0], valid_coords[best_idx, 1])
+
+                log.info(f"Snapping startpositie '{calc.from_pos}' naar open water cel: [{snapped_pos.lat:.5f}N, {snapped_pos.lon:.5f}E]")
+
+                # Gebruik nu snapped_pos voor piekdetectie en simulatie!
+                peaks = find_daily_tide_peaks(ds, snapped_pos, day_start, day_end)
                 log.info(f"Detected {len(peaks)} physical tide peaks in 24h window (UTC).")
 
                 # Process matching peaks

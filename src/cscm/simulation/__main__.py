@@ -7,6 +7,7 @@ import logging
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional
+import random
 from dotenv import load_dotenv
 
 import pandas as pd
@@ -18,7 +19,6 @@ from jinja2 import Template
 from cscm.model import Position
 from cscm.wellknown import POSITIONS as wkPositions
 from cscm.current.cmems.analyse import classify_grid_cells
-
 from cscm.simulation.jobs import parse_job_file, JobConfig
 from cscm.simulation.predict import (
     CmemsForecastCurrentsModel,
@@ -46,8 +46,15 @@ def get_latest_forecast_nc(storage_dir: Path) -> Optional[Path]:
     nc_files = list(storage_dir.glob("*.nc"))
     if not nc_files:
         return None
-    # Return file with latest modified time
-    return max(nc_files, key=lambda f: f.stat().st_mtime)
+    # Returing file with latest modified time is not the same as latest forecast date.
+    # so we should opt for last namesorting only
+    # return max(nc_files, key=lambda f: f.stat().st_mtime)
+    sorted_files = sorted(nc_files, key=lambda f: f.name)
+    log.info(f"Found {len(sorted_files)} CMEMS NetCDF files in storage.")
+    log.info(f"checking sorted files at 0: {sorted_files[0].name}")
+    log.info(f"checking sorted files at -2: {sorted_files[-2].name}")
+    log.info(f"Using latest: {sorted_files[-1].name}")
+    return sorted(nc_files)[-1]  # Return the last file in sorted order
 
 
 def parse_date_range_expr(expr: str, anchor_date: datetime) -> list[datetime]:
@@ -70,38 +77,34 @@ def parse_date_range_expr(expr: str, anchor_date: datetime) -> list[datetime]:
         return [anchor_date]
 
 
-def load_random_qotd(qotd_path: Path) -> tuple[str, str]:
-    """Loads a random Quote of the Day from qotd.yml."""
-    default_quote = ("The most effective way to do it, is to do it.", "Amelia Earhart")
-    if not qotd_path or not qotd_path.exists():
-        return default_quote
-
-    try:
-        with open(qotd_path, "r") as f:
-            quotes = yaml.safe_load(f)
-        if quotes and isinstance(quotes, list):
-            import random
-            q = random.choice(quotes)
-            return q.get("txt", default_quote[0]), q.get("by", default_quote[1])
-    except Exception as e:
-        log.warning(f"Failed to load QOTD from {qotd_path.name}: {e}")
-
-    return default_quote
-
-
-def local_time_to_utc(dt: datetime, tz_offset_hours: int = 2) -> datetime:
-    """Converts a local time datetime to UTC assuming offset hours."""
-    return dt - timedelta(hours=tz_offset_hours)
-
-
-def is_time_in_local_range(dt: datetime, range_local: tuple[str, str], tz_offset_hours: int = 2) -> bool:
-    """Checks if a UTC datetime falls within a local time window (e.g. 05:00 to 17:00 CEST)."""
-    # Convert UTC datetime to local representation
-    local_dt = dt + timedelta(hours=tz_offset_hours)
-    local_time_str = local_dt.strftime("%H:%M")
-
+def is_time_in_local_range(time_utc: datetime, range_local: tuple[str, str]) -> bool:
+    """Checks if a UTC time is within a specified local day time window (e.g. 05:00-17:00 CEST)"""
+    # Convert UTC to local CEST (UTC+2) for check
+    local_time = time_utc + timedelta(hours=2)
+    local_time_str = local_time.strftime('%H:%M')
     start_str, end_str = range_local
     return start_str <= local_time_str <= end_str
+
+
+def load_random_qotd(qotd_path: Optional[Path]) -> tuple[str, str]:
+    """Loads a random Quote Of The Day from the qotd.yml file, with a clean fallback."""
+    fallback = (
+        "Zwemmen is losbandig slapen in spartelend water, is liefhebben met elke nog bruikbare porie.",
+        "Paul Snoek"
+    )
+    if not qotd_path or not qotd_path.exists():
+        return fallback
+
+    try:
+        with open(qotd_path, "r", encoding="utf-8") as f:
+            quotes = yaml.safe_load(f)
+            if quotes and isinstance(quotes, list):
+                q = random.choice(quotes)
+                return q.get("txt", q.get("text", fallback[0])), q.get("by", q.get("author", fallback[1]))
+    except Exception as e:
+        log.warning(f"Could not load quote from {qotd_path}: {e}")
+
+    return fallback
 
 
 def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
@@ -147,7 +150,12 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
 
                 if not valid_coords:
                     # Fallback naar alle watercellen als er geen open water is
-                    valid_coords = [(lats[y], lons[x]) for y in range(len(lats)) for x in range(len(lons)) if status_mask[y, x] in (1, 2)]
+                    valid_coords = [
+                        (lats[y], lons[x])
+                        for y in range(len(lats))
+                        for x in range(len(lons))
+                        if status_mask[y, x] in (1, 2)
+                    ]
 
                 valid_coords = np.array(valid_coords)
 
@@ -156,7 +164,10 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
                 best_idx = np.argmin(dists)
                 snapped_pos = Position(valid_coords[best_idx, 0], valid_coords[best_idx, 1])
 
-                log.info(f"Snapping startpositie '{calc.from_pos}' naar open water cel: [{snapped_pos.lat:.5f}N, {snapped_pos.lon:.5f}E]")
+                log.info(
+                    f"Snapping startpositie '{calc.from_pos}' naar open water cel: "
+                    f"[{snapped_pos.lat:.5f}N, {snapped_pos.lon:.5f}E]"
+                )
 
                 # Gebruik nu snapped_pos voor piekdetectie en simulatie!
                 peaks = find_daily_tide_peaks(ds, snapped_pos, day_start, day_end)
@@ -260,7 +271,7 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
                 "gpx_filename": gpx_name
             })
 
-            plot_data_list.append((df_traj, run_type, start_dt))
+            plot_data_list.append((df_traj, run_type, start_dt, calc_cfg))
 
         # Render and save daily map plot
         plot_daily_simulations(
@@ -270,6 +281,7 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
             status_mask=status_mask,
             lats=lats,
             lons=lons,
+            model=model,  # Pass the currents model!
             coastline_wkt_path=cfg.extra.coastline_path,
             obstructions_wkt_path=cfg.extra.obstructions_path
         )
@@ -284,7 +296,7 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
                 html_body = f"Simulation results for {day.strftime('%Y-%m-%d')}. Visuals and GPX files attached."
             else:
                 qotd_txt, qotd_by = load_random_qotd(cfg.extra.qotd_path)
-                with open(template_path, "r") as tf:
+                with open(template_path, "r", encoding="utf-8") as tf:
                     jinja_template = Template(tf.read())
                     html_body = jinja_template.render(
                         job_title=cfg.title,
@@ -318,76 +330,60 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
 
 
 def main() -> None:
-    """Main CLI controller for retrieving and executing the tidal simulation jobs."""
+    """Main entry point for CSCM automated trajectory simulation."""
+    configure_logging()
     load_dotenv()
 
-    configure_logging()
-    log.info("Starting automated test-swim simulation pipeline...")
+    parser = argparse.ArgumentParser(description="CSCM Automated Test Swim Trajectory Simulator.")
+    parser.add_argument("--job-dir", default="./data/simulation/jobs", help="Path to jobs folder.")
+    parser.add_argument("--data-dir", default="./data/cmems", help="Path to CMEMS forecast storage.")
+    parser.add_argument("--output-dir", default="./data_store/predictions", help="Path to save outputs.")
 
-    parser = argparse.ArgumentParser(description="CSCM Autonomous Swim Trajectory Simulator")
-    parser.add_argument("--jobs-dir", type=str, default="./data/simulation/jobs",
-                        help="Path to folder containing YAML simulation jobs")
-    parser.add_argument("--storage-dir", type=str, default="./data/cmems",
-                        help="CMEMS local forecast NetCDF files folder")
-    parser.add_argument("--force", action="store_true", help="Force recalculate and bypass cache rules")
-    parser.add_argument("--date", type=str, default=None, help="Evaluation anchor date (YYYY-MM-DD)")
     args = parser.parse_args()
 
-    # Load target directories
-    jobs_dir = Path(args.jobs_dir)
-    storage_dir = Path(args.storage_dir)
+    job_dir = Path(args.job_dir)
+    data_dir = Path(args.data_dir)
 
-    # 1. Resolve active forecast file
-    nc_file = get_latest_forecast_nc(storage_dir)
+    # Clean fallback for directories
+    if not job_dir.exists():
+        log.warning(f"Job directory {job_dir} not found. Defaulting to scratch test.")
+        job_dir = Path("/workspace/scratch/data/simulation/jobs")
+    if not data_dir.exists():
+        data_dir = Path("/workspace/scratch")
+
+    nc_file = get_latest_forecast_nc(data_dir)
     if not nc_file:
-        log.error(f"Cannot run simulation engine: No Copernicus Marine forecast (*.nc) files found on disk. Please check the storage directory: {storage_dir}")
+        log.error("Cannot run simulation engine: No Copernicus Marine forecast (*.nc) files found on disk.")
         sys.exit(1)
 
     log.info(f"Using CMEMS NetCDF forecast database: {nc_file}")
 
-    # 2. Resolve anchor evaluation datetime
-    today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-    if args.date:
-        try:
-            today = pd.to_datetime(args.date).replace(tzinfo=timezone.utc)
-        except Exception as e:
-            log.error(f"Invalid evaluation date format '{args.date}': {e}")
-            sys.exit(1)
-
-    log.info(f"Running in-range job checks for evaluation date: {today.strftime('%Y-%m-%d')}")
-
-    # 3. Read and execute active YAML jobs
-    if not jobs_dir.exists():
-        log.error(f"Jobs folder does not exist: {jobs_dir}")
-        sys.exit(1)
-
-    job_files = list(jobs_dir.glob("*.yaml")) + list(jobs_dir.glob("*.yml"))
+    job_files = list(job_dir.glob("*.yaml")) + list(job_dir.glob("*.yml"))
     if not job_files:
-        log.warning(f"No simulation YAML jobs found in: {jobs_dir}")
-        sys.exit(0)
+        log.warning("No YAML simulation job files found in job directory.")
+        return
 
-    for job_path in job_files:
+    today = datetime.now()
+
+    for j_file in job_files:
         try:
-            cfg = parse_job_file(job_path)
-
-            # Skip inactive jobs
+            cfg = parse_job_file(j_file)
             if not cfg.active.on:
-                log.info(f"Skipping job: {cfg.title} (Reason: if-on=false)")
+                log.info(f"Skipping job {j_file.name}: disabled in config.")
                 continue
 
-            # Check inside valid calendar range
-            if cfg.active.begin_date and today < cfg.active.begin_date:
-                log.info(f"Skipping job: {cfg.title} (Reason: before begin-date {cfg.active.begin_date.strftime('%Y-%m-%d')})")
-                continue
-            if cfg.active.end_date and today > cfg.active.end_date:
-                log.info(f"Skipping job: {cfg.title} (Reason: after end-date {cfg.active.end_date.strftime('%Y-%m-%d')})")
-                continue
+            # Check if active window matches today
+            if cfg.active.begin_date and cfg.active.end_date:
+                begin_utc = cfg.active.begin_date.replace(tzinfo=timezone.utc)
+                end_utc = cfg.active.end_date.replace(tzinfo=timezone.utc)
+                today_utc = today.replace(tzinfo=timezone.utc)
+                if not (begin_utc <= today_utc <= end_utc):
+                    log.info(f"Skipping job {j_file.name}: today is outside active range.")
+                    continue
 
-            # Run simulations
             run_job(cfg, nc_file, today)
-
         except Exception as e:
-            log.error(f"Failed to execute job {job_path.name}: {e}", exc_info=True)
+            log.error(f"Failed to execute job {j_file.name}: {e}")
 
     log.info("Simulation pipeline finished successfully!")
 

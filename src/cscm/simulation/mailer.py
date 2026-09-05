@@ -8,7 +8,7 @@ from email.mime.image import MIMEImage
 from email import encoders
 from pathlib import Path
 from logging import getLogger
-from typing import Optional
+from typing import Optional, List
 import smtplib
 from tempfile import NamedTemporaryFile
 
@@ -16,15 +16,15 @@ log = getLogger(__name__)
 
 
 def send_simulation_email(
-    to_list: list[str],
+    to_list: List[str],
     subject: str,
     html_body: str,
     overview_map_path: Optional[Path] = None,
-    attachment_paths: Optional[list[Path]] = None
+    attachment_paths: Optional[List[Path]] = None
 ) -> None:
     """
-    Sends an HTML formatted simulation update email with inline CID-linked image embedding
-    and attachments over local SMTP relay or credentials-authenticated Google Mail server.
+    Sends simulation HTML reports with CID embedded overview map and GPX attachments.
+    Uses local SMTP relay configurations from .env.
     """
     smtp_host = os.environ.get("SMTP_HOST")
 
@@ -38,84 +38,60 @@ def send_simulation_email(
         log.info(f"email-html message saved to {tempfile.name} for manual evaluation.")
         return
 
-    try:
-        smtp_port = int(os.environ.get("SMTP_PORT", "25"))
-    except ValueError:
-        smtp_port = 25
-
+    smtp_port_str = os.environ.get("SMTP_PORT", "25")
     smtp_user = os.environ.get("SMTP_USER")
     smtp_pass = os.environ.get("SMTP_PASS")
+    smtp_port = int(smtp_port_str)
 
-    msg = MIMEMultipart("related")
+    msg = MIMEMultipart("mixed")
     msg["Subject"] = subject
-    msg["From"] = os.environ.get("SMTP_FROM", "cscm-simulator@example.org")
+    msg["From"] = os.environ.get("SMTP_FROM", "me@example.org")
     msg["To"] = ", ".join(to_list)
 
-    # HTML Body Container
+    # Alternate part for HTML body and inline images
     msg_alternative = MIMEMultipart("alternative")
     msg.attach(msg_alternative)
 
-    # Plain text fallback
-    plain_text = "Goeiemorgen, hierbij de nieuwste update van de getijden- en trajectsimulaties."
-    msg_alternative.attach(MIMEText(plain_text, "plain", "utf-8"))
+    # Attach HTML
+    msg_html = MIMEText(html_body, "html", "utf-8")
+    msg_alternative.attach(msg_html)
 
-    # HTML body
-    msg_alternative.attach(MIMEText(html_body, "html", "utf-8"))
-
-    # Inline Overview Map Embedding
+    # Embed overview image using Content-ID (CID) if present
     if overview_map_path and overview_map_path.exists():
         try:
             with open(overview_map_path, "rb") as img_f:
                 msg_img = MIMEImage(img_f.read())
                 msg_img.add_header("Content-ID", "<overview>")
                 msg_img.add_header("Content-Disposition", "inline", filename=overview_map_path.name)
-                msg.attach(msg_img)
+                msg_alternative.attach(msg_img)
                 log.info(f"Embedded overview chart inline: {overview_map_path.name}")
         except Exception as e:
-            log.error(f"Failed to embed inline image {overview_map_path.name}: {e}")
+            log.warning(f"Could not inline embed overview image {overview_map_path}: {e}")
 
-    # Standard MIME Attachments (e.g., GPX tracks)
+    # Attach GPX or other binary files
     if attachment_paths:
-        for p in attachment_paths:
-            if p.exists():
+        for a_path in attachment_paths:
+            if a_path.exists():
                 try:
-                    with open(p, "rb") as f:
+                    with open(a_path, "rb") as f:
                         part = MIMEBase("application", "octet-stream")
                         part.set_payload(f.read())
                         encoders.encode_base64(part)
                         part.add_header(
                             "Content-Disposition",
-                            f"attachment; filename={p.name}"
+                            f"attachment; filename={a_path.name}"
                         )
                         msg.attach(part)
-                        log.info(f"Attached GPX file: {p.name}")
+                        log.info(f"Attached GPX file: {a_path.name}")
                 except Exception as e:
-                    log.error(f"Failed to attach file {p.name}: {e}")
+                    log.warning(f"Could not attach file {a_path}: {e}")
 
     # SMTP Transmission block
     log.info(f"Connecting to SMTP relay server at {smtp_host}:{smtp_port}...")
-    try:
-        # Use SSL/TLS port 465 or standard 25/587 port with STARTTLS
-        if smtp_port == 465:
-            server = smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=15)
-        else:
-            server = smtplib.SMTP(smtp_host, smtp_port, timeout=15)
-
-        # SMTP EHLO & STARTTLS handshake
-        if smtp_port == 587 or smtp_port == 25:
-            try:
-                server.starttls()
-            except Exception as e:
-                # Local open SMTP relays do not require TLS
-                log.warning(f"STARTTLS handshake skipped or failed: {e}")
-
+    with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
         if smtp_user and smtp_pass:
+            log.info(f"Authenticating SMTP session for user: {smtp_user}...")
             server.login(smtp_user, smtp_pass)
 
         server.sendmail(msg["From"], to_list, msg.as_string())
-        server.quit()
-        log.info("Email transmitted successfully!")
-    except Exception as e:
-        log.error(f"Failed to transmit email via SMTP relay {smtp_host}:{smtp_port}: {e}")
-        # Re-raise so simulation supervisor is informed of transport issues
-        raise e
+        log.info(f"Successfully sent simulation report email to: {', '.join(to_list)}")

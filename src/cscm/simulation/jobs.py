@@ -4,7 +4,7 @@ import os
 from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, List
 import yaml
 import pandas as pd
 
@@ -25,7 +25,7 @@ class JobCalcConfig:
     from_pos: Position
     bearing_deg: float
     duration_hours: float
-    start_time_detect: Optional[list[str]] = None  # "pec", "pfc", etc.
+    start_time_detect: Optional[List[str]] = None  # "pec", "pfc", etc.
     start_time_exact: Optional[datetime] = None
     detect_in_range_local: Optional[tuple[str, str]] = None  # ("05:00", "17:00")
 
@@ -39,7 +39,7 @@ class JobExtraConfig:
 
 @dataclass
 class JobMailConfig:
-    to_list: list[str] = field(default_factory=list)
+    to_list: List[str] = field(default_factory=list)
     subject_template: str = ""
     template_path: Optional[Path] = None
     attach_mode: str = "all"  # "all", "overview", "gpx", "none"
@@ -58,34 +58,53 @@ class JobConfig:
     title: str
     active: JobActiveConfig
     date_range_expr: str  # e.g., "1d,+5d"
-    calculations: list[JobCalcConfig] = field(default_factory=list)
+    calculations: List[JobCalcConfig] = field(default_factory=list)
     extra: JobExtraConfig = field(default_factory=JobExtraConfig)
     results: Optional[JobResultsConfig] = None
 
 
+def format_yaml_time(val) -> str:
+    """Robustly formats a YAML parsed time (which can be sexagesimal int/float or str) to HH:MM format."""
+    if val is None:
+        return "00:00"
+    if isinstance(val, (int, float)):
+        # YAML 1.1 parses sexagesimal like '05:00' as integers representing seconds or minutes from midnight
+        total_seconds = int(val)
+        # If it's small (e.g. under 1440), it might be minutes; if larger, seconds
+        if total_seconds < 1440:
+            hrs = total_seconds // 60
+            mins = total_seconds % 60
+        else:
+            total_minutes = total_seconds // 60
+            hrs = total_minutes // 60
+            mins = total_minutes % 60
+        return f"{hrs:02d}:{mins:02d}"
+    return str(val).strip()
+
+
 def parse_time_range(range_str: str) -> tuple[str, str]:
     """Parses a time range string like '05:00-17:00' into a tuple of start and end hours."""
-    parts = range_str.split("-")
+    parts = str(range_str).split("-")
     if len(parts) == 2:
-        return parts[0].strip(), parts[1].strip()
+        return format_yaml_time(parts[0].strip()), format_yaml_time(parts[1].strip())
     return "00:00", "23:59"
 
 
 def parse_job_file(job_yaml_path: Path) -> JobConfig:
     """Parses a YAML simulation job file and builds a validated JobConfig structure."""
-    with open(job_yaml_path, "r") as f:
+    with open(job_yaml_path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
     # 1. Active Config
     active_raw = data.get("active", {})
     on = active_raw.get("if-on", True)
-    range_raw = active_raw.get("if-now-in-range", {})
+    nw_range = active_raw.get("if-now-in-range", {})
     begin_dt = None
     end_dt = None
-    if range_raw.get("begin"):
-        begin_dt = pd.to_datetime(range_raw["begin"]).replace(tzinfo=timezone.utc)
-    if range_raw.get("end"):
-        end_dt = pd.to_datetime(range_raw["end"]).replace(tzinfo=timezone.utc)
+    if nw_range.get("begin"):
+        begin_dt = pd.to_datetime(nw_range["begin"]).replace(tzinfo=timezone.utc)
+    if nw_range.get("end"):
+        end_dt = pd.to_datetime(nw_range["end"]).replace(tzinfo=timezone.utc)
 
     active_cfg = JobActiveConfig(on=on, begin_date=begin_dt, end_date=end_dt)
 
@@ -121,8 +140,8 @@ def parse_job_file(job_yaml_path: Path) -> JobConfig:
                 in_range_local = parse_time_range(range_str)
             elif isinstance(detect_raw, str):
                 detect_type = [detect_raw.strip().lower()]
-                earliest = start_time_raw.get("earliest", "00:00")
-                latest = start_time_raw.get("latest", "23:59")
+                earliest = format_yaml_time(start_time_raw.get("earliest", "00:00"))
+                latest = format_yaml_time(start_time_raw.get("latest", "23:59"))
                 in_range_local = (earliest, latest)
         elif isinstance(start_time_raw, str):
             exact_time = pd.to_datetime(start_time_raw).replace(tzinfo=timezone.utc)

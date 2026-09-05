@@ -17,7 +17,8 @@ from shapely.geometry import Point, Polygon, MultiPolygon
 import shapely.wkt
 
 from cscm.model import Position
-from cscm.current.cmems.analyse import project_to_principal_axis
+from cscm.current.cmems.analyse import calculate_grid_principal_angles, project_to_principal_axis
+from cscm.simulation.jobs import JobCalcConfig
 
 # Set up logger
 log = getLogger(__name__)
@@ -56,6 +57,7 @@ class CmemsForecastCurrentsModel:
             return 0.0, 0.0
 
         try:
+            # Squeeze and slice for speed if dataset is huge, but interp on the 3D grid is clean
             point_ds = self.ds.interp(
                 {self.lat_col: position.lat, self.lon_col: position.lon, 'time': moment_np},
                 method='linear'
@@ -110,7 +112,7 @@ def find_daily_tide_peaks(
     major_vector = eigenvectors[:, major_idx]
     angle_rad = np.arctan2(major_vector[1], major_vector[0])
 
-    # Align \"Oostwaartse Vloed\"
+    # Align "Oostwaartse Vloed"
     if np.cos(angle_rad) < 0 or (np.isclose(np.cos(angle_rad), 0) and np.sin(angle_rad) < 0):
         angle_rad += np.pi
     angle_rad = angle_rad % (2 * np.pi)
@@ -130,23 +132,23 @@ def find_daily_tide_peaks(
         if np.isnan(v_prev) or np.isnan(v_curr) or np.isnan(v_next):
             continue
 
-        # Local Maximum (Max Flood -> PVS / PFC)
+        # Local Maximum (Max Flood -> High Water Start / PFC)
         if v_prev < v_curr > v_next and v_curr > min_peak_threshold:
             peak_time = pd.to_datetime(times[t_idx]).replace(tzinfo=timezone.utc)
             if start_time <= peak_time <= end_time:
                 detected_peaks.append({
                     "time": peak_time,
-                    "type": "PFC",  # Peak Flood Current (PVS)
+                    "type": "PFC",  # Peak Flood Current
                     "velocity_mps": v_curr
                 })
 
-        # Local Minimum (Max Eb -> PES / PEC)
+        # Local Minimum (Max Eb -> Low Water Start / PEC)
         elif v_prev > v_curr < v_next and v_curr < -min_peak_threshold:
             peak_time = pd.to_datetime(times[t_idx]).replace(tzinfo=timezone.utc)
             if start_time <= peak_time <= end_time:
                 detected_peaks.append({
                     "time": peak_time,
-                    "type": "PEC",  # Peak Eb Current (PES)
+                    "type": "PEC",  # Peak Eb Current
                     "velocity_mps": v_curr
                 })
 
@@ -240,35 +242,36 @@ def write_gpx_track(df: pd.DataFrame, track_name: str, output_path: Path) -> Non
 
 
 def plot_daily_simulations(
-    df_list: list[tuple[pd.DataFrame, str, datetime]],
+    df_list: list[tuple[pd.DataFrame, str, datetime, JobCalcConfig]],
     day_label: str,
     output_path: Path,
     status_mask: np.ndarray,
     lats: np.ndarray,
     lons: np.ndarray,
+    model: CmemsForecastCurrentsModel,
     mussel_farm_wkt: Optional[str] = None,
     coastline_wkt_path: Optional[Path] = None,
     obstructions_wkt_path: Optional[Path] = None
 ) -> None:
     """
     Generates a beautiful daily map plot showing the 4 test swim trajectories
-    overlaid on the model's grid coastline contour and Colruyt mussel farm.
-    Auto-zooms to the bounding box of the trajectories + 500m outset buffer.
+    overlaid on the model's grid coastline contour and custom WKT layers.
+    Auto-zooms to the bounding box of the trajectories + 1500m outset buffer.
     """
     plt.figure(figsize=(11, 10))
 
     # Calculate trajectories bounding box
     all_lats = []
     all_lons = []
-    for df, _, _ in df_list:
+    for df, _, _, _ in df_list:
         all_lats.extend(df['lat'].values)
         all_lons.extend(df['lon'].values)
 
     min_lat, max_lat = min(all_lats), max(all_lats)
     min_lon, max_lon = min(all_lons), max(all_lons)
 
-    # Outset buffer of 500m (approx 0.005 degrees latitude/longitude)
-    buffer_deg = 0.005
+    # Outset buffer of 1500m (approx 0.0135 degrees latitude/longitude)
+    buffer_deg = 0.0135
     map_min_lat = min_lat - buffer_deg
     map_max_lat = max_lat + buffer_deg
     map_min_lon = min_lon - buffer_deg
@@ -331,21 +334,22 @@ def plot_daily_simulations(
         except Exception as e:
             log.warning(f"Failed to render custom obstructions CSV: {e}")
 
-    # 4. Trajectory Plotting
+    # 4. Trajectory Plotting with Dead Reckoning Course and Start Current Arrow
     styles = {
         "PFC": {"color": "royalblue", "label": "PVS (Vloed)"},
         "PEC": {"color": "forestgreen", "label": "PES (Eb)"}
     }
 
-    for idx, (df, tide_type, start_dt) in enumerate(df_list):
+    for idx, (df, tide_type, start_dt, calc_cfg) in enumerate(df_list):
         style = styles.get(tide_type, {"color": "gray", "label": tide_type})
         line_style = "-" if idx % 2 == 0 else "--"
 
         # Display time in CEST (local time window)
-        local_dt = start_dt + timedelta(hours=2)   # TODO - fix this quickhack more elegantly with pytz or zoneinfo
+        local_dt = start_dt + timedelta(hours=2)
         local_time_str = local_dt.strftime('%H:%M')
         label = f"{style['label']} ({local_time_str} CEST, max {df.iloc[-1]['v_magnitude']:.2f} m/s)"
 
+        # Plot full trajectory
         plt.plot(df['lon'], df['lat'], color=style["color"], linestyle=line_style,
                  linewidth=2.2, label=label, zorder=6)
 
@@ -355,11 +359,55 @@ def plot_daily_simulations(
                      xytext=(df.iloc[mid_idx]['lon'], df.iloc[mid_idx]['lat']),
                      arrowprops=dict(arrowstyle="->", color=style["color"], lw=2.2), zorder=7)
 
-    # Plot Koksijde start point marker (Gold Star)
-    plt.scatter(2.62575, 51.11940, color='gold', edgecolor='black', s=200, marker='*',
-                label="Koksijde Start Post 4", zorder=8)
+        # Plot thin straight dotted line for dead reckoning course (intended swim path)
+        start_lat = df.iloc[0]['lat']
+        start_lon = df.iloc[0]['lon']
+        duration_s = calc_cfg.duration_hours * 3600.0
+        bearing_rad = math.radians(calc_cfg.bearing_deg)
 
-    # Focus map limits tightly on the berekende trajectories window + 500m buffer
+        # Swimmer speed is 1.0 m/s
+        v_swimmer_east = 1.0 * math.sin(bearing_rad)
+        v_swimmer_north = 1.0 * math.cos(bearing_rad)
+
+        delta_lat_dr = (v_swimmer_north * duration_s) / 111132.0
+        delta_lon_dr = (v_swimmer_east * duration_s) / (111132.0 * math.cos(math.radians(start_lat)))
+
+        end_lat = start_lat + delta_lat_dr
+        end_lon = start_lon + delta_lon_dr
+
+        plt.plot([start_lon, end_lon], [start_lat, end_lat],
+                 color="black", linestyle=":", linewidth=1.1, alpha=0.55,
+                 label="Intended Course (Dead Reckoning)" if idx == 0 else "", zorder=4)
+
+        # Plot start-current vector arrow from the midpoint of the dead reckoning line
+        mid_lat = start_lat + 0.5 * delta_lat_dr
+        mid_lon = start_lon + 0.5 * delta_lon_dr
+
+        # Fetch the physical current vector at start moment (at start position)
+        u_c, v_c = model.get_current_vector(Position(start_lat, start_lon), start_dt)
+        start_speed = math.sqrt(u_c**2 + v_c**2)
+
+        # Scale arrow length based on half tidal cycle period: 6.21 hours = 22356 seconds
+        half_tide_s = 22356.0
+        delta_lat_stroom = (v_c * half_tide_s) / 111132.0
+        delta_lon_stroom = (u_c * half_tide_s) / (111132.0 * math.cos(math.radians(mid_lat)))
+
+        if start_speed > 0.01:  # Only render arrow if currents are non-negligible
+            plt.quiver(mid_lon, mid_lat, delta_lon_stroom, delta_lat_stroom,
+                       angles='xy', scale_units='xy', scale=1,
+                       color=style["color"], width=0.0035, headwidth=4, headlength=5, zorder=7,
+                       label=f"Start Tide Vector ({tide_type})" if idx <= 1 else "")
+
+    # Plot start point marker dynamically based on __str__() label of LabeledPosition
+    first_calc = df_list[0][3]
+    start_label = str(first_calc.from_pos)
+    start_lon = first_calc.from_pos.lon
+    start_lat = first_calc.from_pos.lat
+
+    plt.scatter(start_lon, start_lat, color='gold', edgecolor='black', s=200, marker='*',
+                label=start_label, zorder=8)
+
+    # Focus map limits tightly on berekende trajectories window + 1500m buffer
     plt.xlim(map_min_lon, map_max_lon)
     plt.ylim(map_min_lat, map_max_lat)
 

@@ -178,15 +178,15 @@ class CMEMSDataManager:
         )
 
         lat_extend: cmems.GeographicalExtent = [
-            ext for ext in cmems_meta.coordinates_extent 
+            ext for ext in cmems_meta.coordinates_extent
             if isinstance(ext, cmems.GeographicalExtent) and ext.coordinate_id == 'latitude'
         ][0]
         lon_extend: cmems.GeographicalExtent = [
-            ext for ext in cmems_meta.coordinates_extent 
+            ext for ext in cmems_meta.coordinates_extent
             if isinstance(ext, cmems.GeographicalExtent) and ext.coordinate_id == 'longitude'
         ][0]
         dt_extend: cmems.TimeExtent = [
-            ext for ext in cmems_meta.coordinates_extent 
+            ext for ext in cmems_meta.coordinates_extent
             if isinstance(ext, cmems.TimeExtent)
         ][0]
 

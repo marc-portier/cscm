@@ -51,9 +51,11 @@ def _cmems_start_date() -> datetime:
 def _cmems_max_date() -> datetime:
     """
     Returns the maximum date for Copernicus CMEMS data retrieval.
-    This is 7 days from `now()` (in UTC time, rounded to the start of the day)
+    This is 6 days from `now()` (in UTC time, rounded to the start of the day)
+
+    Note: cmems promises 7 - but by pulling only 6 we are sure we never cross boundaries by accident.
     """
-    return datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=7)
+    return datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=6)
 
 
 def _cmems_end_date() -> datetime:

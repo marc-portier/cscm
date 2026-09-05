@@ -45,12 +45,22 @@ class JobMailConfig:
     attach_mode: str = "all"  # "all", "overview", "gpx", "none"
 
 
+COLOR_DEFAULTS = ["royalblue", "forestgreen", "orange", "purple", "crimson", "gold", "magenta", "cyan", "red", "gray"]
+
+
+@dataclass
+class JobColorsConfig:
+    actuals: List[str] = field(default_factory=lambda: COLOR_DEFAULTS)
+    spines: List[str] = field(default_factory=lambda: COLOR_DEFAULTS)
+
+
 @dataclass
 class JobResultsConfig:
     output_folder_template: str = ""
     overview_file_template: str = ""
     gpx_file_template: str = ""
     mail: Optional[JobMailConfig] = None
+    colors: Optional[JobColorsConfig] = None
 
 
 @dataclass
@@ -186,11 +196,25 @@ def parse_job_file(job_yaml_path: Path) -> JobConfig:
                 attach_mode=mail_raw.get("attach", "all")
             )
 
+        # Parse colors configuration
+        colors_raw = results_raw.get("colors", {})
+        colors_cfg = None
+        if colors_raw:
+            actuals_raw = colors_raw.get("actuals")
+            spines_raw = colors_raw.get("spines")
+            colors_cfg = JobColorsConfig(
+                actuals=actuals_raw if actuals_raw else JobColorsConfig().actuals,
+                spines=spines_raw if spines_raw else JobColorsConfig().spines
+            )
+        else:
+            colors_cfg = JobColorsConfig()
+
         results_cfg = JobResultsConfig(
             output_folder_template=results_raw.get("folder", ""),
             overview_file_template=results_raw.get("files", {}).get("overview", ""),
             gpx_file_template=results_raw.get("files", {}).get("gpx", ""),
-            mail=mail_cfg
+            mail=mail_cfg,
+            colors=colors_cfg
         )
 
     date_expr = data.get("date", {}).get("range", "1d,+5d")

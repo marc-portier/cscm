@@ -5,7 +5,7 @@ import math
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from logging import getLogger
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 import numpy as np
 import pandas as pd
@@ -17,11 +17,16 @@ from shapely.geometry import Point, Polygon, MultiPolygon
 import shapely.wkt
 
 from cscm.model import Position
-from cscm.current.cmems.analyse import calculate_grid_principal_angles, project_to_principal_axis
-from cscm.simulation.jobs import JobCalcConfig
+from cscm.current.cmems.analyse import classify_grid_cells, project_to_principal_axis
+
 
 # Set up logger
 log = getLogger(__name__)
+
+# Colruyt mussel farm WKT placeholder - can be overridden by user
+MOSSELKWEKERIJ_WKT = (
+    "POLYGON ((2.6420 51.1300, 2.6850 51.1350, 2.6710 51.1550, 2.6280 51.1500, 2.6420 51.1300))"
+)
 
 
 class CmemsForecastCurrentsModel:
@@ -112,7 +117,7 @@ def find_daily_tide_peaks(
     major_vector = eigenvectors[:, major_idx]
     angle_rad = np.arctan2(major_vector[1], major_vector[0])
 
-    # Align "Oostwaartse Vloed"
+    # Align \"Oostwaartse Vloed\"
     if np.cos(angle_rad) < 0 or (np.isclose(np.cos(angle_rad), 0) and np.sin(angle_rad) < 0):
         angle_rad += np.pi
     angle_rad = angle_rad % (2 * np.pi)
@@ -175,7 +180,7 @@ def simulate_test_swim(
     trajectory = []
     heading_rad = math.radians(heading_deg)
 
-    # Swimmer intrinsic speed: 1.0 m/s (from wellknown SWIMMERS)
+    # Intrinsic swimmer speed (1.0 m/s as defined in the plan)
     v_swimmer_east = 1.0 * math.sin(heading_rad)
     v_swimmer_north = 1.0 * math.cos(heading_rad)
 
@@ -192,14 +197,15 @@ def simulate_test_swim(
             "v_magnitude": math.sqrt(u_c**2 + v_c**2)
         })
 
+        # Don't step coordinate at the final point
         if elapsed >= duration_sec:
             break
 
-        # Combined movement components
+        # Calculate combined movement components
         v_eff_east = v_swimmer_east + u_c
         v_eff_north = v_swimmer_north + v_c
 
-        # WGS84 degree offsets
+        # WGS84 physical degree offsets
         delta_lat = v_eff_north * time_step_sec / 111132.0
         delta_lon = v_eff_east * time_step_sec / (111132.0 * math.cos(math.radians(current_pos.lat)))
 
@@ -227,7 +233,7 @@ def write_gpx_track(df: pd.DataFrame, track_name: str, output_path: Path) -> Non
      xmlns='http://www.topografix.com/GPX/1/1'>
   <metadata>
     <name>{track_name}</name>
-    <desc>Simulated 6h Coast Swim Track from Koksijde</desc>
+    <desc>Simulated 6h Coast Swim Track</desc>
   </metadata>
   <trk>
     <name>{track_name}</name>
@@ -242,7 +248,7 @@ def write_gpx_track(df: pd.DataFrame, track_name: str, output_path: Path) -> Non
 
 
 def plot_daily_simulations(
-    df_list: list[tuple[pd.DataFrame, str, datetime, JobCalcConfig]],
+    df_list: list,
     day_label: str,
     output_path: Path,
     status_mask: np.ndarray,
@@ -251,11 +257,12 @@ def plot_daily_simulations(
     model: CmemsForecastCurrentsModel,
     mussel_farm_wkt: Optional[str] = None,
     coastline_wkt_path: Optional[Path] = None,
-    obstructions_wkt_path: Optional[Path] = None
+    obstructions_wkt_path: Optional[Path] = None,
+    colors_cfg: Optional[object] = None
 ) -> None:
     """
-    Generates a beautiful daily map plot showing the 4 test swim trajectories
-    overlaid on the model's grid coastline contour and custom WKT layers.
+    Generates a beautiful daily map plot showing the test swim trajectories
+    overlaid with a Visgraat (fishbone) representation of tidal vectors along the intended course.
     Auto-zooms to the bounding box of the trajectories + 1500m outset buffer.
     """
     plt.figure(figsize=(11, 10))
@@ -279,7 +286,7 @@ def plot_daily_simulations(
 
     # 1. Background Grid Plotting
     # Status levels: 0: Land (brown), 1: Boundary (grey), 2: Water (blue)
-    cmap = matplotlib.colors.ListedColormap(['#8B4513', '#C0C0C0', '#E0F7FA'])
+    cmap = matplotlib.colors.ListedColormap(['  #8B4513', '#C0C0C0', '#E0F7FA'])
     plt.pcolormesh(lons, lats, status_mask, cmap=cmap, shading='auto', alpha=0.15, zorder=1)
     plt.contour(lons, lats, status_mask, levels=[0.5, 1.5], colors='black', linewidths=0.5, alpha=0.3, zorder=2)
 
@@ -300,7 +307,7 @@ def plot_daily_simulations(
 
                         for poly in polys:
                             x, y = poly.exterior.xy
-                            plt.fill(x, y, color='#8B4513', alpha=0.45, zorder=3)
+                            plt.fill(x, y, color='  #8B4513', alpha=0.45, zorder=3)
                             plt.plot(x, y, color='black', linewidth=1.2, zorder=4)
                     else:
                         # Draw Linestring stroke
@@ -310,7 +317,7 @@ def plot_daily_simulations(
         except Exception as e:
             log.warning(f"Could not load custom coastline WKT: {e}")
 
-    # 3. Obstructions WKT Plotting (from File or Default Mussel Farm)
+    # 3. Obstructions WKT Plotting
     has_custom_obstructions = False
     if obstructions_wkt_path and obstructions_wkt_path.exists():
         try:
@@ -334,71 +341,92 @@ def plot_daily_simulations(
         except Exception as e:
             log.warning(f"Failed to render custom obstructions CSV: {e}")
 
-    # 4. Trajectory Plotting with Dead Reckoning Course and Start Current Arrow
-    styles = {
+    # 4. Trajectory Plotting with Fishbone (Visgraat)
+    default_styles = {
         "PFC": {"color": "royalblue", "label": "PVS (Vloed)"},
         "PEC": {"color": "forestgreen", "label": "PES (Eb)"}
     }
 
     for idx, (df, tide_type, start_dt, calc_cfg) in enumerate(df_list):
-        style = styles.get(tide_type, {"color": "gray", "label": tide_type})
-        line_style = "-" if idx % 2 == 0 else "--"
+        # Determine sequence colors dynamically
+        if colors_cfg:
+            run_color = colors_cfg.actuals[idx % len(colors_cfg.actuals)]
+            spine_color = colors_cfg.spines[idx % len(colors_cfg.spines)] if colors_cfg.spines else run_color
+        else:
+            style = default_styles.get(tide_type, {"color": "gray"})
+            run_color = style["color"]
+            spine_color = "gold" if tide_type == "PFC" else "magenta"
 
-        # Display time in CEST (local time window)
+        line_style = "-" if idx % 2 == 0 else "--"
+        label_tide = "PVS (Vloed)" if tide_type == "PFC" else "PES (Eb)" if tide_type == "PEC" else tide_type
+
+        # Local time formatting (CEST UTC+2)
         local_dt = start_dt + timedelta(hours=2)
         local_time_str = local_dt.strftime('%H:%M')
-        label = f"{style['label']} ({local_time_str} CEST, max {df.iloc[-1]['v_magnitude']:.2f} m/s)"
+        label = f"{label_tide} ({local_time_str} CEST, max {df.iloc[-1]['v_magnitude']:.2f} m/s)"
 
-        # Plot full trajectory
-        plt.plot(df['lon'], df['lat'], color=style["color"], linestyle=line_style,
+        # Plot full actual trajectory
+        plt.plot(df['lon'], df['lat'], color=run_color, linestyle=line_style,
                  linewidth=2.2, label=label, zorder=6)
 
-        # Swimmer's path vector direction annotation arrow
+        # Direction annotation arrow on the actual trajectory
         mid_idx = len(df) // 2
         plt.annotate("", xy=(df.iloc[mid_idx+1]['lon'], df.iloc[mid_idx+1]['lat']),
                      xytext=(df.iloc[mid_idx]['lon'], df.iloc[mid_idx]['lat']),
-                     arrowprops=dict(arrowstyle="->", color=style["color"], lw=2.2), zorder=7)
+                     arrowprops=dict(arrowstyle="->", color=run_color, lw=2.2), zorder=7)
 
-        # Plot thin straight dotted line for dead reckoning course (intended swim path)
+        # --- Visgraat backbone (Ruggengraat / Intended Course) ---
         start_lat = df.iloc[0]['lat']
         start_lon = df.iloc[0]['lon']
         duration_s = calc_cfg.duration_hours * 3600.0
         bearing_rad = math.radians(calc_cfg.bearing_deg)
 
-        # Swimmer speed is 1.0 m/s
+        # Intended swimmer speed is 1.0 m/s
         v_swimmer_east = 1.0 * math.sin(bearing_rad)
         v_swimmer_north = 1.0 * math.cos(bearing_rad)
 
+        # Plot intended backbone line
         delta_lat_dr = (v_swimmer_north * duration_s) / 111132.0
         delta_lon_dr = (v_swimmer_east * duration_s) / (111132.0 * math.cos(math.radians(start_lat)))
-
         end_lat = start_lat + delta_lat_dr
         end_lon = start_lon + delta_lon_dr
 
         plt.plot([start_lon, end_lon], [start_lat, end_lat],
-                 color="black", linestyle=":", linewidth=1.1, alpha=0.55,
-                 label="Intended Course (Dead Reckoning)" if idx == 0 else "", zorder=4)
+                 color=run_color, linestyle=":", linewidth=1.1, alpha=0.55,
+                 label="Intended Course (Backbone)" if idx == 0 else "", zorder=4)
 
-        # Plot start-current vector arrow from the midpoint of the dead reckoning line
-        mid_lat = start_lat + 0.5 * delta_lat_dr
-        mid_lon = start_lon + 0.5 * delta_lon_dr
+        # --- Visgraat ribs (Graten om de 15' = 900s) ---
+        interval_s = 900.0  # 15 minutes
+        num_intervals = int(duration_s / interval_s)
 
-        # Fetch the physical current vector at start moment (at start position)
-        u_c, v_c = model.get_current_vector(Position(start_lat, start_lon), start_dt)
-        start_speed = math.sqrt(u_c**2 + v_c**2)
+        rib_lons = []
+        rib_lats = []
+        rib_dlons = []
+        rib_dlats = []
 
-        # Scale arrow length based on half tidal cycle period: 6.21 hours = 22356 seconds
-        half_tide_s = 22356.0
-        delta_lat_stroom = (v_c * half_tide_s) / 111132.0
-        delta_lon_stroom = (u_c * half_tide_s) / (111132.0 * math.cos(math.radians(mid_lat)))
+        for k in range(1, num_intervals + 1):
+            elapsed_s = k * interval_s
+            lat_k = start_lat + (v_swimmer_north * elapsed_s) / 111132.0
+            lon_k = start_lon + (v_swimmer_east * elapsed_s) / (111132.0 * math.cos(math.radians(lat_k)))
 
-        if start_speed > 0.01:  # Only render arrow if currents are non-negligible
-            plt.quiver(mid_lon, mid_lat, delta_lon_stroom, delta_lat_stroom,
+            target_time = start_dt + timedelta(seconds=elapsed_s)
+            u_c, v_c = model.get_current_vector(Position(lat_k, lon_k), target_time)
+
+            # Rib stroomvector displacement over 15 minutes (900 seconds)
+            delta_lat_rib = (v_c * 900.0) / 111132.0
+            delta_lon_rib = (u_c * 900.0) / (111132.0 * math.cos(math.radians(lat_k)))
+
+            rib_lons.append(lon_k)
+            rib_lats.append(lat_k)
+            rib_dlons.append(delta_lon_rib)
+            rib_dlats.append(delta_lat_rib)
+
+        if rib_lons:
+            plt.quiver(rib_lons, rib_lats, rib_dlons, rib_dlats,
                        angles='xy', scale_units='xy', scale=1,
-                       color=style["color"], width=0.0035, headwidth=4, headlength=5, zorder=7,
-                       label=f"Start Tide Vector ({tide_type})" if idx <= 1 else "")
+                       color=spine_color, width=0.002, headwidth=3, headlength=4, zorder=5)
 
-    # Plot start point marker dynamically based on __str__() label of LabeledPosition
+    # Plot start point marker based on labeled positions str()
     first_calc = df_list[0][3]
     start_label = str(first_calc.from_pos)
     start_lon = first_calc.from_pos.lon
@@ -407,7 +435,7 @@ def plot_daily_simulations(
     plt.scatter(start_lon, start_lat, color='gold', edgecolor='black', s=200, marker='*',
                 label=start_label, zorder=8)
 
-    # Focus map limits tightly on berekende trajectories window + 1500m buffer
+    # Focus map limits
     plt.xlim(map_min_lon, map_max_lon)
     plt.ylim(map_min_lat, map_max_lat)
 

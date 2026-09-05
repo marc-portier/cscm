@@ -24,28 +24,33 @@ def send_simulation_email(
 ) -> None:
     """
     Sends simulation HTML reports with CID embedded overview map and GPX attachments.
-    Uses local SMTP relay configurations from .env.
+    Gracefully falls back to local HTML files if SMTP_HOST is not configured.
     """
     smtp_host = os.environ.get("SMTP_HOST")
-
     if not smtp_host:
         log.error("SMTP_HOST environment variable is not set. Cannot send email.")
         log.info("Please set SMTP_HOST in your .env file or environment variables to a valid SMTP relay host.")
-        # Save the HTML body to a tmp file for manual review
-        tempfile = NamedTemporaryFile(delete=False, suffix=".html", prefix="simulation_email_")
-        with open(tempfile.name, "w") as f:
-            f.write(html_body)
-        log.info(f"email-html message saved to {tempfile.name} for manual evaluation.")
+
+        # Save HTML to /tmp for manual evaluation if offline
+        try:
+            with NamedTemporaryFile(delete=False, suffix=".html", prefix="simulation_email_") as tf:
+                tf.write(html_body.encode("utf-8"))
+                log.info(f"email-html message saved to {tf.name} for manual evaluation.")
+        except Exception as e:
+            log.warning(f"Could not save fallback email HTML to /tmp: {e}")
         return
 
-    smtp_port_str = os.environ.get("SMTP_PORT", "25")
+    try:
+        smtp_port = int(os.environ.get("SMTP_PORT", "25"))
+    except ValueError:
+        smtp_port = 25
+
     smtp_user = os.environ.get("SMTP_USER")
     smtp_pass = os.environ.get("SMTP_PASS")
-    smtp_port = int(smtp_port_str)
 
     msg = MIMEMultipart("mixed")
     msg["Subject"] = subject
-    msg["From"] = os.environ.get("SMTP_FROM", "me@example.org")
+    msg["From"] = os.environ.get("SMTP_FROM", "cscm-simulator@localhost")
     msg["To"] = ", ".join(to_list)
 
     # Alternate part for HTML body and inline images

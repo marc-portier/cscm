@@ -46,15 +46,8 @@ def get_latest_forecast_nc(storage_dir: Path) -> Optional[Path]:
     nc_files = list(storage_dir.glob("*.nc"))
     if not nc_files:
         return None
-    # Returing file with latest modified time is not the same as latest forecast date.
-    # so we should opt for last namesorting only
-    # return max(nc_files, key=lambda f: f.stat().st_mtime)
-    sorted_files = sorted(nc_files, key=lambda f: f.name)
-    log.info(f"Found {len(sorted_files)} CMEMS NetCDF files in storage.")
-    log.info(f"checking sorted files at 0: {sorted_files[0].name}")
-    log.info(f"checking sorted files at -2: {sorted_files[-2].name}")
-    log.info(f"Using latest: {sorted_files[-1].name}")
-    return sorted(nc_files)[-1]  # Return the last file in sorted order
+    # Return file with latest alphabetical order (by forecast timestamp naming)
+    return sorted(nc_files)[-1]
 
 
 def parse_date_range_expr(expr: str, anchor_date: datetime) -> list[datetime]:
@@ -283,7 +276,8 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
             lons=lons,
             model=model,  # Pass the currents model!
             coastline_wkt_path=cfg.extra.coastline_path,
-            obstructions_wkt_path=cfg.extra.obstructions_path
+            obstructions_wkt_path=cfg.extra.obstructions_path,
+            colors_cfg=cfg.results.colors if cfg.results else None
         )
 
         # 4. SMTP HTML Email Dispatch
@@ -338,8 +332,44 @@ def main() -> None:
     parser.add_argument("--job-dir", default="./data/simulation/jobs", help="Path to jobs folder.")
     parser.add_argument("--data-dir", default="./data/cmems", help="Path to CMEMS forecast storage.")
     parser.add_argument("--output-dir", default="./data_store/predictions", help="Path to save outputs.")
+    parser.add_argument("--skip-update", action="store_true", help="Skip checking Copernicus CMEMS database download update.")
+    parser.add_argument("--cron-install", action="store_true", help="Generate a secure cron execution template in /tmp")
 
     args = parser.parse_args()
+
+    # Handle cron-install templates instantly
+    if args.cron_install:
+        project_root = Path(os.getcwd()).resolve()
+        cron_script_path = Path("/tmp/cscm_daily_prediction")
+        cron_content = f"""  #!/bin/bash
+# CSCM Daily Automated Prediction Cron Executable
+# Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+# Move to absolute project root directory
+cd {project_root}
+
+# Pull Copernicus live forecast updates and execute simulation jobs
+poetry run python -m cscm.simulation
+"""
+        with open(cron_script_path, "w", encoding="utf-8") as cf:
+            cf.write(cron_content)
+
+        try:
+            os.chmod(cron_script_path, 0o755)
+        except Exception:
+            pass
+
+        print("\n" + "="*80)
+        print(" CSCM CRON-INSTALL GENERATOR ")
+        print("="*80)
+        print(f"Daily cron executable template written successfully to: {cron_script_path}")
+        print("\nTo install this as an automated daily job on your Ubuntu server:")
+        print(f"  sudo mv {cron_script_path} /etc/cron.daily/cscm-prediction")
+        print("  sudo chown root:root /etc/cron.daily/cscm-prediction")
+        print("  sudo chmod +x /etc/cron.daily/cscm-prediction")
+        print("\nThis will run predictions autonomously at 03:00 every night (default daily trigger).")
+        print("="*80 + "\n")
+        sys.exit(0)
 
     job_dir = Path(args.job_dir)
     data_dir = Path(args.data_dir)
@@ -350,6 +380,21 @@ def main() -> None:
         job_dir = Path("/workspace/scratch/data/simulation/jobs")
     if not data_dir.exists():
         data_dir = Path("/workspace/scratch")
+
+    # Delay heavy imports so logging and dotenv are configured first
+    from cscm.current.cmems.retrieve import CMEMSDataManager
+
+    cmems_data_manager = CMEMSDataManager()
+
+    # Automatically fetch latest updates unless update is skipped
+    if args.skip_update:
+        log.info("Skipping Copernicus CMEMS database update checks as requested (--skip-update).")
+    else:
+        log.info("Checking Copernicus CMEMS data store for live forecast updates...")
+        try:
+            cmems_data_manager.update_cmems_data()
+        except Exception as e:
+            log.error(f"Failed to retrieve live forecast update: {e}")
 
     nc_file = get_latest_forecast_nc(data_dir)
     if not nc_file:

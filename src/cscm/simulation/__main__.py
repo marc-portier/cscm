@@ -47,6 +47,7 @@ def get_latest_forecast_nc(storage_dir: Path) -> Optional[Path]:
     if not nc_files:
         return None
     # Return file with latest alphabetical order (by forecast timestamp naming)
+    # mtime considered not reliable due to potential file system issues; rely on naming convention instead
     return sorted(nc_files)[-1]
 
 
@@ -150,7 +151,7 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
                         if status_mask[y, x] in (1, 2)
                     ]
 
-                valid_coords = np.array(valid_coords)
+                valid_coords = np.array(valid_coords).reshape(-1, 2)
 
                 # Snap de startpositie naar het dichtstbijzijnde open water
                 dists = (valid_coords[:, 0] - calc.from_pos.lat)**2 + (valid_coords[:, 1] - calc.from_pos.lon)**2
@@ -341,7 +342,7 @@ def main() -> None:
     if args.cron_install:
         project_root = Path(os.getcwd()).resolve()
         cron_script_path = Path("/tmp/cscm_daily_prediction")
-        cron_content = f"""  #!/bin/bash
+        cron_content = f"""#!/bin/bash
 # CSCM Daily Automated Prediction Cron Executable
 # Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 

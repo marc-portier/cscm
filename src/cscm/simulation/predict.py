@@ -18,6 +18,7 @@ import shapely.wkt
 
 from cscm.model import Position
 from cscm.current.cmems.analyse import classify_grid_cells, project_to_principal_axis
+from cscm.simulation.jobs import JobCalcConfig
 
 
 # Set up logger
@@ -117,7 +118,7 @@ def find_daily_tide_peaks(
     major_vector = eigenvectors[:, major_idx]
     angle_rad = np.arctan2(major_vector[1], major_vector[0])
 
-    # Align \"Oostwaartse Vloed\"
+    # Align "Oostwaartse Vloed"
     if np.cos(angle_rad) < 0 or (np.isclose(np.cos(angle_rad), 0) and np.sin(angle_rad) < 0):
         angle_rad += np.pi
     angle_rad = angle_rad % (2 * np.pi)
@@ -261,8 +262,8 @@ def plot_daily_simulations(
     colors_cfg: Optional[object] = None
 ) -> None:
     """
-    Generates a beautiful daily map plot showing the test swim trajectories
-    overlaid with a Visgraat (fishbone) representation of tidal vectors along the intended course.
+    Generates a beautiful daily map plot showing the test swim trajectories overlaid with a Visgraat (fishbone)
+    representation of tidal vectors along the intended course.
     Auto-zooms to the bounding box of the trajectories + 1500m outset buffer.
     """
     plt.figure(figsize=(11, 10))
@@ -286,7 +287,7 @@ def plot_daily_simulations(
 
     # 1. Background Grid Plotting
     # Status levels: 0: Land (brown), 1: Boundary (grey), 2: Water (blue)
-    cmap = matplotlib.colors.ListedColormap(['  #8B4513', '#C0C0C0', '#E0F7FA'])
+    cmap = matplotlib.colors.ListedColormap(['#8B4513', '#C0C0C0', '#E0F7FA'])
     plt.pcolormesh(lons, lats, status_mask, cmap=cmap, shading='auto', alpha=0.15, zorder=1)
     plt.contour(lons, lats, status_mask, levels=[0.5, 1.5], colors='black', linewidths=0.5, alpha=0.3, zorder=2)
 
@@ -307,7 +308,7 @@ def plot_daily_simulations(
 
                         for poly in polys:
                             x, y = poly.exterior.xy
-                            plt.fill(x, y, color='  #8B4513', alpha=0.45, zorder=3)
+                            plt.fill(x, y, color='#8B4513', alpha=0.45, zorder=3)
                             plt.plot(x, y, color='black', linewidth=1.2, zorder=4)
                     else:
                         # Draw Linestring stroke
@@ -363,7 +364,7 @@ def plot_daily_simulations(
         # Local time formatting (CEST UTC+2)
         local_dt = start_dt + timedelta(hours=2)
         local_time_str = local_dt.strftime('%H:%M')
-        label = f"{label_tide} ({local_time_str} CEST, max {df.iloc[-1]['v_magnitude']:.2f} m/s)"
+        label = f"{label_tide} ({local_time_str} CEST)"
 
         # Plot full actual trajectory
         plt.plot(df['lon'], df['lat'], color=run_color, linestyle=line_style,
@@ -395,6 +396,36 @@ def plot_daily_simulations(
                  color=run_color, linestyle=":", linewidth=1.1, alpha=0.55,
                  label="Intended Course (Backbone)" if idx == 0 else "", zorder=4)
 
+        # Plot details along the backbone line
+        mid_lat_dr = start_lat + 0.5 * delta_lat_dr
+        mid_lon_dr = start_lon + 0.5 * delta_lon_dr
+
+        # Calculate rotation angle for text (in matplotlib, CCW from horizontal)
+        text_angle = math.degrees(math.atan2(v_swimmer_north, v_swimmer_east))
+        if text_angle > 90 or text_angle < -90:
+            text_angle += 180  # Keep text right-side up
+
+        # Calculate a perpendicular offset of ~200m
+        dr_dist = math.sqrt(delta_lat_dr**2 + delta_lon_dr**2)
+        if dr_dist > 0:
+            unit_lat = delta_lat_dr / dr_dist
+            unit_lon = delta_lon_dr / dr_dist
+            # Perpendicular CCW
+            perp_lat = -unit_lon
+            perp_lon = unit_lat
+            offset_deg = 0.0018
+            text_lat = mid_lat_dr + perp_lat * offset_deg
+            text_lon = mid_lon_dr + perp_lon * offset_deg
+        else:
+            text_lat = mid_lat_dr
+            text_lon = mid_lon_dr
+
+        projected_dist_km = (1.0 * duration_s) / 1000.0  # 1 m/s swimmer speed
+        backbone_info = f"{calc_cfg.bearing_deg}° | 1.0 m/s | {calc_cfg.duration_hours:.1f}h | {projected_dist_km:.1f} km"
+        plt.text(text_lon, text_lat, backbone_info, color=run_color, fontsize=6.5,
+                 ha='center', va='center', rotation=text_angle,
+                 bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.7), zorder=4)
+
         # --- Visgraat ribs (Graten om de 15' = 900s) ---
         interval_s = 900.0  # 15 minutes
         num_intervals = int(duration_s / interval_s)
@@ -411,6 +442,7 @@ def plot_daily_simulations(
 
             target_time = start_dt + timedelta(seconds=elapsed_s)
             u_c, v_c = model.get_current_vector(Position(lat_k, lon_k), target_time)
+            speed_mps = math.sqrt(u_c**2 + v_c**2)
 
             # Rib stroomvector displacement over 15 minutes (900 seconds)
             delta_lat_rib = (v_c * 900.0) / 111132.0
@@ -420,6 +452,15 @@ def plot_daily_simulations(
             rib_lats.append(lat_k)
             rib_dlons.append(delta_lon_rib)
             rib_dlats.append(delta_lat_rib)
+
+            # Annotate speed of the current on each rib vector
+            if speed_mps > 0.05:
+                # Add a small padding beyond the rib end point
+                padding_multiplier = 1.15
+                lbl_lon = lon_k + delta_lon_rib * padding_multiplier
+                lbl_lat = lat_k + delta_lat_rib * padding_multiplier
+                plt.text(lbl_lon, lbl_lat, f"{speed_mps:.2f}", color=spine_color, fontsize=6,
+                         ha='center', va='center', fontweight='bold', zorder=8)
 
         if rib_lons:
             plt.quiver(rib_lons, rib_lats, rib_dlons, rib_dlats,

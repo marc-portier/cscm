@@ -100,6 +100,17 @@ def parse_time_range(range_str: str) -> tuple[str, str]:
     return "00:00", "23:59"
 
 
+def parse_color_sequence(colors_raw) -> List[str]:
+    """Strips space from raw colors string or list, keeping it eenduidig and simple."""
+    if not colors_raw:
+        return []
+    if isinstance(colors_raw, str):
+        return [c.strip() for c in colors_raw.split(",")]
+    if isinstance(colors_raw, list):
+        return [str(c).strip() for c in colors_raw]
+    return []
+
+
 def parse_job_file(job_yaml_path: Path) -> JobConfig:
     """Parses a YAML simulation job file and builds a validated JobConfig structure."""
     with open(job_yaml_path, "r", encoding="utf-8") as f:
@@ -203,8 +214,8 @@ def parse_job_file(job_yaml_path: Path) -> JobConfig:
             actuals_raw = colors_raw.get("actuals")
             spines_raw = colors_raw.get("spines")
             colors_cfg = JobColorsConfig(
-                actuals=actuals_raw if actuals_raw else JobColorsConfig().actuals,
-                spines=spines_raw if spines_raw else JobColorsConfig().spines
+                actuals=parse_color_sequence(actuals_raw) if actuals_raw else JobColorsConfig().actuals,
+                spines=parse_color_sequence(spines_raw) if spines_raw else JobColorsConfig().spines
             )
         else:
             colors_cfg = JobColorsConfig()

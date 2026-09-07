@@ -436,7 +436,7 @@ poetry run python -m cscm.simulation
 
             run_job(cfg, nc_file, today)
         except Exception as e:
-            log.error(f"Failed to execute job {j_file.name}: {e}")
+            log.error(f"Failed to execute job {j_file.name}: {e}", exc_info=True)
 
     log.info("Simulation pipeline finished successfully!")
 

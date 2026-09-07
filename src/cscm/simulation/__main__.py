@@ -165,6 +165,8 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
                 # Gebruik nu snapped_pos voor piekdetectie en simulatie!
                 peaks = find_daily_tide_peaks(ds, snapped_pos, day_start, day_end)
                 log.info(f"Detected {len(peaks)} physical tide peaks in 24h window (UTC).")
+                logpeaks = [f"{p['type']} at {p['time'].strftime('%H:%M')} UTC" for p in peaks]
+                log.info(f"Peak details: {', '.join(logpeaks)}")
 
                 # Process matching peaks
                 for p in peaks:

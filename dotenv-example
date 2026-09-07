@@ -1,0 +1,16 @@
+# Copernincus Marine Environment Monitoring Service (CMEMS) credentials
+# get your own at https://data.marine.copernicus.eu/register
+COPERNICUSMARINE_SERVICE_USERNAME=your.account@email.com
+COPERNICUSMARINE_SERVICE_PASSWORD=***your*copernicus*marine*password***  # do not share this password with anyone, and do not commit it to git
+
+# CMEMS_START_DATE=YYYY-MM-DD # should be after 2024-08-26 -- defaults to this, for maximum data retrieval
+# CMEMS_END_DATE=YYYY-MM-DD  # should be before now +7days -- defaults to this, for maximum data retrieval
+
+# CMEMS_GEO_EXTENT=min_lon,max_lon,min_lat,max_lat
+CMEMS_GEO_EXTENT=0.469393,3.571506,50.729498,52.578752 
+
+# CMEMS_FOCAL_POSITIONS=KOKSIJDE,BREDENE_POST4,... # uses keys from src/cscm/wellknown.py POSITIONS dict
+CMEMS_FOCAL_POSITIONS=KOKSIJDE,BREDENE_POST4,W_1_2
+
+# SMTP_HOST=localhost
+# SMTP_FROM=sender@email.com

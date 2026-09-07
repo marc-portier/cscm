@@ -68,3 +68,144 @@ To download/update the local CMEMS datastore and run the adaptive PCA current an
 ```bash
 poetry run python -m cscm.current.cmems
 ```
+
+
+### Running Simulation jobs
+
+This can now run simulation jobs - calculating the expected actual trajectories resulting from the intended movement (heading and speed) combined with the displacement by the currents.
+
+#### define jobs
+
+A simulation job definition is to be provided in a yaml file that looks like below:
+
+```yaml
+title: My Planned swim in October 2027
+tz: Europe/Brussels    # Local timezone for visuals, user facing stuff, this file too
+
+active:
+  if-on: true          # job only executes if true - quickly enables / disables this job
+  if-now-in-range:     # active job still only executes when the date this code is running is in this range
+    begin: 2027-10-04
+    end: 2027-10-11
+
+date:                  # For which days should the simulation apply 
+  range: 0d, 1d, 2d    # Today, Tomorrow, day after - can be up to 6d - can also be a fixed day 
+
+calc:
+  - id: "{date}-myname-{time}-pec"
+    from: KOKSIJDE     # one of the wellknown positions in this code
+    by: MBL_MIDR       # one of the wellknown swimmers in this code
+    bearing: 333       # angle relative to °N
+    duration: 6h       # for how long the swim is maintained
+    time:              # at what time should the simulation start
+      detect:          #   -- allows to detect times automatically
+        types: pec     #   -- available types are PEC (Peak Ebb Current) and PFC (Peak Flood Current)
+        in-range: 05:00-17:00  # ignore detected times that fall outside this window
+
+extra:                 # optionally reference extra content to be included 
+  qotd: ./data/simulation/qotd.yml                      # quotes and their authors
+  obstructions: ./data/simulation/obstructions.wkt.csv  # danger areas to mark on the map
+  coastline: ./data/simulation/coastline.wkt.csv        # coastline backdrop
+
+results:
+  folder: /tmp/results/2027-09-koksijde/{now}/          # where results should be stored locally
+  labels:                                               # configurable labels
+    ribs: deviationdistance                             # labels on the 'ribs' of the spine-diagram
+    spine: bearing|duration|totaldistance               # label along the spine
+  files:
+    overview: ./{date}-overview.png                     # overview png
+    gpx: ./{date}-{calc.id}.gpx                         # track gpx
+  mail:                                                 # details for mail to send out
+    to: Marc Portier <marc.portier@gmail.com>
+    subject: Koksijde Test Results for {date}
+    template: ./data/simulation/email-template.html
+    attach: all
+
+```
+
+These job-files should be placed in `./data/simulation`
+
+Additional files mentioned are
+
+##### *wkt.csv files for obstructions and coastlines
+
+```csv
+WKT,fid,name,description
+"MULTIPOLYGON ((( ... )))",276,geometry name,where we should not ever want to be ending up
+
+```
+
+##### quotes in yml format
+
+```yaml
+- txt: "How I wish I could mention something worth quoting"
+  by: Anonymous
+```
+
+##### email-template
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CSCM Simulation Update: {{ job_title }}</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 20px; }
+        .qotd { font-style: italic; color: #555; border-left: 4px solid #004488; padding-left: 15px; margin: 20px 0; }
+        .author { font-weight: bold; color: #004488; }
+        .overview-map { max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px; margin: 20px 0; }
+        .footer { font-size: 0.8em; color: #777; margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <p>Howdy,</p>
+
+    {% if qotd_text %}
+    <div class="qotd">
+        "{{ qotd_text }}" <br>
+        <span class="author">-- {{ qotd_author }}</span>
+    </div>
+    {% endif %}
+
+    <p>Below the latest update for <strong>{{ date }}</strong>.</p>
+
+    <img src="cid:overview" alt="Trajectory Overview" class="overview-map">
+
+    <h3>Simulatie Details:</h3>
+    <ul>
+        <li><strong>Job:</strong> {{ job_title }}</li>
+        <li><strong>Generated at:</strong> {{ now }} ({{ tz_name }})</li>
+        <li><strong>Timezone:</strong> All times mentioned are in <strong>{{ tz_name }}</strong>.</li>
+    </ul>
+
+    <h3>Found options:</h3>
+    <ul>
+        {% for calc in calculations %}
+        <li>
+            <strong>Start: {{ calc.start_time_local }} {{ tz_name }}</strong> ({{ calc.type }})<br>
+            Heading: {{ calc.bearing }}° N | Duration: {{ calc.duration }}<br>
+            GPX-attachement: <code>{{ calc.gpx_filename }}</code>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <p class="footer">
+        This email is automatically generated by the CSCM Simulator.<br>
+        Data source: Copernicus Marine (CMEMS) 1.5km North West Shelf Model.
+    </p>
+</body>
+</html>
+```
+
+#### run the simulator
+
+```bash
+# by default the pipeline includes a CMEMS-data-update, handy for last minute updates
+poetry run python -m cscm.simulation
+
+# to skip that download step one can also
+poetry run python -m cscm.simulation --skip-update
+```

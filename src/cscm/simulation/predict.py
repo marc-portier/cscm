@@ -82,9 +82,10 @@ def find_daily_tide_peaks(
     end_time: datetime
 ) -> list[dict]:
     """
-    Finds the exact tidal current peaks (max Flood / PFC, and max Eb / PEC)
-    near focal_pos within the specified start and end timestamps.
-    Returns a list of dictionaries with timestamp, peak_type, and peak velocity.
+    Vindt de getijdenpieken nabij focal_pos binnen start_time en end_time.
+
+    Berekent de parallelle snelheid puur op basis van de Pythagoras-grootte
+    gecombineerd met het teken van de oostwaartse stroomcomponent (uo).
     """
     lat_col = 'latitude' if 'latitude' in ds.coords else 'lat'
     lon_col = 'longitude' if 'longitude' in ds.coords else 'lon'
@@ -92,37 +93,28 @@ def find_daily_tide_peaks(
     lons = ds[lon_col].values
     times = ds['time'].values
 
-    # Find closest active grid cell coordinates
+    # 1. Vind de dichtstbijzijnde actieve grid-cel
     dist = (lats[:, np.newaxis] - focal_pos.lat)**2 + (lons[np.newaxis, :] - focal_pos.lon)**2
     y_idx, x_idx = np.unravel_index(np.argmin(dist), dist.shape)
 
     uo = ds['uo'][:, y_idx, x_idx].values
     vo = ds['vo'][:, y_idx, x_idx].values
 
-    # Calculate local principal flow angle (Oostwaartse Aligned)
+    # Filter droge cellen/land
     u_clean = uo[~np.isnan(uo)]
-    v_clean = vo[~np.isnan(vo)]
     if len(u_clean) < 2:
-        log.error("Focal point is on hard land. Cannot resolve tide peaks.")
+        log.error("Geselecteerde startpositie ligt op land. Kan getijdenpieken niet bepalen.")
         return []
 
-    cov = np.cov(u_clean, v_clean)
-    eigenvalues, eigenvectors = np.linalg.eigh(cov)
-    major_idx = np.argmax(eigenvalues)
-    major_vector = eigenvectors[:, major_idx]
-    angle_rad = np.arctan2(major_vector[1], major_vector[0])
+    # 2. Pythagoras grootte * teken van de oostwaartse component (oostwaartse stroming = vloedstroom)
+    v_magnitude = np.sqrt(uo**2 + vo**2)
+    v_sign = np.sign(uo)
+    v_parallel = v_magnitude * v_sign
 
-    # Align "Oostwaartse Vloed"
-    if np.cos(angle_rad) < 0 or (np.isclose(np.cos(angle_rad), 0) and np.sin(angle_rad) < 0):
-        angle_rad += np.pi
-    angle_rad = angle_rad % (2 * np.pi)
-
-    # Project to find parallel velocity
-    v_parallel, _ = project_to_principal_axis(uo, vo, angle_rad)
-
-    # Identify all peak timings via local extrema on parallel velocity
-    detected_peaks = []
-    min_peak_threshold = 0.1  # 0.1 m/s threshold to bypass zero-velocity noise
+    # 3. Verzamel potentiële pieken (local extrema)
+    pfc_candidates = []
+    pec_candidates = []
+    min_peak_threshold = 0.1  # Negeer ruis rond de 0 m/s >> code werkt dus enkel in gebieden met voldoende stroming
 
     for t_idx in range(1, len(v_parallel) - 1):
         v_prev = v_parallel[t_idx - 1]
@@ -132,26 +124,52 @@ def find_daily_tide_peaks(
         if np.isnan(v_prev) or np.isnan(v_curr) or np.isnan(v_next):
             continue
 
-        # Local Maximum (Max Flood -> High Water Start / PFC)
+        # Maxima (Vloedstroom / PFC / PVS)
         if v_prev < v_curr > v_next and v_curr > min_peak_threshold:
             peak_time = pd.to_datetime(times[t_idx]).replace(tzinfo=timezone.utc)
             if start_time <= peak_time <= end_time:
-                detected_peaks.append({
+                pfc_candidates.append({
                     "time": peak_time,
-                    "type": "PFC",  # Peak Flood Current
-                    "velocity_mps": v_curr
+                    "type": "PFC",
+                    "velocity_mps": float(v_curr)
                 })
 
-        # Local Minimum (Max Eb -> Low Water Start / PEC)
+        # Minima (Ebstroom / PEC / PES)
         elif v_prev > v_curr < v_next and v_curr < -min_peak_threshold:
             peak_time = pd.to_datetime(times[t_idx]).replace(tzinfo=timezone.utc)
             if start_time <= peak_time <= end_time:
-                detected_peaks.append({
+                pec_candidates.append({
                     "time": peak_time,
-                    "type": "PEC",  # Peak Eb Current
-                    "velocity_mps": v_curr
+                    "type": "PEC",
+                    "velocity_mps": float(v_curr)
                 })
 
+    # 4. Filter dubbele pieken (temporal dead-time van minimaal 4 uur)
+    def filter_adjacent_peaks(candidates: list, min_spacing_hours: float = 4.0) -> list:
+        # Sorteer eerst op de sterkste absolute snelheid
+        sorted_by_strength = sorted(candidates, key=lambda x: abs(x["velocity_mps"]), reverse=True)
+        filtered = []
+
+        for cand in sorted_by_strength:
+            too_close = False
+            for accepted in filtered:
+                time_diff_h = abs((cand["time"] - accepted["time"]).total_seconds()) / 3600.0
+                if time_diff_h < min_spacing_hours:
+                    too_close = True
+                    break
+            if not too_close:
+                filtered.append(cand)
+
+        # Sorteer het resultaat chronologisch
+        return sorted(filtered, key=lambda x: x["time"])
+
+    filtered_pfc = filter_adjacent_peaks(pfc_candidates, min_spacing_hours=4.0)
+    filtered_pec = filter_adjacent_peaks(pec_candidates, min_spacing_hours=4.0)
+
+    # Voeg vloed en eb samen en sorteer chronologisch
+    detected_peaks = sorted(filtered_pfc + filtered_pec, key=lambda x: x["time"])
+
+    log.info(f"Getijdedetectie (Pythagoras): {len(detected_peaks)} stabiele pieken overgebleven.")
     return detected_peaks
 
 
@@ -263,12 +281,30 @@ def plot_daily_simulations(
     """
     plt.figure(figsize=(11, 10))
 
-    # Calculate trajectories bounding box
+    # Calculate trajectories bounding box using start, actual track, and backbone ends
     all_lats = []
     all_lons = []
-    for df, _, _, _ in df_list:
+    for df, tide_type, start_dt, calc_cfg in df_list:
+        # 1. Voeg de werkelijke (afgedreven) routepunten toe
         all_lats.extend(df['lat'].values)
         all_lons.extend(df['lon'].values)
+
+        # 2. Voeg de ruggengraat-uiteinden toe (start en geprojecteerd einde)
+        start_lat = df['lat'][0]
+        start_lon = df['lon'][0]
+        all_lats.append(start_lat)
+        all_lons.append(start_lon)
+
+        duration_s = calc_cfg.duration_hours * 3600.0
+        bearing_rad = math.radians(calc_cfg.bearing_deg)
+        v_swimmer_east = 1.0 * math.sin(bearing_rad)
+        v_swimmer_north = 1.0 * math.cos(bearing_rad)
+
+        end_lat = start_lat + (v_swimmer_north * duration_s) / 111132.0
+        end_lon = start_lon + (v_swimmer_east * (duration_s / (111132.0 * math.cos(math.radians(start_lat)))))
+
+        all_lats.append(end_lat)
+        all_lons.append(end_lon)
 
     min_lat, max_lat = min(all_lats), max(all_lats)
     min_lon, max_lon = min(all_lons), max(all_lons)
@@ -449,8 +485,15 @@ def plot_daily_simulations(
         spine_label_text = " | ".join(parts) if parts else ""
 
         if spine_label_text:
-            mid_lat = start_lat + 0.5 * delta_lat_dr
-            mid_lon = start_lon + 0.5 * delta_lon_dr
+            # Shift the navigation label away from the spine to avoid overlap with the rib markers.
+            # by 900m (~15 min at 1mps should be beyond max mps of current + some margin)
+            shift_m = 900.0
+            ortho_rad = bearing_rad + math.pi / 2.0
+            shift_lat = (shift_m * math.cos(ortho_rad)) / 111132.0
+            shift_lon = (shift_m * math.sin(ortho_rad)) / (111132.0 * math.cos(math.radians(start_lat + 0.5 * delta_lat_dr)))
+
+            mid_lat = start_lat + 0.5 * delta_lat_dr + shift_lat
+            mid_lon = start_lon + 0.5 * delta_lon_dr + shift_lon
             dx_deg = end_lon - start_lon
             dy_deg = end_lat - start_lat
             angle_deg = math.degrees(math.atan2(dy_deg, dx_deg))

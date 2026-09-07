@@ -8,6 +8,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional
 import random
+import zoneinfo
 from dotenv import load_dotenv
 
 import pandas as pd
@@ -46,8 +47,7 @@ def get_latest_forecast_nc(storage_dir: Path) -> Optional[Path]:
     nc_files = list(storage_dir.glob("*.nc"))
     if not nc_files:
         return None
-    # Return file with latest alphabetical order (by forecast timestamp naming)
-    # mtime considered not reliable due to potential file system issues; rely on naming convention instead
+    # Return sorted last name order for reliable forecast timestamp matches
     return sorted(nc_files)[-1]
 
 
@@ -71,39 +71,38 @@ def parse_date_range_expr(expr: str, anchor_date: datetime) -> list[datetime]:
         return [anchor_date]
 
 
-def is_time_in_local_range(time_utc: datetime, range_local: tuple[str, str]) -> bool:
-    """Checks if a UTC time is within a specified local day time window (e.g. 05:00-17:00 CEST)"""
-    # Convert UTC to local CEST (UTC+2) for check
-    local_time = time_utc + timedelta(hours=2)
+def is_time_in_local_range(time_utc: datetime, range_local: tuple[str, str], tz_str: str) -> bool:
+    """Checks if a UTC time is within a specified local day time window (e.g. 05:00-17:00 in job timezone)"""
+    local_tz = zoneinfo.ZoneInfo(tz_str)
+    local_time = time_utc.astimezone(local_tz)
     local_time_str = local_time.strftime('%H:%M')
     start_str, end_str = range_local
     return start_str <= local_time_str <= end_str
 
 
-def load_random_qotd(qotd_path: Optional[Path]) -> tuple[str, str]:
-    """Loads a random Quote Of The Day from the qotd.yml file, with a clean fallback."""
-    fallback = (
-        "Zwemmen is losbandig slapen in spartelend water, is liefhebben met elke nog bruikbare porie.",
-        "Paul Snoek"
-    )
+def load_random_qotd(qotd_path: Optional[Path]) -> tuple[Optional[str], Optional[str]]:
+    """Loads a random Quote Of The Day from the qotd.yml file, or returns (None, None) if not present."""
     if not qotd_path or not qotd_path.exists():
-        return fallback
+        return None, None
 
     try:
         with open(qotd_path, "r", encoding="utf-8") as f:
             quotes = yaml.safe_load(f)
             if quotes and isinstance(quotes, list):
                 q = random.choice(quotes)
-                return q.get("txt", q.get("text", fallback[0])), q.get("by", q.get("author", fallback[1]))
+                return q.get("txt", q.get("text", "")), q.get("by", q.get("author", ""))
     except Exception as e:
         log.warning(f"Could not load quote from {qotd_path}: {e}")
 
-    return fallback
+    return None, None
 
 
 def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
     """Runs a single simulation JobConfig, generates GPX tracks, daily maps, and emails the results."""
     log.info(f"Executing active Job: {cfg.title}")
+
+    # Set up timezone objects
+    local_tz = zoneinfo.ZoneInfo(cfg.tz_str)
 
     # Open NetCDF dataset
     log.info(f"Opening CMEMS forecast file: {nc_file.name}")
@@ -176,7 +175,7 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
 
                         # Apply user's local day-swim constraint (e.g., CEST 05:00-17:00)
                         if calc.detect_in_range_local:
-                            if not is_time_in_local_range(p_time_utc, calc.detect_in_range_local):
+                            if not is_time_in_local_range(p_time_utc, calc.detect_in_range_local, cfg.tz_str):
                                 continue
 
                         log.info(
@@ -235,8 +234,8 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
         calc_summaries = []
 
         for df_traj, run_type, start_dt, calc_cfg in daily_runs:
-            # Local CEST representations for placeholders
-            local_dt = start_dt + timedelta(hours=2)
+            # Local representations for placeholders
+            local_dt = start_dt.astimezone(local_tz)
             local_time_str = local_dt.strftime("%H%M")
             local_time_formatted = local_dt.strftime("%H:%M")
 
@@ -253,13 +252,13 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
                     .replace("{calc.id}", resolved_calc_id)
 
             gpx_path = results_dir / gpx_name
-            track_label = f"{run_type} Run - {local_time_formatted} CEST"
+            track_label = f"{run_type} Run - {local_time_formatted} {local_tz.tzname(local_dt)}"
             write_gpx_track(df_traj, track_label, gpx_path)
             gpx_attachments.append(gpx_path)
 
             calc_summaries.append({
                 "start_time_local": local_time_formatted,
-                "type": "PVS (Vloed)" if run_type == "PFC" else "PES (Eb)" if run_type == "PEC" else "Custom",
+                "type": "PFC (Flood)" if run_type == "PFC" else "PEC (Ebb)" if run_type == "PEC" else "Custom",
                 "bearing": calc_cfg.bearing_deg,
                 "duration": f"{calc_cfg.duration_hours}h",
                 "gpx_filename": gpx_name
@@ -278,7 +277,8 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
             model=model,  # Pass the currents model!
             coastline_wkt_path=cfg.extra.coastline_path,
             obstructions_wkt_path=cfg.extra.obstructions_path,
-            colors_cfg=cfg.results.colors if cfg.results else None
+            colors_cfg=cfg.results.colors if cfg.results else None,
+            labels_cfg=cfg.results.labels if cfg.results else None
         )
 
         # 4. SMTP HTML Email Dispatch
@@ -291,20 +291,27 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
                 html_body = f"Simulation results for {day.strftime('%Y-%m-%d')}. Visuals and GPX files attached."
             else:
                 qotd_txt, qotd_by = load_random_qotd(cfg.extra.qotd_path)
+                now_local = datetime.now(timezone.utc).astimezone(local_tz)
+                now_local_str = now_local.strftime("%Y-%m-%d %H:%M")
+
                 with open(template_path, "r", encoding="utf-8") as tf:
                     jinja_template = Template(tf.read())
                     html_body = jinja_template.render(
                         job_title=cfg.title,
                         date=day.strftime("%d-%m-%Y"),
-                        now=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M"),
+                        now=now_local_str,
+                        tz_name=local_tz.tzname(now_local),
                         qotd_text=qotd_txt,
                         qotd_author=qotd_by,
                         calculations=calc_summaries
                     )
 
+            # Format email subject with local time offsets
+            now_local = datetime.now(timezone.utc).astimezone(local_tz)
+            now_local_str = now_local.strftime("%Y-%m-%d %H:%M:%S")
             subject = mail_cfg.subject_template \
                 .replace("{date}", day.strftime("%Y-%m-%d")) \
-                .replace("{now}", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                .replace("{now}", now_local_str)
 
             attachments = []
             if mail_cfg.attach_mode in ("all", "gpx"):
@@ -382,7 +389,7 @@ poetry run python -m cscm.simulation
     if not data_dir.exists():
         data_dir = Path("/workspace/scratch")
 
-    # Delay heavy imports so logging and dotenv are configured first
+    # Delay heavy imports so dotenv is loaded and logger is configured first
     from cscm.current.cmems.retrieve import CMEMSDataManager
 
     cmems_data_manager = CMEMSDataManager()

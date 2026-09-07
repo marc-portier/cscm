@@ -31,22 +31,19 @@ def send_simulation_email(
         log.error("SMTP_HOST environment variable is not set. Cannot send email.")
         log.info("Please set SMTP_HOST in your .env file or environment variables to a valid SMTP relay host.")
 
-        # Save HTML to /tmp for manual evaluation if offline
+        # Local HTML fallback saving
         try:
-            with NamedTemporaryFile(delete=False, suffix=".html", prefix="simulation_email_") as tf:
+            with NamedTemporaryFile(suffix=".html", prefix="simulation_email_", dir="/tmp", delete=False) as tf:
                 tf.write(html_body.encode("utf-8"))
                 log.info(f"email-html message saved to {tf.name} for manual evaluation.")
         except Exception as e:
-            log.warning(f"Could not save fallback email HTML to /tmp: {e}")
+            log.warning(f"Could not save local HTML fallback: {e}")
         return
 
-    try:
-        smtp_port = int(os.environ.get("SMTP_PORT", "25"))
-    except ValueError:
-        smtp_port = 25
-
+    smtp_port_str = os.environ.get("SMTP_PORT", "25")
     smtp_user = os.environ.get("SMTP_USER")
     smtp_pass = os.environ.get("SMTP_PASS")
+    smtp_port = int(smtp_port_str)
 
     msg = MIMEMultipart("mixed")
     msg["Subject"] = subject

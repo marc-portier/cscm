@@ -18,16 +18,10 @@ import shapely.wkt
 
 from cscm.model import Position
 from cscm.current.cmems.analyse import classify_grid_cells, project_to_principal_axis
-from cscm.simulation.jobs import JobCalcConfig
-
+from cscm.simulation.jobs import JobCalcConfig, JobColorsConfig, JobLabelsConfig
 
 # Set up logger
 log = getLogger(__name__)
-
-# Colruyt mussel farm WKT placeholder - can be overridden by user
-MOSSELKWEKERIJ_WKT = (
-    "POLYGON ((2.6420 51.1300, 2.6850 51.1350, 2.6710 51.1550, 2.6280 51.1500, 2.6420 51.1300))"
-)
 
 
 class CmemsForecastCurrentsModel:
@@ -259,11 +253,12 @@ def plot_daily_simulations(
     mussel_farm_wkt: Optional[str] = None,
     coastline_wkt_path: Optional[Path] = None,
     obstructions_wkt_path: Optional[Path] = None,
-    colors_cfg: Optional[object] = None
+    colors_cfg: Optional[JobColorsConfig] = None,
+    labels_cfg: Optional[JobLabelsConfig] = None
 ) -> None:
     """
-    Generates a beautiful daily map plot showing the test swim trajectories overlaid with a Visgraat (fishbone)
-    representation of tidal vectors along the intended course.
+    Generates a beautiful daily map plot showing the test swim trajectories
+    overlaid with a Visgraat (fishbone) representation of tidal vectors along the intended course.
     Auto-zooms to the bounding box of the trajectories + 1500m outset buffer.
     """
     plt.figure(figsize=(11, 10))
@@ -286,32 +281,61 @@ def plot_daily_simulations(
     map_max_lon = max_lon + buffer_deg
 
     # 1. Background Grid Plotting
-    # Status levels: 0: Land (brown), 1: Boundary (grey), 2: Water (blue)
-    cmap = matplotlib.colors.ListedColormap(['#8B4513', '#C0C0C0', '#E0F7FA'])
-    plt.pcolormesh(lons, lats, status_mask, cmap=cmap, shading='auto', alpha=0.15, zorder=1)
+    # Status levels: 0: Land (brown #54360f @ 75%), 1: Boundary (grey #C0C0C0 @ 15%), 2: Water (blue #0087d6 @ 10%)
+    # Render layers separately to respect specific opacities cleanly
+    water_mask = np.where(status_mask == 2, 2, np.nan)
+    plt.pcolormesh(
+        lons, lats, water_mask,
+        cmap=matplotlib.colors.ListedColormap(['#0087d6']),
+        alpha=0.10, zorder=1, shading='auto'
+    )
+
+    boundary_mask = np.where(status_mask == 1, 1, np.nan)
+    plt.pcolormesh(
+        lons, lats, boundary_mask,
+        cmap=matplotlib.colors.ListedColormap(['#C0C0C0']),
+        alpha=0.15, zorder=1, shading='auto'
+    )
+
+    land_mask = np.where(status_mask == 0, 0, np.nan)
+    plt.pcolormesh(
+        lons, lats, land_mask,
+        cmap=matplotlib.colors.ListedColormap(['#54360f']),
+        alpha=0.75, zorder=1, shading='auto'
+    )
+
+    # Draw strakke thin black border contour around cells
     plt.contour(lons, lats, status_mask, levels=[0.5, 1.5], colors='black', linewidths=0.5, alpha=0.3, zorder=2)
 
     # 2. Vloeiende Kustlijn WKT Plotting
+    log.info(f"Rendering coastline from {coastline_wkt_path.absolute}")
     if coastline_wkt_path and coastline_wkt_path.exists():
         try:
+            log.info(f"Loading coastline data from: {coastline_wkt_path.name}")
             coast_df = pd.read_csv(coastline_wkt_path)
+            log.info(f"Loaded {len(coast_df)} coastline geometries from CSV.")
             for _, row in coast_df.iterrows():
-                geom_str = row.get("WKT") or row.get("wkt")
-                if geom_str:
+                geom_str = None
+                for col in ["WKT", "wkt", "geometry", "Geometry", "geom", "Geom"]:
+                    if col in row:
+                        geom_str = row[col]
+                        break
+                if not geom_str and len(row) > 0:
+                    geom_str = row.iloc[0]
+
+                if geom_str and isinstance(geom_str, str):
                     geom = shapely.wkt.loads(geom_str)
                     if isinstance(geom, (Polygon, MultiPolygon)):
-                        # Draw Polygon fill and stroke
-                        if isinstance(geom, Polygon):
-                            polys = [geom]
-                        else:
+                        if hasattr(geom, "geoms"):
                             polys = geom.geoms
+                        else:
+                            polys = [geom]
 
                         for poly in polys:
                             x, y = poly.exterior.xy
-                            plt.fill(x, y, color='#8B4513', alpha=0.45, zorder=3)
+                            plt.fill(x, y, color="#5ede55", alpha=0.75, zorder=3)
                             plt.plot(x, y, color='black', linewidth=1.2, zorder=4)
                     else:
-                        # Draw Linestring stroke
                         x, y = geom.xy
                         plt.plot(x, y, color='black', linewidth=1.5, zorder=4)
             log.info(f"Successfully rendered custom coastline from: {coastline_wkt_path.name}")
@@ -319,52 +343,61 @@ def plot_daily_simulations(
             log.warning(f"Could not load custom coastline WKT: {e}")
 
     # 3. Obstructions WKT Plotting
-    has_custom_obstructions = False
+    log.info(f"Rendering obstructions from {obstructions_wkt_path.absolute() if obstructions_wkt_path else 'N/A'}")
     if obstructions_wkt_path and obstructions_wkt_path.exists():
+        log.info(f"Rendering custom obstructions from: {obstructions_wkt_path.name}")
         try:
             obs_df = pd.read_csv(obstructions_wkt_path)
+            log.info(f"Loaded {len(obs_df)} obstruction geometries from CSV.")
             for idx, row in obs_df.iterrows():
-                geom_str = row.get("WKT") or row.get("wkt")
-                name = row.get("name", f"Obstruction_{idx}")
-                if geom_str:
+                geom_str = None
+                for col in ["WKT", "wkt", "geometry", "Geometry", "geom", "Geom"]:
+                    if col in row:
+                        geom_str = row[col]
+                        break
+                if not geom_str and len(row) > 0:
+                    geom_str = row.iloc[0]
+
+                if geom_str and isinstance(geom_str, str):
                     geom = shapely.wkt.loads(geom_str)
                     if isinstance(geom, (Polygon, MultiPolygon)):
-                        if isinstance(geom, Polygon):
-                            polys = [geom]
-                        else:
+                        if hasattr(geom, "geoms"):
                             polys = geom.geoms
+                        else:
+                            polys = [geom]
                         for poly in polys:
                             x, y = poly.exterior.xy
-                            plt.fill(x, y, color='crimson', alpha=0.35, hatch='//', edgecolor='crimson',
-                                     linewidth=1.2, label=name if not has_custom_obstructions else "", zorder=5)
-                            has_custom_obstructions = True
+                            # Pink fill #f33bfe, 35% opaque, stroke 100% opaque
+                            plt.fill(x, y, color='#f33bfe', alpha=0.35, hatch='//', edgecolor='#f33bfe',
+                                     linewidth=1.2, zorder=5)
             log.info(f"Rendered custom obstructions from: {obstructions_wkt_path.name}")
         except Exception as e:
             log.warning(f"Failed to render custom obstructions CSV: {e}")
 
     # 4. Trajectory Plotting with Fishbone (Visgraat)
     default_styles = {
-        "PFC": {"color": "royalblue", "label": "PVS (Vloed)"},
-        "PEC": {"color": "forestgreen", "label": "PES (Eb)"}
+        "PFC": {"color": "royalblue", "label": "PFC (Flood)"},
+        "PEC": {"color": "forestgreen", "label": "PEC (Ebb)"}
     }
 
     for idx, (df, tide_type, start_dt, calc_cfg) in enumerate(df_list):
         # Determine sequence colors dynamically
         if colors_cfg:
-            run_color = colors_cfg.actuals[idx % len(colors_cfg.actuals)]
-            spine_color = colors_cfg.spines[idx % len(colors_cfg.spines)] if colors_cfg.spines else run_color
+            run_color = colors_cfg.actuals[idx % len(colors_cfg.actuals)].strip()
+            spine_color = colors_cfg.spines[idx % len(colors_cfg.spines)].strip()
         else:
             style = default_styles.get(tide_type, {"color": "gray"})
             run_color = style["color"]
             spine_color = "gold" if tide_type == "PFC" else "magenta"
 
-        line_style = "-" if idx % 2 == 0 else "--"
-        label_tide = "PVS (Vloed)" if tide_type == "PFC" else "PES (Eb)" if tide_type == "PEC" else tide_type
+        # Trajectories are always solid lines as requested
+        line_style = "-"
+        label_tide = "PFC (Flood)" if tide_type == "PFC" else "PEC (Ebb)" if tide_type == "PEC" else tide_type
 
         # Local time formatting (CEST UTC+2)
         local_dt = start_dt + timedelta(hours=2)
         local_time_str = local_dt.strftime('%H:%M')
-        label = f"{label_tide} ({local_time_str} CEST)"
+        label = f"{label_tide} ({local_time_str} CEST, max {df.iloc[-1]['v_magnitude']:.2f} m/s)"
 
         # Plot full actual trajectory
         plt.plot(df['lon'], df['lat'], color=run_color, linestyle=line_style,
@@ -386,7 +419,7 @@ def plot_daily_simulations(
         v_swimmer_east = 1.0 * math.sin(bearing_rad)
         v_swimmer_north = 1.0 * math.cos(bearing_rad)
 
-        # Plot intended backbone line
+        # Plot intended backbone line (thin dotted)
         delta_lat_dr = (v_swimmer_north * duration_s) / 111132.0
         delta_lon_dr = (v_swimmer_east * duration_s) / (111132.0 * math.cos(math.radians(start_lat)))
         end_lat = start_lat + delta_lat_dr
@@ -396,44 +429,47 @@ def plot_daily_simulations(
                  color=run_color, linestyle=":", linewidth=1.1, alpha=0.55,
                  label="Intended Course (Backbone)" if idx == 0 else "", zorder=4)
 
-        # Plot details along the backbone line
-        mid_lat_dr = start_lat + 0.5 * delta_lat_dr
-        mid_lon_dr = start_lon + 0.5 * delta_lon_dr
+        # Plot backbone navigation details label
+        spine_format = labels_cfg.spine if (labels_cfg and labels_cfg.spine) else "bearing|duration|totaldistance"
+        parts = []
+        for f in spine_format.split("|"):
+            f = f.strip().lower()
+            if f == "type":
+                parts.append(label_tide)
+            elif f == "bearing":
+                parts.append(f"{calc_cfg.bearing_deg:.0f}°")
+            elif f == "duration":
+                parts.append(f"{calc_cfg.duration_hours:.1f}h")
+            elif f == "speed":
+                parts.append("1.0 m/s")
+            elif f == "totaldistance":
+                parts.append("21.6 km")
+            elif f == "ribdistance":
+                parts.append("15 min")
+        spine_label_text = " | ".join(parts) if parts else ""
 
-        # Calculate rotation angle for text (in matplotlib, CCW from horizontal)
-        text_angle = math.degrees(math.atan2(v_swimmer_north, v_swimmer_east))
-        if text_angle > 90 or text_angle < -90:
-            text_angle += 180  # Keep text right-side up
+        if spine_label_text:
+            mid_lat = start_lat + 0.5 * delta_lat_dr
+            mid_lon = start_lon + 0.5 * delta_lon_dr
+            dx_deg = end_lon - start_lon
+            dy_deg = end_lat - start_lat
+            angle_deg = math.degrees(math.atan2(dy_deg, dx_deg))
+            # Keep text readable (not upside down)
+            if angle_deg > 90:
+                angle_deg -= 180
+            elif angle_deg < -90:
+                angle_deg += 180
 
-        # Calculate a perpendicular offset of ~200m
-        dr_dist = math.sqrt(delta_lat_dr**2 + delta_lon_dr**2)
-        if dr_dist > 0:
-            unit_lat = delta_lat_dr / dr_dist
-            unit_lon = delta_lon_dr / dr_dist
-            # Perpendicular CCW
-            perp_lat = -unit_lon
-            perp_lon = unit_lat
-            offset_deg = 0.0018
-            text_lat = mid_lat_dr + perp_lat * offset_deg
-            text_lon = mid_lon_dr + perp_lon * offset_deg
-        else:
-            text_lat = mid_lat_dr
-            text_lon = mid_lon_dr
-
-        projected_dist_km = (1.0 * duration_s) / 1000.0  # 1 m/s swimmer speed
-        backbone_info = f"{calc_cfg.bearing_deg}° | 1.0 m/s | {calc_cfg.duration_hours:.1f}h | {projected_dist_km:.1f} km"
-        plt.text(text_lon, text_lat, backbone_info, color=run_color, fontsize=6.5,
-                 ha='center', va='center', rotation=text_angle,
-                 bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.7), zorder=4)
+            plt.text(mid_lon, mid_lat, spine_label_text,
+                     color=run_color, fontsize=8, fontweight='bold',
+                     rotation=angle_deg, ha='center', va='center',
+                     bbox=dict(boxstyle="round,pad=0.2", facecolor="white", edgecolor="none", alpha=0.85),
+                     zorder=7)
 
         # --- Visgraat ribs (Graten om de 15' = 900s) ---
         interval_s = 900.0  # 15 minutes
         num_intervals = int(duration_s / interval_s)
-
-        rib_lons = []
-        rib_lats = []
-        rib_dlons = []
-        rib_dlats = []
+        ribs_format = labels_cfg.ribs if (labels_cfg and labels_cfg.ribs) else "deviationspeed"
 
         for k in range(1, num_intervals + 1):
             elapsed_s = k * interval_s
@@ -442,30 +478,51 @@ def plot_daily_simulations(
 
             target_time = start_dt + timedelta(seconds=elapsed_s)
             u_c, v_c = model.get_current_vector(Position(lat_k, lon_k), target_time)
-            speed_mps = math.sqrt(u_c**2 + v_c**2)
 
             # Rib stroomvector displacement over 15 minutes (900 seconds)
             delta_lat_rib = (v_c * 900.0) / 111132.0
             delta_lon_rib = (u_c * 900.0) / (111132.0 * math.cos(math.radians(lat_k)))
 
-            rib_lons.append(lon_k)
-            rib_lats.append(lat_k)
-            rib_dlons.append(delta_lon_rib)
-            rib_dlats.append(delta_lat_rib)
+            # Plot rib lines (no arrowheads/quivers as requested!)
+            plt.plot([lon_k, lon_k + delta_lon_rib], [lat_k, lat_k + delta_lat_rib],
+                     color=spine_color, linewidth=1.1, alpha=0.85, zorder=5)
 
-            # Annotate speed of the current on each rib vector
-            if speed_mps > 0.05:
-                # Add a small padding beyond the rib end point
-                padding_multiplier = 1.15
-                lbl_lon = lon_k + delta_lon_rib * padding_multiplier
-                lbl_lat = lat_k + delta_lat_rib * padding_multiplier
-                plt.text(lbl_lon, lbl_lat, f"{speed_mps:.2f}", color=spine_color, fontsize=6,
-                         ha='center', va='center', fontweight='bold', zorder=8)
+            # Draw small solid dot at the end of the rib line
+            plt.scatter(lon_k + delta_lon_rib, lat_k + delta_lat_rib,
+                        color=spine_color, s=12, edgecolors='none', zorder=5)
 
-        if rib_lons:
-            plt.quiver(rib_lons, rib_lats, rib_dlons, rib_dlats,
-                       angles='xy', scale_units='xy', scale=1,
-                       color=spine_color, width=0.002, headwidth=3, headlength=4, zorder=5)
+            # Plot rib label at the exact opposite side of the backbone line
+            rib_speed = math.sqrt(u_c**2 + v_c**2)
+            rib_dist_m = rib_speed * 900.0
+
+            r_parts = []
+            for rf in ribs_format.split("|"):
+                rf = rf.strip().lower()
+                if rf == "deviationdistance":
+                    r_parts.append(f"{int(round(rib_dist_m))}m")
+                elif rf == "deviationspeed":
+                    r_parts.append(f"{rib_speed:.2f}")
+
+            rib_label_text = " / ".join(r_parts) if r_parts else f"{rib_speed:.2f}"
+
+            # Calculate opposite position for label
+            opp_u = -u_c
+            opp_v = -v_c
+            opp_len = math.sqrt(opp_u**2 + opp_v**2)
+            if opp_len > 0.005:
+                # Offset in degrees (~0.0022 deg is roughly 220m visual margin)
+                offset_deg = 0.0022
+                text_lon = lon_k + (opp_u / opp_len) * offset_deg
+                text_lat = lat_k + (opp_v / opp_len) * offset_deg
+            else:
+                text_lon = lon_k - 0.002
+                text_lat = lat_k - 0.001
+
+            plt.text(text_lon, text_lat, rib_label_text,
+                     color=spine_color, fontsize=7, fontweight='bold',
+                     ha='center', va='center',
+                     bbox=dict(boxstyle="round,pad=0.15", facecolor="white", edgecolor="none", alpha=0.7),
+                     zorder=6)
 
     # Plot start point marker based on labeled positions str()
     first_calc = df_list[0][3]

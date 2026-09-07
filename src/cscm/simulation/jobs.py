@@ -55,12 +55,19 @@ class JobColorsConfig:
 
 
 @dataclass
+class JobLabelsConfig:
+    ribs: str = "deviationspeed"
+    spine: str = "bearing|duration|totaldistance"
+
+
+@dataclass
 class JobResultsConfig:
     output_folder_template: str = ""
     overview_file_template: str = ""
     gpx_file_template: str = ""
     mail: Optional[JobMailConfig] = None
     colors: Optional[JobColorsConfig] = None
+    labels: Optional[JobLabelsConfig] = None
 
 
 @dataclass
@@ -68,9 +75,20 @@ class JobConfig:
     title: str
     active: JobActiveConfig
     date_range_expr: str  # e.g., "1d,+5d"
+    tz_str: str = "Europe/Brussels"  # timezone of the job
     calculations: List[JobCalcConfig] = field(default_factory=list)
     extra: JobExtraConfig = field(default_factory=JobExtraConfig)
     results: Optional[JobResultsConfig] = None
+
+
+def parse_color_sequence(val) -> List[str]:
+    if not val:
+        return COLOR_DEFAULTS
+    if isinstance(val, str):
+        return [c.strip() for c in val.split(",") if c.strip()]
+    if isinstance(val, list):
+        return [str(c).strip() for c in val if str(c).strip()]
+    return COLOR_DEFAULTS
 
 
 def format_yaml_time(val) -> str:
@@ -98,17 +116,6 @@ def parse_time_range(range_str: str) -> tuple[str, str]:
     if len(parts) == 2:
         return format_yaml_time(parts[0].strip()), format_yaml_time(parts[1].strip())
     return "00:00", "23:59"
-
-
-def parse_color_sequence(colors_raw) -> List[str]:
-    """Strips space from raw colors string or list, keeping it eenduidig and simple."""
-    if not colors_raw:
-        return []
-    if isinstance(colors_raw, str):
-        return [c.strip() for c in colors_raw.split(",")]
-    if isinstance(colors_raw, list):
-        return [str(c).strip() for c in colors_raw]
-    return []
 
 
 def parse_job_file(job_yaml_path: Path) -> JobConfig:
@@ -207,33 +214,51 @@ def parse_job_file(job_yaml_path: Path) -> JobConfig:
                 attach_mode=mail_raw.get("attach", "all")
             )
 
-        # Parse colors configuration
+        # Parse colors configuration (both dictionaries and raw strings)
         colors_raw = results_raw.get("colors", {})
         colors_cfg = None
         if colors_raw:
-            actuals_raw = colors_raw.get("actuals")
-            spines_raw = colors_raw.get("spines")
-            colors_cfg = JobColorsConfig(
-                actuals=parse_color_sequence(actuals_raw) if actuals_raw else JobColorsConfig().actuals,
-                spines=parse_color_sequence(spines_raw) if spines_raw else JobColorsConfig().spines
-            )
+            if isinstance(colors_raw, dict):
+                actuals_raw = colors_raw.get("actuals")
+                spines_raw = colors_raw.get("spines")
+                actuals_parsed = parse_color_sequence(actuals_raw) if actuals_raw else JobColorsConfig().actuals
+                spines_parsed = parse_color_sequence(spines_raw) if spines_raw else actuals_parsed
+                colors_cfg = JobColorsConfig(actuals=actuals_parsed, spines=spines_parsed)
+            else:
+                # Flat string/list
+                parsed_seq = parse_color_sequence(colors_raw)
+                colors_cfg = JobColorsConfig(actuals=parsed_seq, spines=parsed_seq)
         else:
             colors_cfg = JobColorsConfig()
+
+        # Parse labels configuration
+        labels_raw = results_raw.get("labels", {})
+        labels_cfg = None
+        if labels_raw:
+            labels_cfg = JobLabelsConfig(
+                ribs=labels_raw.get("ribs", "deviationspeed"),
+                spine=labels_raw.get("spine", "bearing|duration|totaldistance")
+            )
+        else:
+            labels_cfg = JobLabelsConfig()
 
         results_cfg = JobResultsConfig(
             output_folder_template=results_raw.get("folder", ""),
             overview_file_template=results_raw.get("files", {}).get("overview", ""),
             gpx_file_template=results_raw.get("files", {}).get("gpx", ""),
             mail=mail_cfg,
-            colors=colors_cfg
+            colors=colors_cfg,
+            labels=labels_cfg
         )
 
     date_expr = data.get("date", {}).get("range", "1d,+5d")
+    tz_str = data.get("tz", "Europe/Brussels")
 
     return JobConfig(
         title=data.get("title", "CSCM Simulation Job"),
         active=active_cfg,
         date_range_expr=date_expr,
+        tz_str=tz_str,
         calculations=calcs_list,
         extra=extra_cfg,
         results=results_cfg

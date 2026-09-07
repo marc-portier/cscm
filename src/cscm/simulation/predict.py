@@ -369,7 +369,7 @@ def plot_daily_simulations(
 
                         for poly in polys:
                             x, y = poly.exterior.xy
-                            plt.fill(x, y, color="#5ede55", alpha=0.75, zorder=3)
+                            plt.fill(x, y, color="#f8f1b0", alpha=0.75, zorder=3)
                             plt.plot(x, y, color='black', linewidth=1.2, zorder=4)
                     else:
                         x, y = geom.xy

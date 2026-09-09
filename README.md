@@ -46,9 +46,11 @@ The repository is organized under a modular Python package (`cscm`):
 5. **Environmental impact analysis:** 
    Use additional environmental data (wind, waves, temperature, ...) to investigate possible other meaningful impact-factors on long distance swim performance. 
 
-6. **Connect to other initiatives: ** 
+6. **Connect to other initiatives:** 
 
-* https://openwaters.io/tides/
+    Some random list of gathered ideas:
+
+    * https://openwaters.io/tides/
 
 ---
 

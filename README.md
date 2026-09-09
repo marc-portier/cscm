@@ -61,8 +61,13 @@ The codebase is built with modern Python tooling (Poetry, xarray, geopandas).
 ### Setup
 
 Steps you like to get over with:
-1. Install `poetry` - and then run `poetry install` on this project
-2. Copy `dotenv-example`  to `.env` and add your personal settings there.
+1. Install `poetry`  -- see [installation docs](https://python-poetry.org/docs/#installing-with-the-official-installer)
+2. Optionally (we recommend) use local env folder and enforce python3.14:
+```bash
+$ poetry config virtualenvs.in-project true --local
+$ poetry env use python3.14
+```
+3. Copy `dotenv-example`  to `.env` and add your personal settings there.
 
 
 ### Processing Copernicus Data:

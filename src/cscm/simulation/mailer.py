@@ -15,12 +15,98 @@ from tempfile import NamedTemporaryFile
 log = getLogger(__name__)
 
 
+def build_simulation_email(
+    to_list: List[str],
+    subject: str,
+    html_body: str,
+    overview_map_path: Optional[Path] = None,
+    attachment_paths: Optional[List[Path]] = None,
+    plain_body: Optional[str] = None,
+    from_addr: Optional[str] = None
+) -> MIMEMultipart:
+    """
+    Constructs an RFC 2046 and RFC 2387 compliant MIME email message.
+
+    Structure:
+    - multipart/mixed (root)
+      - if overview_map_path:
+        - multipart/related
+          - multipart/alternative
+            - text/plain
+            - text/html
+          - image/* (Content-ID: <overview>, Content-Disposition: inline)
+      - else:
+        - multipart/alternative
+          - text/plain
+          - text/html
+      - attachments (GPX, etc. Content-Disposition: attachment)
+    """
+    sender = from_addr or os.environ.get("SMTP_FROM", "cscm-simulator@localhost")
+    msg = MIMEMultipart("mixed")
+    msg["Subject"] = subject
+    msg["From"] = sender
+    msg["To"] = ", ".join(to_list)
+
+    # Alternative container for text/plain and text/html
+    msg_alternative = MIMEMultipart("alternative")
+    plain_content = plain_body or (
+        f"{subject}\n\n"
+        "Dit is een automatisch gegenereerd rapport van de CSCM Simulator.\n"
+        "Bekijk dit bericht in een e-mailprogramma met HTML-ondersteuning om alle details en visualisaties te zien."
+    )
+    msg_alternative.attach(MIMEText(plain_content, "plain", "utf-8"))
+    msg_alternative.attach(MIMEText(html_body, "html", "utf-8"))
+
+    # If an overview image is present, wrap alternative and image in multipart/related
+    if overview_map_path and overview_map_path.exists():
+        msg_related = MIMEMultipart("related")
+        msg_related.attach(msg_alternative)
+        try:
+            with open(overview_map_path, "rb") as img_f:
+                img_data = img_f.read()
+                try:
+                    msg_img = MIMEImage(img_data)
+                except TypeError:
+                    subtype = overview_map_path.suffix.lstrip(".").lower() or "png"
+                    msg_img = MIMEImage(img_data, _subtype=subtype)
+                msg_img.add_header("Content-ID", "<overview>")
+                msg_img.add_header("Content-Disposition", "inline", filename=overview_map_path.name)
+                msg_related.attach(msg_img)
+                log.info(f"Embedded overview chart inline: {overview_map_path.name}")
+        except Exception as e:
+            log.warning(f"Could not inline embed overview image {overview_map_path}: {e}")
+        msg.attach(msg_related)
+    else:
+        msg.attach(msg_alternative)
+
+    # Attach GPX or other binary files directly to multipart/mixed
+    if attachment_paths:
+        for a_path in attachment_paths:
+            if a_path.exists():
+                try:
+                    with open(a_path, "rb") as f:
+                        part = MIMEBase("application", "octet-stream")
+                        part.set_payload(f.read())
+                        encoders.encode_base64(part)
+                        part.add_header(
+                            "Content-Disposition",
+                            f"attachment; filename={a_path.name}"
+                        )
+                        msg.attach(part)
+                        log.info(f"Attached GPX file: {a_path.name}")
+                except Exception as e:
+                    log.warning(f"Could not attach file {a_path}: {e}")
+
+    return msg
+
+
 def send_simulation_email(
     to_list: List[str],
     subject: str,
     html_body: str,
     overview_map_path: Optional[Path] = None,
-    attachment_paths: Optional[List[Path]] = None
+    attachment_paths: Optional[List[Path]] = None,
+    plain_body: Optional[str] = None
 ) -> None:
     """
     Sends simulation HTML reports with CID embedded overview map and GPX attachments.
@@ -45,48 +131,14 @@ def send_simulation_email(
     smtp_pass = os.environ.get("SMTP_PASS")
     smtp_port = int(smtp_port_str)
 
-    msg = MIMEMultipart("mixed")
-    msg["Subject"] = subject
-    msg["From"] = os.environ.get("SMTP_FROM", "cscm-simulator@localhost")
-    msg["To"] = ", ".join(to_list)
-
-    # Alternate part for HTML body and inline images
-    msg_alternative = MIMEMultipart("alternative")
-    msg.attach(msg_alternative)
-
-    # Attach HTML
-    msg_html = MIMEText(html_body, "html", "utf-8")
-    msg_alternative.attach(msg_html)
-
-    # Embed overview image using Content-ID (CID) if present
-    if overview_map_path and overview_map_path.exists():
-        try:
-            with open(overview_map_path, "rb") as img_f:
-                msg_img = MIMEImage(img_f.read())
-                msg_img.add_header("Content-ID", "<overview>")
-                msg_img.add_header("Content-Disposition", "inline", filename=overview_map_path.name)
-                msg_alternative.attach(msg_img)
-                log.info(f"Embedded overview chart inline: {overview_map_path.name}")
-        except Exception as e:
-            log.warning(f"Could not inline embed overview image {overview_map_path}: {e}")
-
-    # Attach GPX or other binary files
-    if attachment_paths:
-        for a_path in attachment_paths:
-            if a_path.exists():
-                try:
-                    with open(a_path, "rb") as f:
-                        part = MIMEBase("application", "octet-stream")
-                        part.set_payload(f.read())
-                        encoders.encode_base64(part)
-                        part.add_header(
-                            "Content-Disposition",
-                            f"attachment; filename={a_path.name}"
-                        )
-                        msg.attach(part)
-                        log.info(f"Attached GPX file: {a_path.name}")
-                except Exception as e:
-                    log.warning(f"Could not attach file {a_path}: {e}")
+    msg = build_simulation_email(
+        to_list=to_list,
+        subject=subject,
+        html_body=html_body,
+        overview_map_path=overview_map_path,
+        attachment_paths=attachment_paths,
+        plain_body=plain_body
+    )
 
     # SMTP Transmission block
     log.info(f"Connecting to SMTP relay server at {smtp_host}:{smtp_port}...")

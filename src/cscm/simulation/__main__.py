@@ -44,7 +44,10 @@ def configure_logging():
 
 def get_latest_forecast_nc(storage_dir: Path) -> Optional[Path]:
     """Finds the most recent CMEMS NetCDF file in the storage directory."""
-    nc_files = list(storage_dir.glob("*.nc"))
+    nc_files = [
+        p for p in storage_dir.glob("*.nc")
+        if not p.name.startswith(".") and ".staging" not in p.parts
+    ]
     if not nc_files:
         return None
     # Return sorted last name order for reliable forecast timestamp matches
@@ -97,7 +100,7 @@ def load_random_qotd(qotd_path: Optional[Path]) -> tuple[Optional[str], Optional
     return None, None
 
 
-def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
+def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime, forecast_notice: Optional[str] = None) -> None:
     """Runs a single simulation JobConfig, generates GPX tracks, daily maps, and emails the results."""
     log.info(f"Executing active Job: {cfg.title}")
 
@@ -107,6 +110,16 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
     # Open NetCDF dataset
     log.info(f"Opening CMEMS forecast file: {nc_file.name}")
     ds = xr.open_dataset(nc_file)
+
+    time_coord = 'time' if 'time' in ds.coords else None
+    file_time_min = None
+    file_time_max = None
+    if time_coord and ds[time_coord].size > 0:
+        raw_min = pd.to_datetime(ds[time_coord].values[0])
+        raw_max = pd.to_datetime(ds[time_coord].values[-1])
+        file_time_min = raw_min.tz_localize(timezone.utc) if raw_min.tzinfo is None else raw_min
+        file_time_max = raw_max.tz_localize(timezone.utc) if raw_max.tzinfo is None else raw_max
+        log.info(f"Forecast dataset temporal coverage: {file_time_min.strftime('%Y-%m-%d %H:%M UTC')} to {file_time_max.strftime('%Y-%m-%d %H:%M UTC')}")
 
     # 1. Classify grid cell coastline background (Land/Boundary/Water)
     status_mask, _ = classify_grid_cells(ds)
@@ -123,6 +136,14 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
         log.info(f"--- Processing simulations for: {day.strftime('%Y-%m-%d')} ---")
         day_start = day.replace(hour=0, minute=0, second=0, microsecond=0).replace(tzinfo=timezone.utc)
         day_end = day_start + timedelta(hours=23, minutes=59, seconds=59)
+
+        if file_time_min and file_time_max:
+            if day_end < file_time_min or day_start > file_time_max:
+                log.error(
+                    f"Simulation day {day.strftime('%Y-%m-%d')} is OUTSIDE the time coverage "
+                    f"of {nc_file.name} ({file_time_min.strftime('%Y-%m-%d')} to {file_time_max.strftime('%Y-%m-%d')}). "
+                    f"No tide peaks will be found."
+                )
 
         # Build list of calculations with trajectories for this day
         daily_runs = []
@@ -305,7 +326,8 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
                         tz_name=local_tz.tzname(now_local),
                         qotd_text=qotd_txt,
                         qotd_author=qotd_by,
-                        calculations=calc_summaries
+                        calculations=calc_summaries,
+                        forecast_notice=forecast_notice
                     )
 
             # Format email subject with local time offsets
@@ -314,6 +336,9 @@ def run_job(cfg: JobConfig, nc_file: Path, base_date: datetime) -> None:
             subject = mail_cfg.subject_template \
                 .replace("{date}", day.strftime("%Y-%m-%d")) \
                 .replace("{now}", now_local_str)
+
+            if forecast_notice:
+                subject = f"[CMEMS Cache] {subject}"
 
             attachments = []
             if mail_cfg.attach_mode in ("all", "gpx"):
@@ -396,15 +421,19 @@ poetry run python -m cscm.simulation
 
     cmems_data_manager = CMEMSDataManager()
 
+    cmems_update_ok = True
     # Automatically fetch latest updates unless update is skipped
     if args.skip_update:
         log.info("Skipping Copernicus CMEMS database update checks as requested (--skip-update).")
     else:
         log.info("Checking Copernicus CMEMS data store for live forecast updates...")
         try:
-            cmems_data_manager.update_cmems_data()
+            cmems_update_ok = bool(cmems_data_manager.update_cmems_data())
+            if not cmems_update_ok:
+                log.warning("CMEMS data update encountered issues; proceeding with cached forecast data.")
         except Exception as e:
             log.error(f"Failed to retrieve live forecast update: {e}")
+            cmems_update_ok = False
 
     nc_file = get_latest_forecast_nc(data_dir)
     if not nc_file:
@@ -412,6 +441,27 @@ poetry run python -m cscm.simulation
         sys.exit(1)
 
     log.info(f"Using CMEMS NetCDF forecast database: {nc_file}")
+
+    # Determine if a forecast notice should be displayed in results/emails
+    forecast_notice: Optional[str] = None
+    if not cmems_update_ok:
+        try:
+            mtime = datetime.fromtimestamp(nc_file.stat().st_mtime, tz=timezone.utc)
+            ds_check = xr.open_dataset(nc_file)
+            time_col = 'time' if 'time' in ds_check.coords else None
+            if time_col and ds_check[time_col].size > 0:
+                raw_max = pd.to_datetime(ds_check[time_col].values[-1])
+                last_data_str = raw_max.strftime('%d-%m-%Y')
+            else:
+                last_data_str = mtime.strftime('%d-%m-%Y')
+            ds_check.close()
+            forecast_notice = (
+                f"Live CMEMS forecast kon niet worden bijgewerkt; "
+                f"simulaties zijn gebaseerd op de recentst beschikbare data (data tot {last_data_str})."
+            )
+        except Exception as e:
+            log.warning(f"Could not inspect NetCDF for notice date: {e}")
+            forecast_notice = "Live CMEMS forecast kon niet worden bijgewerkt; simulaties zijn gebaseerd op de recentst beschikbare data."
 
     job_files = list(job_dir.glob("*.yaml")) + list(job_dir.glob("*.yml"))
     if not job_files:
@@ -436,7 +486,7 @@ poetry run python -m cscm.simulation
                     log.info(f"Skipping job {j_file.name}: today is outside active range.")
                     continue
 
-            run_job(cfg, nc_file, today)
+            run_job(cfg, nc_file, today, forecast_notice=forecast_notice)
         except Exception as e:
             log.error(f"Failed to execute job {j_file.name}: {e}", exc_info=True)
 

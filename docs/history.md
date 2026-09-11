@@ -76,3 +76,13 @@ To support tactical planning and support boat crews, a declarative simulation en
   * **Ribs (Graten)**: 15-minute tidal displacement vectors ($v_{\text{current}} \times 900\text{s}$) illustrating localized current drift at each stage.
   * **Offset Stencils**: Labels are offset both along-track and perpendicular to the spine, and rib labels sit opposite current deflection to guarantee zero text intersection.
 * **Output Deliverables**: Automated generation of standard GPX navigation tracks and high-contrast cartographic overview plots, dispatched via automated notification reports.
+
+---
+
+### Phase 7: Autonomous Pipeline Hardening & Lunar Boundary Resilience
+Operational cron execution on local and remote servers revealed edge cases at the boundaries of astronomical cycles and remote APIs:
+* **The "Delete-Before-Download" Trap**: Ingestion previously deleted older forecast files before pulling updates. When upstream providers (CloudFerro S3 / CMEMS) experienced transient connection drops or 504 timeouts, the active file was lost, leaving only stale historical files and causing silent simulation skips (0 peaks detected).
+* **Non-Destructive Staging & Retries**: Downloads now target an isolated `.staging/` directory with automated 3-attempt exponential backoff. Existing NetCDF and metadata files are preserved intact until the new download is verified and cataloged.
+* **The Synodic Month Lookahead (35 vs. 29 Days)**: Because the synodic lunar period is ~29.53 days, a 29-day lookahead landed several hours short of the subsequent new moon when evaluated on the day of a new moon. Because cycle generation requires adjacent new moon pairs, the system was temporarily blind to the newly started cycle. Extending the lookahead to 35 days guarantees continuous, seamless discovery across new moon boundaries.
+* **Trailing Buffer Saturation**: A cycle whose trailing margin has already fully downloaded (`data_end_dt >= nwmn_end_dt + 5 days`) is now recognized as saturated, eliminating redundant daily re-downloads of ~190 MB files whose date ranges cannot expand further.
+* **Graceful Degradation with Cached Bulletins**: If remote updates fail after retries, simulations proceed using the latest available bulletin rather than halting, tagging the email with `[CMEMS Cache]` and explicitly displaying the date of the latest available data.

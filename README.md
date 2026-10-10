@@ -67,7 +67,7 @@ Steps you like to get over with:
 $ poetry config virtualenvs.in-project true --local
 $ poetry env use python3.14
 ```
-3. Copy `dotenv-example`  to `.env` and add your personal settings there.
+3. Copy `.env.example` to `.env` and add your personal settings there.
 
 
 ### Processing Copernicus Data:

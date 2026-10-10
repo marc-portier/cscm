@@ -154,3 +154,47 @@ This document outlines the ordered development roadmap for the **Channel Swimmer
   * Build a prototype serverless web interface.
   * Run trajectory search algorithms client-side in the browser using DuckDB-Wasm and WebAssembly, querying only necessary spatial cells and time slices on demand.
   * Publish this tool on the same online platform. Consider ease of use for non-technical users (e.g. make it easy to select the date, origin and destination, provide swimmer-profile, etc.)
+
+---
+
+## 🌊 Feature Track: Kust-Stromingsprofielen & Strandposten (Public Swim Safety)
+
+This initiative translates abstract model hydrodynamics into an intuitive, high-impact infographic profile per coastal bathing resort and lifeguard post (starting with **Bredene Post 4 "Droogen Opganck"**).
+
+### 1. Status & Prototype Assets
+* **Design Evolution**: Iterated from remarkable sketchbook (v0) through v1, v2, v3 to **v4 (Approved Target Design)**.
+* **Archive & Reference**: Full visual changelog preserved in [`experimenting/graphics/hist/`](file:///home/marc.portier@vliz.be/projects/mpo/cscm/experimenting/graphics/hist/).
+* **Active Production Prototype**:
+  * Visual Render: [`experimenting/graphics/ontwerp-stroming-profiel-preview.png`](file:///home/marc.portier@vliz.be/projects/mpo/cscm/experimenting/graphics/ontwerp-stroming-profiel-preview.png)
+  * Vector Source: [`experimenting/graphics/ontwerp-stroming-profiel.svg`](file:///home/marc.portier@vliz.be/projects/mpo/cscm/experimenting/graphics/ontwerp-stroming-profiel.svg)
+  * Jinja2 SVG Template: [`experimenting/graphics/stroming-profiel-v4.svg.j2`](file:///home/marc.portier@vliz.be/projects/mpo/cscm/experimenting/graphics/stroming-profiel-v4.svg.j2)
+  * Test Generator Script: [`experimenting/graphics/generate_v4.py`](file:///home/marc.portier@vliz.be/projects/mpo/cscm/experimenting/graphics/generate_v4.py)
+
+### 2. Core Visual & Infographic Principles (v4 Standard)
+* **Beach Perspective**: Looking seaward (NNW); Left = SW / France (Ebb), Right = NE / Netherlands (Flood).
+* **Tidal Ellipse Vector Rotation**: Block-wave characteristic: steady alongshore angles (0° for flood, 180° for ebb) with smooth, rapid counter-clockwise (cyclonic) transitions through seaward (-90°) around slack high water, and landward (+90°) around slack low water.
+* **Symmetrical Water Level Curve**: Centered around Mean Sea Level (MSL ~2.56 m TAW), showing water mass expansion from the 0m TAW baseline on the far left. True peaks/troughs coincide mathematically with High Water (amber callout) and Low Water (orange callouts).
+* **Swimmer Pace Benchmark (Inset)**: Dedicated safety reference defining 0.5 m/s (beginner), 1.0 m/s (amateur cruise speed), and 1.5 m/s (olympic athlete), accompanied by dashed gridlines across the chart.
+* **15-Minute Resolution with Minimalist Spine**: Harvey-ball quarter-hour ticks (:15, :30, :45) keeping the central spine tranquil, reserving full `HH:MM` badges strictly for key tidal events (PFC, HW, Kentering, PEC, LW).
+
+### 3. Data Sourcing Architecture
+* **Currents (CMEMS 1.5km 2D)**: Extract $v_{\text{along}}$ and $u_{\text{cross}}$ vectors for coordinates from the operational `cscm.current.cmems` datastore (supporting 7-day live forecasts and 2-year historical analysis).
+* **Water Levels (Meetnet Vlaamse Banken / MDK)**:
+  * Open REST API (`https://api.meetnetvlaamsebanken.be/V2-api-docs/`)
+  * Stations: Oostende (`OST`), Nieuwpoort (`NP`), Zeebrugge (`ZB`).
+  * Parameters: Astronomical prediction (`WATHTE_ASTRO`), forecast with meteorological surge (`WATHTE_VOORSP`), real-time gauge (`WATHTE`), and tidal extremes (`GETIJ_HW` / `GETIJ_LW`).
+* **Lifeguard Post Registry (IKWV)**:
+  * Seeded registry file: [`src/cscm/resources/be_lifeguard_posts.yaml`](file:///home/marc.portier@vliz.be/projects/mpo/cscm/src/cscm/resources/be_lifeguard_posts.yaml).
+  * Contains coastal orientation (~65°-245°), station mapping, and exact coordinates for Bredene (Post 1 Turkeyen, Post 2 Duingat, Post 3 Astrid, Post 4 Droogen Opganck, Post 6 Hippodroom).
+  * Expansion path: Query NGI GeoHub Kustreferentiepunten and VLIZ Kustportaal WFS services to complete the remaining 9 coastal municipalities.
+
+### 4. Backlog Tasks (When Resuming)
+1. **MDK Water Level Connector (`cscm.tide.mdk`)**:
+   * Implement a lightweight client querying MDK API v2 for 7-day water level curves and extremes per station.
+2. **CMEMS Coastal Extractor**:
+   * Build helper to sample the nearest wet grid point or coastal projection for any post in `be_lifeguard_posts.yaml`.
+3. **Automated Static Publishing Pipeline**:
+   * Python pipeline generating daily SVGs (10 municipalities × 5 posts × 7 forecast days = ~350 SVGs in ~2s).
+   * Hugo static site repository deployment on GitHub Pages.
+4. **Physical Lifeguard Board Edition**:
+   * Export an analog A1/A2 whiteboard template design for daily chalk/marker usage by beach lifeguards.

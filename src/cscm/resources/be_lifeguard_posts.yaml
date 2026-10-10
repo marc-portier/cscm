@@ -1,0 +1,120 @@
+# Register van Belgische Strand- en Reddingsposten (IKWV) & Getijdenstations (MDK)
+# Gebruikt voor het genereren van Kust-Stromingsprofielen (CSCM)
+
+metadata:
+  timezone: "Europe/Brussels"       # IANA tijdzone voor lokale tijdsaanduiding en DST-conversie
+  seaward_bearing_deg: 335.0       # Universele kompas-bearing (azimut 0°-360°) loodrecht op kustlijn, zeewaarts gericht (NNW)
+  tidal_cycle_hours: 12.42         # M2 getijdencyclus duur (12u 25m)
+
+water_level_stations:
+  # Meetnet Vlaamse Banken (MDK) stations met API parameter WATHTE (cm TAW)
+  oostende:
+    station_code: "OST"
+    name: "Oostende Haven / Staketsel"
+    lat: 51.2333
+    lon: 2.9167
+    api_endpoint: "https://api.meetnetvlaamsebanken.be/V2-api/rest"
+    params:
+      astronomical: "WATHTE_ASTRO"
+      forecast: "WATHTE_VOORSP"
+      observed: "WATHTE"
+  nieuwpoort:
+    station_code: "NP"
+    name: "Nieuwpoort Haven"
+    lat: 51.1500
+    lon: 2.7167
+  zeebrugge:
+    station_code: "ZB"
+    name: "Zeebrugge Haven"
+    lat: 51.3500
+    lon: 3.2000
+
+municipalities:
+  bredene:
+    name: "Bredene"
+    water_level_station: "oostende"
+    seaward_bearing_deg: 335.0     # Zeewaartse normaal (kustlijn loopt op ~65° -> 65° - 90° = 335°)
+    posts:
+      post_1:
+        number: 1
+        name: "Turkeyen"
+        description: "Twins watersportclub"
+        lat: 51.2469
+        lon: 2.9528
+        guarded_zone_m: 260
+      post_2:
+        number: 2
+        name: "Duingat"
+        description: "Centrum / Hoofdpost"
+        lat: 51.2498
+        lon: 2.9604
+        guarded_zone_m: 220
+      post_3:
+        number: 3
+        name: "Astrid"
+        description: "Marktplein / Kapelstraat"
+        lat: 51.2519
+        lon: 2.9680
+        guarded_zone_m: 260
+      post_4:
+        number: 4
+        name: "Droogen Opganck"
+        description: "De Droge Opgang / Koningin Astridlaan"
+        lat: 51.2542
+        lon: 2.9740
+        guarded_zone_m: 230
+        is_default_benchmark: true
+      post_6:
+        number: 6
+        name: "Hippodroom"
+        description: "Hippo Beach / Naaktstrand (Post 5 historisch verdwenen)"
+        lat: 51.2583
+        lon: 2.9815
+        guarded_zone_m: 350
+
+  # Overige 9 IKWV gemeenten (aan te vullen via Kustportaal / IKWV GIS data):
+  de_panne:
+    name: "De Panne"
+    water_level_station: "nieuwpoort"
+    seaward_bearing_deg: 340.0
+    posts: {}
+  koksijde_oostduinkerke:
+    name: "Koksijde — Oostduinkerke"
+    water_level_station: "nieuwpoort"
+    seaward_bearing_deg: 338.0
+    posts: {}
+  nieuwpoort:
+    name: "Nieuwpoort"
+    water_level_station: "nieuwpoort"
+    seaward_bearing_deg: 337.0
+    posts: {}
+  middelkerke_westende:
+    name: "Middelkerke — Westende"
+    water_level_station: "oostende"
+    seaward_bearing_deg: 336.0
+    posts: {}
+  oostende:
+    name: "Oostende"
+    water_level_station: "oostende"
+    seaward_bearing_deg: 335.5
+    posts: {}
+  de_haan_wenduine:
+    name: "De Haan — Wenduine"
+    water_level_station: "oostende"
+    seaward_bearing_deg: 334.0
+    posts: {}
+  blankenberge:
+    name: "Blankenberge"
+    water_level_station: "zeebrugge"
+    seaward_bearing_deg: 333.0
+    posts: {}
+  zeebrugge:
+    name: "Zeebrugge"
+    water_level_station: "zeebrugge"
+    seaward_bearing_deg: 332.0
+    posts: {}
+  knokke_heist:
+    name: "Knokke-Heist"
+    water_level_station: "zeebrugge"
+    seaward_bearing_deg: 331.0
+    posts: {}

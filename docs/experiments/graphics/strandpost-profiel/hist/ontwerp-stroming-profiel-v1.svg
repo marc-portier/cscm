@@ -1,0 +1,471 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 1280" width="100%" height="100%" style="background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="waterCurveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0.25"/>
+    </linearGradient>
+    <linearGradient id="floodBarGrad" gradientUnits="userSpaceOnUse" x1="455" y1="0" x2="700" y2="0">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="1.0"/>
+    </linearGradient>
+    <linearGradient id="ebbBarGrad" gradientUnits="userSpaceOnUse" x1="385" y1="0" x2="160" y2="0">
+      <stop offset="0%" stop-color="#818cf8" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#4f46e5" stop-opacity="1.0"/>
+    </linearGradient>
+    <!-- Drop shadows -->
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.07"/>
+    </filter>
+    <filter id="badgeShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- ================= HEADER SECTION ================= -->
+  <g id="header" transform="translate(45, 32)">
+    <!-- Title and Subtitle -->
+    <text x="0" y="22" font-size="13" font-weight="800" letter-spacing="1.5" fill="#0284c7">CSCM KUST-STROMINGSPROFIEL</text>
+    <text x="0" y="56" font-size="32" font-weight="900" fill="#0f172a" letter-spacing="-0.5">Bredene — Strandpost 4</text>
+    <text x="0" y="80" font-size="15" font-weight="500" fill="#64748b">Zaterdag 11 Juli 2026 • Voorspelling 09:30 – 18:00</text>
+
+    <!-- Compass & Coastal Reference Badge -->
+    <g transform="translate(640, 5)">
+      <circle cx="45" cy="45" r="40" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#softShadow)"/>
+      <g transform="translate(45, 45) rotate(-25)">
+        <polygon points="0,-32 7,-8 0,-15 -7,-8" fill="#ef4444"/>
+        <polygon points="0,18 7,0 0,8 -7,0" fill="#64748b"/>
+        <text x="0" y="-35" font-size="11" font-weight="900" fill="#ef4444" text-anchor="middle">N</text>
+      </g>
+      <line x1="15" y1="58" x2="75" y2="32" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
+      <text x="45" y="73" font-size="8.5" font-weight="700" fill="#64748b" text-anchor="middle">KUSTLIJN</text>
+    </g>
+  </g>
+
+  <!-- ================= COASTAL DIRECTION BAR ================= -->
+  <g id="coast_direction" transform="translate(45, 142)">
+    <rect x="0" y="0" width="750" height="44" rx="8" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
+    
+    <!-- Left: France / Ebb -->
+    <path d="M 32 22 L 16 22 M 16 22 L 23 16 M 16 22 L 23 28" stroke="#4f46e5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="44" y="27" font-size="13" font-weight="800" fill="#4f46e5">[FR] FRANKRIJK • EBBESTROOM (ZW)</text>
+
+    <!-- Center Separator -->
+    <circle cx="375" cy="22" r="4" fill="#94a3b8"/>
+
+    <!-- Right: Netherlands / Flood -->
+    <text x="706" y="27" font-size="13" font-weight="800" fill="#0284c7" text-anchor="end">VLOEDSTROOM (NO) • NEDERLAND [NL]</text>
+    <path d="M 718 22 L 734 22 M 734 22 L 727 16 M 734 22 L 727 28" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- ================= GRAPH MAIN AREA ================= -->
+  <g id="graph_surface">
+    <!-- Grid lines -->
+    <g id="grid_lines" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,4">
+      <line x1="175" y1="205" x2="175" y2="1035"/> <!-- -1.5 m/s -->
+      <line x1="245" y1="205" x2="245" y2="1035"/> <!-- -1.0 m/s -->
+      <line x1="315" y1="205" x2="315" y2="1035"/> <!-- -0.5 m/s -->
+      <line x1="525" y1="205" x2="525" y2="1035"/> <!-- +0.5 m/s -->
+      <line x1="595" y1="205" x2="595" y2="1035"/> <!-- +1.0 m/s -->
+      <line x1="665" y1="205" x2="665" y2="1035"/> <!-- +1.5 m/s -->
+    </g>
+
+    <!-- Scale Headers -->
+    <g id="scale_headers" font-size="11" font-weight="700" fill="#94a3b8" text-anchor="middle">
+      <text x="175" y="206">-1.5 m/s</text>
+      <text x="245" y="206">-1.0 m/s</text>
+      <text x="315" y="206">-0.5 m/s</text>
+      <text x="420" y="206" fill="#64748b">TIJD</text>
+      <text x="525" y="206">+0.5 m/s</text>
+      <text x="595" y="206">+1.0 m/s</text>
+      <text x="665" y="206">+1.5 m/s</text>
+    </g>
+
+    <!-- Swimmer Cruise Pace Benchmark (1.0 m/s) -->
+    <g id="swimmer_benchmarks">
+      <line x1="595" y1="215" x2="595" y2="1030" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6,4" opacity="0.6"/>
+      <text x="600" y="1030" font-size="10.5" font-weight="700" fill="#0284c7">≈ 1 m/s (zwemsnelheid)</text>
+    </g>
+
+    <!-- ================= WATER LEVEL CURVE (Underlay) ================= -->
+    
+    <g id="water_level_curve">
+      
+      <path d="M 455 240 C 490 280, 560 360, 640 440 C 685 490, 715 560, 705 636 C 690 720, 600 810, 500 900 C 420 980, 310 1010, 240 1025 L 455 1025 Z" fill="url(#waterCurveGrad)"/>
+      
+      
+      <path d="M 455 240 C 490 280, 560 360, 640 440 C 685 490, 715 560, 705 636 C 690 720, 600 810, 500 900 C 420 980, 310 1010, 240 1025" fill="none" stroke="#0ea5e9" stroke-width="4.5" stroke-linecap="round" opacity="0.9"/>
+      
+
+      <!-- High Water Marker Callout -->
+      
+      <g transform="translate(705, 636)">
+        <circle cx="0" cy="0" r="7" fill="#f59e0b" stroke="#ffffff" stroke-width="2.5" filter="url(#badgeShadow)"/>
+        <line x1="8" y1="0" x2="25" y2="0" stroke="#f59e0b" stroke-width="2" stroke-dasharray="2,2"/>
+        <g transform="translate(26, -24)">
+          <rect x="0" y="0" width="94" height="48" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" filter="url(#softShadow)"/>
+          <text x="10" y="18" font-size="10.5" font-weight="800" fill="#b45309">HOOGWATER</text>
+          <text x="10" y="36" font-size="14" font-weight="900" fill="#92400e">4.47 m</text>
+        </g>
+      </g>
+      
+    </g>
+    
+
+    <!-- Central Spine Guides -->
+    <line x1="385" y1="215" x2="385" y2="1030" stroke="#cbd5e1" stroke-width="1.5"/>
+    <line x1="455" y1="215" x2="455" y2="1030" stroke="#cbd5e1" stroke-width="1.5"/>
+
+    <!-- ================= CURRENT VECTOR BARS & ARROWS ================= -->
+    <g id="current_bars">
+      
+        
+          <!-- Flood vector (grow right from X=455) -->
+          
+          
+          
+            <line x1="455" y1="240" x2="511.0" y2="240" stroke="url(#floodBarGrad)" stroke-width="7" stroke-linecap="round"/>
+            <circle cx="511.0" cy="240" r="9" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <path d="M 508.0 240 L 515.0 240 M 512.0 237 L 515.0 240 L 512.0 243" stroke="#0284c7" stroke-width="1.6" stroke-linecap="round"/>
+            
+          
+        
+      
+        
+          <!-- Flood vector (grow right from X=455) -->
+          
+          
+          
+            <line x1="455" y1="284" x2="567.0" y2="284" stroke="url(#floodBarGrad)" stroke-width="7" stroke-linecap="round"/>
+            <circle cx="567.0" cy="284" r="9" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <path d="M 564.0 284 L 571.0 284 M 568.0 281 L 571.0 284 L 568.0 287" stroke="#0284c7" stroke-width="1.6" stroke-linecap="round"/>
+            
+          
+        
+      
+        
+          <!-- Flood vector (grow right from X=455) -->
+          
+          
+          
+            <line x1="455" y1="328" x2="637.0" y2="328" stroke="url(#floodBarGrad)" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="637.0" cy="328" r="9" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <path d="M 634.0 328 L 641.0 328 M 638.0 325 L 641.0 328 L 638.0 331" stroke="#0284c7" stroke-width="1.6" stroke-linecap="round"/>
+            
+          
+        
+      
+        
+          <!-- Flood vector (grow right from X=455) -->
+          
+          
+          
+            <line x1="455" y1="372" x2="679.0" y2="372" stroke="url(#floodBarGrad)" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="679.0" cy="372" r="9" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <path d="M 676.0 372 L 683.0 372 M 680.0 369 L 683.0 372 L 680.0 375" stroke="#0284c7" stroke-width="1.6" stroke-linecap="round"/>
+            
+          
+        
+      
+        
+          <!-- Flood vector (grow right from X=455) -->
+          
+          
+          
+            <rect x="455" y="403" width="245.0" height="26" rx="13" fill="#ffedd5" opacity="0.6"/>
+            <line x1="455" y1="416" x2="693.0" y2="416" stroke="#ea580c" stroke-width="9" stroke-linecap="round"/>
+            <circle cx="693.0" cy="416" r="13" fill="#ea580c" stroke="#ffffff" stroke-width="2.5" filter="url(#badgeShadow)"/>
+            <path d="M 687.0 416 L 699.0 416 M 694.0 411 L 699.0 416 L 694.0 421" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round"/>
+            <g transform="translate(714.0, 416)">
+              <text x="0" y="-3" font-size="14" font-weight="900" fill="#ea580c">1.7 m/s</text>
+              <text x="0" y="12" font-size="10.5" font-weight="800" fill="#c2410c">PIEK VLOED (PFC)</text>
+            </g>
+          
+        
+      
+        
+          <!-- Flood vector (grow right from X=455) -->
+          
+          
+          
+            <line x1="455" y1="460" x2="665.0" y2="460" stroke="url(#floodBarGrad)" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="665.0" cy="460" r="9" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <path d="M 662.0 460 L 669.0 460 M 666.0 457 L 669.0 460 L 666.0 463" stroke="#0284c7" stroke-width="1.6" stroke-linecap="round"/>
+            
+          
+        
+      
+        
+          <!-- Flood vector (grow right from X=455) -->
+          
+          
+          
+            <line x1="455" y1="504" x2="623.0" y2="504" stroke="url(#floodBarGrad)" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="623.0" cy="504" r="9" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <path d="M 620.0 504 L 627.0 504 M 624.0 501 L 627.0 504 L 624.0 507" stroke="#0284c7" stroke-width="1.6" stroke-linecap="round"/>
+            
+          
+        
+      
+        
+          <!-- Flood vector (grow right from X=455) -->
+          
+          
+          
+            <line x1="455" y1="548" x2="567.0" y2="548" stroke="url(#floodBarGrad)" stroke-width="7" stroke-linecap="round"/>
+            <circle cx="567.0" cy="548" r="9" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <path d="M 564.0 548 L 571.0 548 M 568.0 545 L 571.0 548 L 568.0 551" stroke="#0284c7" stroke-width="1.6" stroke-linecap="round"/>
+            
+          
+        
+      
+        
+          <!-- Flood vector (grow right from X=455) -->
+          
+          
+          
+            <line x1="455" y1="592" x2="525.0" y2="592" stroke="url(#floodBarGrad)" stroke-width="7" stroke-linecap="round"/>
+            <circle cx="525.0" cy="592" r="9" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <path d="M 522.0 592 L 529.0 592 M 526.0 589 L 529.0 592 L 526.0 595" stroke="#0284c7" stroke-width="1.6" stroke-linecap="round"/>
+            
+          
+        
+      
+        
+          <!-- Flood vector (grow right from X=455) -->
+          
+          
+          
+            <line x1="455" y1="636" x2="497.0" y2="636" stroke="url(#floodBarGrad)" stroke-width="7" stroke-linecap="round"/>
+            <circle cx="497.0" cy="636" r="9" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <path d="M 494.0 636 L 501.0 636 M 498.0 633 L 501.0 636 L 498.0 639" stroke="#0284c7" stroke-width="1.6" stroke-linecap="round"/>
+            
+              <text x="512.0" y="640" font-size="11" font-weight="600" fill="#64748b">0.3 m/s (sterk verzwakt)</text>
+            
+          
+        
+      
+        
+          <!-- Flood vector (grow right from X=455) -->
+          
+          
+          
+            <line x1="455" y1="680" x2="469.0" y2="680" stroke="url(#floodBarGrad)" stroke-width="4.5" stroke-linecap="round"/>
+            <circle cx="469.0" cy="680" r="9" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <path d="M 466.0 680 L 473.0 680 M 470.0 677 L 473.0 680 L 470.0 683" stroke="#0284c7" stroke-width="1.6" stroke-linecap="round"/>
+            
+          
+        
+      
+        
+      
+        
+          <!-- Ebb vector (grow left from X=385) -->
+          
+          
+          
+            <line x1="385" y1="768" x2="301.0" y2="768" stroke="url(#ebbBarGrad)" stroke-width="7" stroke-linecap="round"/>
+            <circle cx="301.0" cy="768" r="9" fill="#ffffff" stroke="#4f46e5" stroke-width="2"/>
+            <path d="M 304.0 768 L 297.0 768 M 300.0 765 L 297.0 768 L 300.0 771" stroke="#4f46e5" stroke-width="1.6" stroke-linecap="round"/>
+            
+          
+        
+      
+        
+          <!-- Ebb vector (grow left from X=385) -->
+          
+          
+          
+            <line x1="385" y1="812" x2="231.0" y2="812" stroke="url(#ebbBarGrad)" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="231.0" cy="812" r="9" fill="#ffffff" stroke="#4f46e5" stroke-width="2"/>
+            <path d="M 234.0 812 L 227.0 812 M 230.0 809 L 227.0 812 L 230.0 815" stroke="#4f46e5" stroke-width="1.6" stroke-linecap="round"/>
+            
+          
+        
+      
+        
+          <!-- Ebb vector (grow left from X=385) -->
+          
+          
+          
+            <rect x="175.0" y="843" width="210.0" height="26" rx="13" fill="#ede9fe" opacity="0.6"/>
+            <line x1="385" y1="856" x2="175.0" y2="856" stroke="#4f46e5" stroke-width="9" stroke-linecap="round"/>
+            <circle cx="175.0" cy="856" r="13" fill="#4f46e5" stroke="#ffffff" stroke-width="2.5" filter="url(#badgeShadow)"/>
+            <path d="M 181.0 856 L 169.0 856 M 174.0 851 L 169.0 856 L 174.0 861" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round"/>
+            <g transform="translate(155.0, 856)">
+              <text x="0" y="-3" font-size="14" font-weight="900" fill="#4f46e5" text-anchor="end">-1.5 m/s</text>
+              <text x="0" y="12" font-size="10.5" font-weight="800" fill="#4338ca" text-anchor="end">PIEK EB (PEC)</text>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb vector (grow left from X=385) -->
+          
+          
+          
+            <line x1="385" y1="900" x2="217.0" y2="900" stroke="url(#ebbBarGrad)" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="217.0" cy="900" r="9" fill="#ffffff" stroke="#4f46e5" stroke-width="2"/>
+            <path d="M 220.0 900 L 213.0 900 M 216.0 897 L 213.0 900 L 216.0 903" stroke="#4f46e5" stroke-width="1.6" stroke-linecap="round"/>
+            
+          
+        
+      
+        
+          <!-- Ebb vector (grow left from X=385) -->
+          
+          
+          
+            <line x1="385" y1="944" x2="273.0" y2="944" stroke="url(#ebbBarGrad)" stroke-width="7" stroke-linecap="round"/>
+            <circle cx="273.0" cy="944" r="9" fill="#ffffff" stroke="#4f46e5" stroke-width="2"/>
+            <path d="M 276.0 944 L 269.0 944 M 272.0 941 L 269.0 944 L 272.0 947" stroke="#4f46e5" stroke-width="1.6" stroke-linecap="round"/>
+            
+          
+        
+      
+        
+          <!-- Ebb vector (grow left from X=385) -->
+          
+          
+          
+            <line x1="385" y1="988" x2="329.0" y2="988" stroke="url(#ebbBarGrad)" stroke-width="6" stroke-linecap="round"/>
+            <circle cx="329.0" cy="988" r="9" fill="#ffffff" stroke="#4f46e5" stroke-width="2"/>
+            <path d="M 332.0 988 L 325.0 988 M 328.0 985 L 325.0 988 L 328.0 991" stroke="#4f46e5" stroke-width="1.6" stroke-linecap="round"/>
+            
+          
+        
+      
+    </g>
+
+    <!-- ================= TIME BADGES (CENTER SPINE) ================= -->
+    <g id="time_badges" font-family="monospace" font-size="12.5" font-weight="700" text-anchor="middle">
+      
+        
+          <rect x="388" y="229" width="64" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="420" y="245" fill="#334155">09:30</text>
+        
+      
+        
+          <rect x="388" y="273" width="64" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="420" y="289" fill="#334155">10:00</text>
+        
+      
+        
+          <rect x="388" y="317" width="64" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="420" y="333" fill="#334155">10:30</text>
+        
+      
+        
+          <rect x="388" y="361" width="64" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="420" y="377" fill="#334155">11:00</text>
+        
+      
+        
+          <rect x="384" y="403" width="72" height="26" rx="6" fill="#ea580c" filter="url(#badgeShadow)"/>
+          <text x="420" y="421" fill="#ffffff" font-weight="900">11:30</text>
+        
+      
+        
+          <rect x="388" y="449" width="64" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="420" y="465" fill="#334155">12:00</text>
+        
+      
+        
+          <rect x="388" y="493" width="64" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="420" y="509" fill="#334155">12:30</text>
+        
+      
+        
+          <rect x="388" y="537" width="64" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="420" y="553" fill="#334155">13:00</text>
+        
+      
+        
+          <rect x="388" y="581" width="64" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="420" y="597" fill="#334155">13:30</text>
+        
+      
+        
+          <rect x="384" y="623" width="72" height="26" rx="6" fill="#f59e0b" filter="url(#badgeShadow)"/>
+          <text x="420" y="641" fill="#ffffff" font-weight="900">14:00</text>
+        
+      
+        
+          <rect x="388" y="669" width="64" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="420" y="685" fill="#334155">14:30</text>
+        
+      
+        
+          <rect x="380" y="711" width="80" height="26" rx="6" fill="#16a34a" filter="url(#badgeShadow)"/>
+          <text x="420" y="729" fill="#ffffff" font-weight="900">15:00</text>
+          <text x="468" y="728" font-size="11" font-weight="800" fill="#15803d" text-anchor="start">KENTERING (0.0 m/s)</text>
+        
+      
+        
+          <rect x="388" y="757" width="64" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="420" y="773" fill="#334155">15:30</text>
+        
+      
+        
+          <rect x="388" y="801" width="64" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="420" y="817" fill="#334155">16:00</text>
+        
+      
+        
+          <rect x="384" y="843" width="72" height="26" rx="6" fill="#4f46e5" filter="url(#badgeShadow)"/>
+          <text x="420" y="861" fill="#ffffff" font-weight="900">16:30</text>
+        
+      
+        
+          <rect x="388" y="889" width="64" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="420" y="905" fill="#334155">17:00</text>
+        
+      
+        
+          <rect x="388" y="933" width="64" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="420" y="949" fill="#334155">17:30</text>
+        
+      
+        
+          <rect x="388" y="977" width="64" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="420" y="993" fill="#334155">18:00</text>
+        
+      
+    </g>
+  </g>
+
+  <!-- ================= KEY INSIGHT CALLOUT BOX ================= -->
+  <g id="insight_box" transform="translate(45, 1065)">
+    <rect x="0" y="0" width="750" height="66" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#softShadow)"/>
+    <text x="22" y="26" font-size="13.5" font-weight="800" fill="#0f172a">💡 ZWEM-INZICHT:</text>
+    <text x="155" y="26" font-size="13.5" font-weight="500" fill="#334155">Piek Vloedstroom (11:30) valt <tspan font-weight="800" fill="#ea580c">2u30 vóór Hoogwater (14:00)</tspan>!</text>
+    <text x="22" y="50" font-size="12" font-weight="500" fill="#64748b">Bij Hoogwater (14:00) is de stroming al sterk verzwakt (0.3 m/s). De kentering (stilstaand water) valt pas rond 15:00.</text>
+  </g>
+
+  <!-- ================= FOOTER / LEGEND ================= -->
+  <g id="legend" transform="translate(45, 1148)">
+    <rect x="0" y="0" width="750" height="82" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    
+    <g transform="translate(25, 26)">
+      <line x1="0" y1="0" x2="35" y2="0" stroke="#0284c7" stroke-width="4.5" stroke-linecap="round"/>
+      <circle cx="35" cy="0" r="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.8"/>
+      <text x="50" y="4.5" font-size="12" font-weight="600" fill="#334155">Stroomsnelheid (lengte balk) &amp; Richting (kompaspijl)</text>
+
+      <line x1="430" y1="0" x2="470" y2="0" stroke="#0ea5e9" stroke-width="4" stroke-linecap="round"/>
+      <text x="480" y="4.5" font-size="12" font-weight="600" fill="#334155">Waterstandscurve (m TAW)</text>
+    </g>
+
+    <g transform="translate(25, 58)">
+      <rect x="0" y="-9" width="18" height="18" rx="4" fill="#ea580c"/>
+      <text x="26" y="5" font-size="12" font-weight="600" fill="#475569">Piek Stroom (PFC/PEC)</text>
+
+      <rect x="185" y="-9" width="18" height="18" rx="4" fill="#f59e0b"/>
+      <text x="211" y="5" font-size="12" font-weight="600" fill="#475569">Hoogwater (HW)</text>
+
+      <rect x="335" y="-9" width="18" height="18" rx="4" fill="#16a34a"/>
+      <text x="361" y="5" font-size="12" font-weight="600" fill="#475569">Kentering (stilstaand water)</text>
+      
+      <text x="705" y="5" font-size="10.5" font-weight="700" fill="#94a3b8" text-anchor="end">CSCM • CMEMS 1.5km Model &amp; MDK</text>
+    </g>
+  </g>
+</svg>

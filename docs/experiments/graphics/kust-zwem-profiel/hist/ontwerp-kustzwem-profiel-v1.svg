@@ -1,0 +1,294 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 780" width="100%" height="100%" style="background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
+    </filter>
+    <filter id="badgeShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="2.5" stdDeviation="3.5" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+  <rect x="0" y="0" width="960" height="780" fill="#ffffff"/>
+  <!-- ================= HEADER ================= -->
+  <g id="header" transform="translate(0, 32)">
+    <text x="480" y="20" font-size="12" font-weight="800" letter-spacing="1.8" fill="#0284c7" text-anchor="middle">CSCM KUSTZWEM-TRAJECTPROFIEL • CONCEPT PROTOTYPE v1</text>
+    <text x="480" y="56" font-size="30" font-weight="900" fill="#0f172a" text-anchor="middle">Traject: Bredene Post 4 ➔ De Haan (3.0 km)</text>
+    <text x="480" y="82" font-size="14.5" font-weight="500" fill="#64748b" text-anchor="middle">Start om 10:00 CEST • Tijd-Ruimte Visgraten per 750m doorkomstpunt</text>
+  </g>
+  <!-- ================= DIRECTION BAR ================= -->
+  <g id="direction_bar" transform="translate(45, 130)">
+    <rect x="0" y="0" width="870" height="38" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>
+    <g transform="translate(18, 19)">
+      <path d="M 14 0 L 0 0 M 0 0 L 5 -4 M 0 0 L 5 4" stroke="#4f46e5" stroke-width="2.2" stroke-linecap="round"/>
+      <text x="22" y="4.5" font-size="12" font-weight="800" fill="#4f46e5">[FR] EBBESTROOM (ZW) • TEGENSTROOM</text>
+    </g>
+    <circle cx="435" cy="19" r="3.5" fill="#cbd5e1"/>
+    <g transform="translate(852, 19)">
+      <path d="M -14 0 L 0 0 M 0 0 L -5 -4 M 0 0 L -5 4" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round"/>
+      <text x="-22" y="4.5" font-size="12" font-weight="800" fill="#0284c7" text-anchor="end">MEESTROOM / VLOED (NO) • NEDERLAND [NL]</text>
+    </g>
+  </g>
+  <!-- ================= SPATIAL-TEMPORAL MATRIX ================= -->
+  <g id="matrix_surface">
+    <!-- Horizontal Reference Corridor (Green Swimmer Trajectory) -->
+    <rect x="45" y="302.0" width="870" height="36" rx="6" fill="#f0fdf4" opacity="0.9" stroke="#bbf7d0" stroke-width="1.2" stroke-dasharray="4,4"/>
+    <text x="50" y="296.0" font-size="11" font-weight="800" fill="#15803d">HORIZONTALE ZICHTLIJN = REFERENTIEZWERMMER (1.0 m/s)</text>
+    <!-- Checkpoint 0.0k -->
+    <g transform="translate(220, 190)">
+      <circle cx="0" cy="0" r="14" fill="#0f172a"/>
+      <text x="0" y="4" font-size="11" font-weight="900" fill="#ffffff" text-anchor="middle">0</text>
+      <text x="0" y="24" font-size="14" font-weight="900" fill="#0f172a" text-anchor="middle">0.0k</text>
+      <text x="0" y="38" font-size="10.5" font-weight="600" fill="#64748b" text-anchor="middle">Start: Post 4</text>
+    </g>
+    <line x1="220" y1="215.0" x2="220" y2="435.0" stroke="#cbd5e1" stroke-width="1.6"/>
+    <line x1="220" y1="266.0" x2="267.25" y2="266.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="267.25" cy="266.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="217" y1="266.0" x2="223" y2="266.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="220" y1="284.0" x2="265.9" y2="284.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="265.9" cy="284.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="217" y1="284.0" x2="223" y2="284.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="220" y1="302.0" x2="264.1" y2="302.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="264.1" cy="302.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="217" y1="302.0" x2="223" y2="302.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="220" y1="320.0" x2="262.75" y2="320.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="262.75" cy="320.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="217" y1="320.0" x2="223" y2="320.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="220" y1="338.0" x2="259.6" y2="338.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="259.6" cy="338.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="217" y1="338.0" x2="223" y2="338.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="220" y1="356.0" x2="255.1" y2="356.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="255.1" cy="356.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="217" y1="356.0" x2="223" y2="356.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="220" y1="374.0" x2="249.25" y2="374.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="249.25" cy="374.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="217" y1="374.0" x2="223" y2="374.0" stroke="#94a3b8" stroke-width="1"/>
+    <!-- Checkpoint 0.75k -->
+    <g transform="translate(365, 190)">
+      <circle cx="0" cy="0" r="14" fill="#0f172a"/>
+      <text x="0" y="4" font-size="11" font-weight="900" fill="#ffffff" text-anchor="middle">1</text>
+      <text x="0" y="24" font-size="14" font-weight="900" fill="#0f172a" text-anchor="middle">0.75k</text>
+      <text x="0" y="38" font-size="10.5" font-weight="600" fill="#64748b" text-anchor="middle">Post 3 (Duinen)</text>
+    </g>
+    <line x1="365" y1="215.0" x2="365" y2="435.0" stroke="#cbd5e1" stroke-width="1.6"/>
+    <line x1="365" y1="266.0" x2="410.9" y2="266.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="410.9" cy="266.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="362" y1="266.0" x2="368" y2="266.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="365" y1="284.0" x2="409.1" y2="284.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="409.1" cy="284.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="362" y1="284.0" x2="368" y2="284.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="365" y1="302.0" x2="407.3" y2="302.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="407.3" cy="302.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="362" y1="302.0" x2="368" y2="302.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="365" y1="320.0" x2="405.5" y2="320.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="405.5" cy="320.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="362" y1="320.0" x2="368" y2="320.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="365" y1="338.0" x2="401.9" y2="338.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="401.9" cy="338.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="362" y1="338.0" x2="368" y2="338.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="365" y1="356.0" x2="396.5" y2="356.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="396.5" cy="356.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="362" y1="356.0" x2="368" y2="356.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="365" y1="374.0" x2="389.75" y2="374.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="389.75" cy="374.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="362" y1="374.0" x2="368" y2="374.0" stroke="#94a3b8" stroke-width="1"/>
+    <!-- Checkpoint 1.50k -->
+    <g transform="translate(510, 190)">
+      <circle cx="0" cy="0" r="14" fill="#0f172a"/>
+      <text x="0" y="4" font-size="11" font-weight="900" fill="#ffffff" text-anchor="middle">2</text>
+      <text x="0" y="24" font-size="14" font-weight="900" fill="#0f172a" text-anchor="middle">1.50k</text>
+      <text x="0" y="38" font-size="10.5" font-weight="600" fill="#64748b" text-anchor="middle">Post 2 (Centrum)</text>
+    </g>
+    <line x1="510" y1="215.0" x2="510" y2="435.0" stroke="#cbd5e1" stroke-width="1.6"/>
+    <line x1="510" y1="266.0" x2="551.4" y2="266.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="551.4" cy="266.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="507" y1="266.0" x2="513" y2="266.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="510" y1="284.0" x2="548.25" y2="284.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="548.25" cy="284.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="507" y1="284.0" x2="513" y2="284.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="510" y1="302.0" x2="543.75" y2="302.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="543.75" cy="302.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="507" y1="302.0" x2="513" y2="302.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="510" y1="320.0" x2="539.25" y2="320.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="539.25" cy="320.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="507" y1="320.0" x2="513" y2="320.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="510" y1="338.0" x2="532.5" y2="338.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="532.5" cy="338.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="507" y1="338.0" x2="513" y2="338.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="510" y1="356.0" x2="525.75" y2="356.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="525.75" cy="356.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="507" y1="356.0" x2="513" y2="356.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="510" y1="374.0" x2="519.0" y2="374.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="519.0" cy="374.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="507" y1="374.0" x2="513" y2="374.0" stroke="#94a3b8" stroke-width="1"/>
+    <!-- Checkpoint 2.25k -->
+    <g transform="translate(655, 190)">
+      <circle cx="0" cy="0" r="14" fill="#0f172a"/>
+      <text x="0" y="4" font-size="11" font-weight="900" fill="#ffffff" text-anchor="middle">3</text>
+      <text x="0" y="24" font-size="14" font-weight="900" fill="#0f172a" text-anchor="middle">2.25k</text>
+      <text x="0" y="38" font-size="10.5" font-weight="600" fill="#64748b" text-anchor="middle">Post 1 (Oost)</text>
+    </g>
+    <line x1="655" y1="215.0" x2="655" y2="435.0" stroke="#cbd5e1" stroke-width="1.6"/>
+    <line x1="655" y1="266.0" x2="684.25" y2="266.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="684.25" cy="266.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="652" y1="266.0" x2="658" y2="266.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="655" y1="284.0" x2="677.5" y2="284.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="677.5" cy="284.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="652" y1="284.0" x2="658" y2="284.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="655" y1="302.0" x2="670.75" y2="302.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="670.75" cy="302.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="652" y1="302.0" x2="658" y2="302.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="655" y1="320.0" x2="664.0" y2="320.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="664.0" cy="320.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="652" y1="320.0" x2="658" y2="320.0" stroke="#94a3b8" stroke-width="1"/>
+    <circle cx="655" cy="338.0" r="4.5" fill="#16a34a" stroke="#ffffff" stroke-width="1.5"/>
+    <line x1="652" y1="338.0" x2="658" y2="338.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="655" y1="356.0" x2="650.5" y2="356.0" stroke="#4f46e5" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="650.5" cy="356.0" r="4" fill="#ffffff" stroke="#4f46e5" stroke-width="1.5"/>
+    <line x1="652" y1="356.0" x2="658" y2="356.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="655" y1="374.0" x2="643.75" y2="374.0" stroke="#4f46e5" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="643.75" cy="374.0" r="4" fill="#ffffff" stroke="#4f46e5" stroke-width="1.5"/>
+    <line x1="652" y1="374.0" x2="658" y2="374.0" stroke="#94a3b8" stroke-width="1"/>
+    <!-- Checkpoint 3.00k -->
+    <g transform="translate(800, 190)">
+      <circle cx="0" cy="0" r="14" fill="#0f172a"/>
+      <text x="0" y="4" font-size="11" font-weight="900" fill="#ffffff" text-anchor="middle">4</text>
+      <text x="0" y="24" font-size="14" font-weight="900" fill="#0f172a" text-anchor="middle">3.00k</text>
+      <text x="0" y="38" font-size="10.5" font-weight="600" fill="#64748b" text-anchor="middle">Vosseslag</text>
+    </g>
+    <line x1="800" y1="215.0" x2="800" y2="435.0" stroke="#cbd5e1" stroke-width="1.6"/>
+    <line x1="800" y1="266.0" x2="815.75" y2="266.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="815.75" cy="266.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="797" y1="266.0" x2="803" y2="266.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="800" y1="284.0" x2="809.0" y2="284.0" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="809.0" cy="284.0" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <line x1="797" y1="284.0" x2="803" y2="284.0" stroke="#94a3b8" stroke-width="1"/>
+    <circle cx="800" cy="302.0" r="4.5" fill="#16a34a" stroke="#ffffff" stroke-width="1.5"/>
+    <line x1="797" y1="302.0" x2="803" y2="302.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="800" y1="320.0" x2="793.25" y2="320.0" stroke="#4f46e5" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="793.25" cy="320.0" r="4" fill="#ffffff" stroke="#4f46e5" stroke-width="1.5"/>
+    <line x1="797" y1="320.0" x2="803" y2="320.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="800" y1="338.0" x2="786.5" y2="338.0" stroke="#4f46e5" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="786.5" cy="338.0" r="4" fill="#ffffff" stroke="#4f46e5" stroke-width="1.5"/>
+    <line x1="797" y1="338.0" x2="803" y2="338.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="800" y1="356.0" x2="779.75" y2="356.0" stroke="#4f46e5" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="779.75" cy="356.0" r="4" fill="#ffffff" stroke="#4f46e5" stroke-width="1.5"/>
+    <line x1="797" y1="356.0" x2="803" y2="356.0" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="800" y1="374.0" x2="773.9" y2="374.0" stroke="#4f46e5" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="773.9" cy="374.0" r="4" fill="#ffffff" stroke="#4f46e5" stroke-width="1.5"/>
+    <line x1="797" y1="374.0" x2="803" y2="374.0" stroke="#94a3b8" stroke-width="1"/>
+    <!-- Fast Swimmer Trajectory (Blue) -->
+    <path d="M 220 320.0 L 365 302.0 L 510 286.0 L 655 272.0 L 800 258.0" fill="none" stroke="#0284c7" stroke-width="3" stroke-linecap="round" opacity="0.85"/>
+    <circle cx="220" cy="320.0" r="6" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+    <circle cx="365" cy="302.0" r="6" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+    <circle cx="510" cy="286.0" r="6" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+    <circle cx="655" cy="272.0" r="6" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+    <circle cx="800" cy="258.0" r="6" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+    <!-- Reference Swimmer Trajectory (Green - Horizontaal) -->
+    <path d="M 220 320.0 L 365 320.0 L 510 320.0 L 655 320.0 L 800 320.0" fill="none" stroke="#16a34a" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="220" cy="320.0" r="6.5" fill="#16a34a" stroke="#ffffff" stroke-width="2" filter="url(#badgeShadow)"/>
+    <circle cx="365" cy="320.0" r="6.5" fill="#16a34a" stroke="#ffffff" stroke-width="2" filter="url(#badgeShadow)"/>
+    <circle cx="510" cy="320.0" r="6.5" fill="#16a34a" stroke="#ffffff" stroke-width="2" filter="url(#badgeShadow)"/>
+    <circle cx="655" cy="320.0" r="6.5" fill="#16a34a" stroke="#ffffff" stroke-width="2" filter="url(#badgeShadow)"/>
+    <circle cx="800" cy="320.0" r="6.5" fill="#16a34a" stroke="#ffffff" stroke-width="2" filter="url(#badgeShadow)"/>
+    <!-- Slow Swimmer Trajectory (Orange) -->
+    <path d="M 220 320.0 L 365 342.0 L 510 365.0 L 655 392.0 L 800 422.0" fill="none" stroke="#ea580c" stroke-width="3" stroke-linecap="round" opacity="0.85"/>
+    <circle cx="220" cy="320.0" r="6" fill="#ea580c" stroke="#ffffff" stroke-width="2"/>
+    <circle cx="365" cy="342.0" r="6" fill="#ea580c" stroke="#ffffff" stroke-width="2"/>
+    <circle cx="510" cy="365.0" r="6" fill="#ea580c" stroke="#ffffff" stroke-width="2"/>
+    <circle cx="655" cy="392.0" r="6" fill="#ea580c" stroke="#ffffff" stroke-width="2"/>
+    <circle cx="800" cy="422.0" r="6" fill="#ea580c" stroke="#ffffff" stroke-width="2"/>
+    <!-- ================= TIMING BANDS (ONDERKANT) ================= -->
+    <g id="timing_table" transform="translate(0, 465.0)">
+      <text x="45" y="-12" font-size="12" font-weight="900" fill="#0f172a">⏱️ DOORKOMSTTIJDEN (TRAJECT TIMING PER TEMPO):</text>
+      <g transform="translate(45, 0.0)">
+        <rect x="0" y="0" width="145" height="34" rx="6" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.2"/>
+        <circle cx="14" cy="17" r="5" fill="#0284c7"/>
+        <text x="26" y="16" font-size="11" font-weight="800" fill="#0284c7">Snel (1.3 m/s)</text>
+        <text x="26" y="27" font-size="9" font-weight="600" fill="#64748b">Kruissnelheid atleet</text>
+      </g>
+      <g transform="translate(184, 0.0)">
+        <rect x="0" y="0" width="72" height="34" rx="6" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.2" filter="url(#softShadow)"/>
+        <text x="36" y="21" font-family="monospace" font-size="13" font-weight="900" fill="#0284c7" text-anchor="middle">10:00</text>
+      </g>
+      <g transform="translate(329, 0.0)">
+        <rect x="0" y="0" width="72" height="34" rx="6" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.2" filter="url(#softShadow)"/>
+        <text x="36" y="21" font-family="monospace" font-size="13" font-weight="900" fill="#0284c7" text-anchor="middle">10:18</text>
+      </g>
+      <g transform="translate(474, 0.0)">
+        <rect x="0" y="0" width="72" height="34" rx="6" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.2" filter="url(#softShadow)"/>
+        <text x="36" y="21" font-family="monospace" font-size="13" font-weight="900" fill="#0284c7" text-anchor="middle">10:35</text>
+      </g>
+      <g transform="translate(619, 0.0)">
+        <rect x="0" y="0" width="72" height="34" rx="6" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.2" filter="url(#softShadow)"/>
+        <text x="36" y="21" font-family="monospace" font-size="13" font-weight="900" fill="#0284c7" text-anchor="middle">10:55</text>
+      </g>
+      <g transform="translate(764, 0.0)">
+        <rect x="0" y="0" width="72" height="34" rx="6" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.2" filter="url(#softShadow)"/>
+        <text x="36" y="21" font-family="monospace" font-size="13" font-weight="900" fill="#0284c7" text-anchor="middle">11:20</text>
+      </g>
+      <g transform="translate(45, 42.0)">
+        <rect x="0" y="0" width="145" height="34" rx="6" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.2"/>
+        <circle cx="14" cy="17" r="5" fill="#16a34a"/>
+        <text x="26" y="16" font-size="11" font-weight="800" fill="#16a34a">Referentie (1.0 m/s)</text>
+        <text x="26" y="27" font-size="9" font-weight="600" fill="#64748b">Competitief tempo</text>
+      </g>
+      <g transform="translate(184, 42.0)">
+        <rect x="0" y="0" width="72" height="34" rx="6" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.2" filter="url(#softShadow)"/>
+        <text x="36" y="21" font-family="monospace" font-size="13" font-weight="900" fill="#16a34a" text-anchor="middle">10:00</text>
+      </g>
+      <g transform="translate(329, 42.0)">
+        <rect x="0" y="0" width="72" height="34" rx="6" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.2" filter="url(#softShadow)"/>
+        <text x="36" y="21" font-family="monospace" font-size="13" font-weight="900" fill="#16a34a" text-anchor="middle">10:20</text>
+      </g>
+      <g transform="translate(474, 42.0)">
+        <rect x="0" y="0" width="72" height="34" rx="6" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.2" filter="url(#softShadow)"/>
+        <text x="36" y="21" font-family="monospace" font-size="13" font-weight="900" fill="#16a34a" text-anchor="middle">10:40</text>
+      </g>
+      <g transform="translate(619, 42.0)">
+        <rect x="0" y="0" width="72" height="34" rx="6" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.2" filter="url(#softShadow)"/>
+        <text x="36" y="21" font-family="monospace" font-size="13" font-weight="900" fill="#16a34a" text-anchor="middle">11:05</text>
+      </g>
+      <g transform="translate(764, 42.0)">
+        <rect x="0" y="0" width="72" height="34" rx="6" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.2" filter="url(#softShadow)"/>
+        <text x="36" y="21" font-family="monospace" font-size="13" font-weight="900" fill="#16a34a" text-anchor="middle">11:30</text>
+      </g>
+      <g transform="translate(45, 84.0)">
+        <rect x="0" y="0" width="145" height="34" rx="6" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.2"/>
+        <circle cx="14" cy="17" r="5" fill="#ea580c"/>
+        <text x="26" y="16" font-size="11" font-weight="800" fill="#ea580c">Recreatief (0.7 m/s)</text>
+        <text x="26" y="27" font-size="9" font-weight="600" fill="#64748b">Rustige crawl / schoolslag</text>
+      </g>
+      <g transform="translate(184, 84.0)">
+        <rect x="0" y="0" width="72" height="34" rx="6" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.2" filter="url(#softShadow)"/>
+        <text x="36" y="21" font-family="monospace" font-size="13" font-weight="900" fill="#ea580c" text-anchor="middle">10:00</text>
+      </g>
+      <g transform="translate(329, 84.0)">
+        <rect x="0" y="0" width="72" height="34" rx="6" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.2" filter="url(#softShadow)"/>
+        <text x="36" y="21" font-family="monospace" font-size="13" font-weight="900" fill="#ea580c" text-anchor="middle">10:25</text>
+      </g>
+      <g transform="translate(474, 84.0)">
+        <rect x="0" y="0" width="72" height="34" rx="6" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.2" filter="url(#softShadow)"/>
+        <text x="36" y="21" font-family="monospace" font-size="13" font-weight="900" fill="#ea580c" text-anchor="middle">10:50</text>
+      </g>
+      <g transform="translate(619, 84.0)">
+        <rect x="0" y="0" width="72" height="34" rx="6" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.2" filter="url(#softShadow)"/>
+        <text x="36" y="21" font-family="monospace" font-size="13" font-weight="900" fill="#ea580c" text-anchor="middle">11:20</text>
+      </g>
+      <g transform="translate(764, 84.0)">
+        <rect x="0" y="0" width="72" height="34" rx="6" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.2" filter="url(#softShadow)"/>
+        <text x="36" y="21" font-family="monospace" font-size="13" font-weight="900" fill="#ea580c" text-anchor="middle">12:00</text>
+      </g>
+    </g>
+  </g>
+  <!-- ================= INZICHT CALLOUT BOX ================= -->
+  <g id="insight_box" transform="translate(45, 615)">
+    <rect x="0" y="0" width="870" height="76" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" filter="url(#softShadow)"/>
+    <text x="22" y="26" font-size="13" font-weight="900" fill="#0f172a">💡 TIJD-RUIMTE INTERPRETATIE:</text>
+    <text x="260" y="26" font-size="13" font-weight="700" fill="#15803d">Horizontale groene zichtlijn = Het reële stromingsgevoel van de referentiezwemmer!</text>
+    <text x="22" y="50" font-size="12" font-weight="500" fill="#475569">Door elke visgraat omhoog/omlaag te schuiven volgens de reistijd, leest de zwemmer van links naar rechts direct af wanneer de meestroom afneemt (0k➔1.5k) en omslaat naar kentering bij km 2.25➔3.0.</text>
+  </g>
+  <!-- ================= SUB-FOOTER ================= -->
+  <g id="footer" transform="translate(45, 742)">
+    <text x="0" y="0" font-size="10.5" font-weight="600" fill="#94a3b8">CSCM • Trajectmodel 750m Intervallen &amp; Lagrangiaanse Getijdentransformatie</text>
+    <text x="870" y="0" font-size="10.5" font-weight="700" fill="#94a3b8" text-anchor="end">ONTWERP-SCHETS v1 • MARIEKE &amp; MARC PORTIER</text>
+  </g>
+</svg>

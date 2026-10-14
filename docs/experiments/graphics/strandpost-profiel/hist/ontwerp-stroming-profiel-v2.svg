@@ -1,0 +1,1512 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1520" width="100%" height="100%" style="background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Background Gradient & Card Shadows -->
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
+    </filter>
+    <filter id="badgeShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.14"/>
+    </filter>
+
+    <!-- Water Level Area Gradient -->
+    <linearGradient id="waterCurveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0.22"/>
+    </linearGradient>
+
+    <!-- Horizontal Current Bars Gradients (userSpaceOnUse for reliable rendering) -->
+    <linearGradient id="floodBarGrad" gradientUnits="userSpaceOnUse" x1="485" y1="0" x2="760" y2="0">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="1.0"/>
+    </linearGradient>
+    <linearGradient id="ebbBarGrad" gradientUnits="userSpaceOnUse" x1="415" y1="0" x2="160" y2="0">
+      <stop offset="0%" stop-color="#818cf8" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#4f46e5" stop-opacity="1.0"/>
+    </linearGradient>
+
+    <!-- Generic Arrow Marker Definition for inside circles -->
+    <!-- Base arrow points to the RIGHT (angle = 0°) -->
+    <g id="vectorArrow">
+      <line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M 1.5 -3 L 4.5 0 L 1.5 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </defs>
+
+  <!-- Canvas Background -->
+  <rect x="0" y="0" width="900" height="1520" fill="#ffffff"/>
+
+  <!-- ================= HEADER SECTION (CENTERED) ================= -->
+  <g id="header" transform="translate(0, 36)">
+    <!-- Centered Titles -->
+    <text x="450" y="20" font-size="12.5" font-weight="800" letter-spacing="1.8" fill="#0284c7" text-anchor="middle">CSCM KUST-STROMINGSPROFIEL</text>
+    <text x="450" y="58" font-size="34" font-weight="900" fill="#0f172a" letter-spacing="-0.6" text-anchor="middle">Bredene — Strandpost 4</text>
+    <text x="450" y="84" font-size="15" font-weight="500" fill="#64748b" text-anchor="middle">Zaterdag 11 Juli 2026 • 06:30 – 19:00 (Volledige Getijdencyclus ~12.42u)</text>
+
+    <!-- Compass Rosette with Horizontal Coastline Reference (Top Right) -->
+    <g id="compass" transform="translate(760, 2)">
+      <circle cx="45" cy="45" r="38" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" filter="url(#softShadow)"/>
+      
+      <!-- Horizontal Coastline Reference Line -->
+      <line x1="12" y1="45" x2="78" y2="45" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
+      <text x="45" y="41" font-size="7" font-weight="800" fill="#64748b" letter-spacing="1" text-anchor="middle">KUSTLIJN</text>
+      <text x="45" y="32" font-size="6.5" font-weight="700" fill="#0284c7" text-anchor="middle">▲ ZEE</text>
+      <text x="45" y="56" font-size="6.5" font-weight="700" fill="#94a3b8" text-anchor="middle">▼ STRAND</text>
+
+      <!-- Rotated North Needle (~25° relative to vertical seaward normal) -->
+      <!-- In Belgian coastal orientation, North is ~25° clockwise from seaward normal -->
+      <g transform="translate(45, 45) rotate(25)">
+        <polygon points="0,-30 6,-8 0,-14 -6,-8" fill="#ef4444"/>
+        <polygon points="0,18 6,0 0,6 -6,0" fill="#94a3b8"/>
+        <text x="0" y="-33" font-size="10.5" font-weight="900" fill="#ef4444" text-anchor="middle">N</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= COASTAL DIRECTION BAR ================= -->
+  <g id="coast_direction" transform="translate(45, 145)">
+    <rect x="0" y="0" width="810" height="42" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>
+    
+    <!-- Left: France / Ebb -->
+    <g transform="translate(18, 21)">
+      <path d="M 16 0 L 0 0 M 0 0 L 6 -5 M 0 0 L 6 5" stroke="#4f46e5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="26" y="5" font-size="12.5" font-weight="800" fill="#4f46e5">[FR] FRANKRIJK • EBBESTROOM (ZW)</text>
+    </g>
+
+    <!-- Center Separator -->
+    <circle cx="405" cy="21" r="3.5" fill="#cbd5e1"/>
+
+    <!-- Right: Netherlands / Flood -->
+    <g transform="translate(792, 21)">
+      <path d="M -16 0 L 0 0 M 0 0 L -6 -5 M 0 0 L -6 5" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="-26" y="5" font-size="12.5" font-weight="800" fill="#0284c7" text-anchor="end">VLOEDSTROOM (NO) • NEDERLAND [NL]</text>
+    </g>
+  </g>
+
+  <!-- ================= GRAPH MAIN AREA ================= -->
+  <!-- 
+    Spine layout:
+    Center column: X = 415 to 485 (width = 70px)
+    Left edge (0 for Ebb): X = 415
+    Right edge (0 for Flood): X = 485
+    Scale: 1 m/s = 140 pixels
+    Ticks:
+      Ebb (left):
+        -0.5 m/s: 415 - 70  = 345
+        -1.0 m/s: 415 - 140 = 275
+        -1.5 m/s: 415 - 210 = 205
+      Flood (right):
+        +0.5 m/s: 485 + 70  = 555
+        +1.0 m/s: 485 + 140 = 625
+        +1.5 m/s: 485 + 210 = 695
+  -->
+  <g id="graph_surface">
+    <!-- Grid lines -->
+    <g id="grid_lines" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,4">
+      <!-- Ebb Scale Lines -->
+      <line x1="205" y1="202" x2="205" y2="1200"/>
+      <line x1="275" y1="202" x2="275" y2="1200"/>
+      <line x1="345" y1="202" x2="345" y2="1200"/>
+      <!-- Flood Scale Lines -->
+      <line x1="555" y1="202" x2="555" y2="1200"/>
+      <line x1="625" y1="202" x2="625" y2="1200"/>
+      <line x1="695" y1="202" x2="695" y2="1200"/>
+    </g>
+
+    <!-- Scale Headers -->
+    <g id="scale_headers" font-size="10.5" font-weight="700" fill="#94a3b8" text-anchor="middle">
+      <text x="205" y="202">-1.5 m/s</text>
+      <text x="275" y="202">-1.0 m/s</text>
+      <text x="345" y="202">-0.5 m/s</text>
+      <text x="450" y="202" fill="#64748b" font-weight="800">TIJD</text>
+      <text x="555" y="202">+0.5 m/s</text>
+      <text x="625" y="202">+1.0 m/s</text>
+      <text x="695" y="202">+1.5 m/s</text>
+    </g>
+
+    <!-- Swimmer Speed Benchmarks (Dashed accent lines) -->
+    <g id="swimmer_benchmarks">
+      <!-- 0.5 m/s (Beginner) -->
+      <line x1="555" y1="208" x2="555" y2="1195" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.6"/>
+      <line x1="345" y1="208" x2="345" y2="1195" stroke="#c7d2fe" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.6"/>
+
+      <!-- 1.0 m/s (Competitief Amateur) -->
+      <line x1="625" y1="208" x2="625" y2="1195" stroke="#38bdf8" stroke-width="2" stroke-dasharray="5,4" opacity="0.8"/>
+      <line x1="275" y1="208" x2="275" y2="1195" stroke="#818cf8" stroke-width="2" stroke-dasharray="5,4" opacity="0.8"/>
+
+      <!-- 1.5 m/s (Olympisch) -->
+      <line x1="695" y1="208" x2="695" y2="1195" stroke="#0284c7" stroke-width="2" stroke-dasharray="5,4" opacity="0.9"/>
+      <line x1="205" y1="208" x2="205" y2="1195" stroke="#4f46e5" stroke-width="2" stroke-dasharray="5,4" opacity="0.9"/>
+    </g>
+
+    <!-- ================= WATER LEVEL UNDERLAY CURVE ================= -->
+    
+    <g id="water_level_curve">
+      
+      <path d="M 465 220 L 535.6 220 L 533.7 239 L 532.4 258 L 532.4 277 L 533.7 296 L 535.6 315 L 538.1 334 L 541.2 353 L 544.4 372 L 548.2 391 L 551.9 410 L 557.0 429 L 562.6 448 L 569.0 467 L 576.5 486 L 585.3 505 L 595.4 524 L 606.8 543 L 619.4 562 L 633.2 581 L 647.7 600 L 663.5 619 L 679.8 638 L 695.6 657 L 711.3 676 L 726.5 695 L 739.7 714 L 750.4 733 L 759.8 752 L 766.1 771 L 769.3 790 L 769.3 809 L 766.1 828 L 759.8 847 L 750.4 866 L 738.4 885 L 723.9 904 L 707.5 923 L 689.9 942 L 671.0 961 L 652.1 980 L 633.8 999 L 616.2 1018 L 599.8 1037 L 584.7 1056 L 571.5 1075 L 560.1 1094 L 550.7 1113 L 543.8 1132 L 538.7 1151 L 534.9 1170 L 465 1170 Z" fill="url(#waterCurveGrad)"/>
+      
+      
+      <path d="M 535.6 220 L 533.7 239 L 532.4 258 L 532.4 277 L 533.7 296 L 535.6 315 L 538.1 334 L 541.2 353 L 544.4 372 L 548.2 391 L 551.9 410 L 557.0 429 L 562.6 448 L 569.0 467 L 576.5 486 L 585.3 505 L 595.4 524 L 606.8 543 L 619.4 562 L 633.2 581 L 647.7 600 L 663.5 619 L 679.8 638 L 695.6 657 L 711.3 676 L 726.5 695 L 739.7 714 L 750.4 733 L 759.8 752 L 766.1 771 L 769.3 790 L 769.3 809 L 766.1 828 L 759.8 847 L 750.4 866 L 738.4 885 L 723.9 904 L 707.5 923 L 689.9 942 L 671.0 961 L 652.1 980 L 633.8 999 L 616.2 1018 L 599.8 1037 L 584.7 1056 L 571.5 1075 L 560.1 1094 L 550.7 1113 L 543.8 1132 L 538.7 1151 L 534.9 1170" fill="none" stroke="#0ea5e9" stroke-width="3.5" stroke-linecap="round" opacity="0.85"/>
+      
+
+      <!-- High Water Marker Callout -->
+      
+      <g transform="translate(739.7, 714)">
+        <circle cx="0" cy="0" r="6" fill="#f59e0b" stroke="#ffffff" stroke-width="2" filter="url(#badgeShadow)"/>
+        <line x1="6" y1="0" x2="22" y2="0" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="2,2"/>
+        <g transform="translate(24, -20)">
+          <rect x="0" y="0" width="86" height="42" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.2" filter="url(#softShadow)"/>
+          <text x="8" y="16" font-size="9.5" font-weight="800" fill="#b45309">HOOGWATER</text>
+          <text x="8" y="32" font-size="13" font-weight="900" fill="#92400e">4.36 m</text>
+        </g>
+      </g>
+      
+    </g>
+    
+
+    <!-- Central Spine Guides -->
+    <line x1="415" y1="208" x2="415" y2="1195" stroke="#cbd5e1" stroke-width="1.2"/>
+    <line x1="485" y1="208" x2="485" y2="1195" stroke="#cbd5e1" stroke-width="1.2"/>
+
+    <!-- ================= CURRENT VECTOR BARS & ROTATING ARROWS ================= -->
+    <g id="current_bars">
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="220" x2="510.2" y2="220" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="510.2" cy="220" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(510.2, 220) rotate(-45.0)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="239" x2="536.8" y2="239" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="536.8" cy="239" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(536.8, 239) rotate(-10.7)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="258" x2="560.6" y2="258" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="560.6" cy="258" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(560.6, 258) rotate(-7.8)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="277" x2="581.6" y2="277" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="581.6" cy="277" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(581.6, 277) rotate(-6.4)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="296" x2="601.2" y2="296" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="601.2" cy="296" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(601.2, 296) rotate(-5.5)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="315" x2="618.0" y2="315" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="618.0" cy="315" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(618.0, 315) rotate(-4.8)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="334" x2="632.0" y2="334" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="632.0" cy="334" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(632.0, 334) rotate(-4.3)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Kentering / Slack Water (v ≈ 0.0 m/s): Circle in the center column with rotating arrow pointing seaward/turning -->
+          <circle cx="450" cy="353" r="8" fill="#ffffff" stroke="#16a34a" stroke-width="1.8"/>
+          <g transform="translate(450, 353) rotate(-74.5)" style="color: #16a34a;">
+            <use href="#vectorArrow"/>
+          </g>
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="372" x2="655.8" y2="372" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="655.8" cy="372" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(655.8, 372) rotate(-3.5)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="391" x2="665.6" y2="391" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="665.6" cy="391" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(665.6, 391) rotate(-3.1)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="410" x2="674.0" y2="410" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="674.0" cy="410" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(674.0, 410) rotate(-2.7)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="429" x2="679.6" y2="429" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="679.6" cy="429" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(679.6, 429) rotate(-2.4)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="448" x2="685.2" y2="448" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="685.2" cy="448" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(685.2, 448) rotate(-2.0)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="467" x2="688.0" y2="467" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="688.0" cy="467" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(688.0, 467) rotate(-1.7)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="486" x2="690.8" y2="486" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="690.8" cy="486" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(690.8, 486) rotate(-1.3)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="505" x2="689.4" y2="505" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="689.4" cy="505" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(689.4, 505) rotate(-0.9)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="524" x2="688.0" y2="524" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="688.0" cy="524" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(688.0, 524) rotate(-0.6)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Highlight for Peak Flood Current (PFC) -->
+            <rect x="485" y="533" width="246.8" height="20" rx="10" fill="#ffedd5" opacity="0.7"/>
+            <line x1="485" y1="543" x2="725.8" y2="543" stroke="#ea580c" stroke-width="7" stroke-linecap="round"/>
+            <circle cx="725.8" cy="543" r="11" fill="#ea580c" stroke="#ffffff" stroke-width="2" filter="url(#badgeShadow)"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(725.8, 543) rotate(-0.1)" style="color: #ffffff;">
+              <use href="#vectorArrow"/>
+            </g>
+            <!-- Callout Label -->
+            <g transform="translate(743.8, 543)">
+              <text x="0" y="-2" font-size="13" font-weight="900" fill="#ea580c">1.72 m/s</text>
+              <text x="0" y="11" font-size="9.5" font-weight="800" fill="#c2410c">PIEK VLOED (PFC)</text>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="562" x2="674.0" y2="562" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="674.0" cy="562" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(674.0, 562) rotate(0.2)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="581" x2="662.8" y2="581" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="662.8" cy="581" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(662.8, 581) rotate(0.7)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="600" x2="647.4" y2="600" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="647.4" cy="600" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(647.4, 600) rotate(1.3)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="619" x2="629.2" y2="619" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="629.2" cy="619" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(629.2, 619) rotate(1.9)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="638" x2="606.8" y2="638" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="606.8" cy="638" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(606.8, 638) rotate(2.9)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="657" x2="581.6" y2="657" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="581.6" cy="657" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(581.6, 657) rotate(4.3)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="676" x2="552.2" y2="676" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="552.2" cy="676" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(552.2, 676) rotate(7.0)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="695" x2="521.4" y2="695" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="521.4" cy="695" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(521.4, 695) rotate(14.1)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="714" x2="534.0" y2="714" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="534.0" cy="714" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(534.0, 714) rotate(11.4)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="733" x2="381.4" y2="733" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="381.4" cy="733" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(381.4, 733) rotate(-143.1)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="752" x2="346.4" y2="752" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="346.4" cy="752" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(346.4, 752) rotate(171.0)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="771" x2="311.4" y2="771" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="311.4" cy="771" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(311.4, 771) rotate(173.9)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Kentering / Slack Water (v ≈ 0.0 m/s): Circle in the center column with rotating arrow pointing seaward/turning -->
+          <circle cx="450" cy="790" r="8" fill="#ffffff" stroke="#16a34a" stroke-width="1.8"/>
+          <g transform="translate(450, 790) rotate(-90.0)" style="color: #16a34a;">
+            <use href="#vectorArrow"/>
+          </g>
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="809" x2="245.6" y2="809" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="245.6" cy="809" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(245.6, 809) rotate(176.3)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="828" x2="216.2" y2="828" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="216.2" cy="828" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(216.2, 828) rotate(176.9)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="847" x2="192.4" y2="847" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="192.4" cy="847" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(192.4, 847) rotate(177.3)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="866" x2="172.8" y2="866" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="172.8" cy="866" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(172.8, 866) rotate(177.7)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="885" x2="157.39999999999998" y2="885" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="157.39999999999998" cy="885" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(157.39999999999998, 885) rotate(178.0)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="904" x2="149.0" y2="904" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="149.0" cy="904" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(149.0, 904) rotate(178.3)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="923" x2="146.2" y2="923" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="146.2" cy="923" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(146.2, 923) rotate(178.5)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="942" x2="149.0" y2="942" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="149.0" cy="942" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(149.0, 942) rotate(178.8)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Highlight for Peak Ebb Current (PEC) -->
+            <rect x="199.4" y="951" width="215.6" height="20" rx="10" fill="#ede9fe" opacity="0.7"/>
+            <line x1="415" y1="961" x2="199.4" y2="961" stroke="#4f46e5" stroke-width="7" stroke-linecap="round"/>
+            <circle cx="199.4" cy="961" r="11" fill="#4f46e5" stroke="#ffffff" stroke-width="2" filter="url(#badgeShadow)"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(199.4, 961) rotate(178.8)" style="color: #ffffff;">
+              <use href="#vectorArrow"/>
+            </g>
+            <!-- Callout Label -->
+            <g transform="translate(181.4, 961)">
+              <text x="0" y="-2" font-size="13" font-weight="900" fill="#4f46e5" text-anchor="end">-1.54 m/s</text>
+              <text x="0" y="11" font-size="9.5" font-weight="800" fill="#4338ca" text-anchor="end">PIEK EB (PEC)</text>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="980" x2="172.8" y2="980" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="172.8" cy="980" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(172.8, 980) rotate(179.3)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="999" x2="191.0" y2="999" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="191.0" cy="999" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(191.0, 999) rotate(179.5)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="1018" x2="214.8" y2="1018" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="214.8" cy="1018" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(214.8, 1018) rotate(179.9)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="1037" x2="240.0" y2="1037" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="240.0" cy="1037" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(240.0, 1037) rotate(-179.7)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="1056" x2="269.4" y2="1056" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="269.4" cy="1056" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(269.4, 1056) rotate(-179.0)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="1075" x2="300.2" y2="1075" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="300.2" cy="1075" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(300.2, 1075) rotate(-178.1)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="1094" x2="331.0" y2="1094" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="331.0" cy="1094" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(331.0, 1094) rotate(-176.5)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="1113" x2="361.8" y2="1113" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="361.8" cy="1113" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(361.8, 1113) rotate(-173.2)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Ebb bar (Left from X=415) -->
+          
+          
+          
+            <!-- Standard Ebb bar -->
+            <line x1="415" y1="1132" x2="392.6" y2="1132" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="392.6" cy="1132" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(392.6, 1132) rotate(-131.6)" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+        
+          <!-- Kentering / Slack Water (v ≈ 0.0 m/s): Circle in the center column with rotating arrow pointing seaward/turning -->
+          <circle cx="450" cy="1151" r="8" fill="#ffffff" stroke="#16a34a" stroke-width="1.8"/>
+          <g transform="translate(450, 1151) rotate(-74.5)" style="color: #16a34a;">
+            <use href="#vectorArrow"/>
+          </g>
+        
+      
+        
+          <!-- Flood bar (Right from X=485) -->
+          
+          
+          
+            <!-- Standard Flood bar -->
+            <line x1="485" y1="1170" x2="520.0" y2="1170" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="520.0" cy="1170" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate(520.0, 1170) rotate(-14.9)" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          
+        
+      
+    </g>
+
+    <!-- ================= TIME SPINE & TICK MARKS ================= -->
+    <g id="time_spine">
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 220)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :30 (2/4 filled - right half) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 0 4.2 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 239)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :45 (3/4 filled) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 1 1 -4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Full Hour Tick (:00) - Clean hour label without bulky pill box -->
+          <text x="450" y="262" fill="#475569" font-family="monospace" font-size="11" font-weight="800" text-anchor="middle">7h</text>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 277)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :15 (1/4 filled - top right quadrant) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 296)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :30 (2/4 filled - right half) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 0 4.2 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Low water mark (Cyan) -->
+          <rect x="418" y="305" width="64" height="20" rx="4" fill="#0284c7" filter="url(#softShadow)"/>
+          <text x="450" y="319" fill="#ffffff" font-family="monospace" font-size="11" font-weight="800" text-anchor="middle">07:45</text>
+        
+      
+        
+          <!-- Full Hour Tick (:00) - Clean hour label without bulky pill box -->
+          <text x="450" y="338" fill="#475569" font-family="monospace" font-size="11" font-weight="800" text-anchor="middle">8h</text>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 353)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :15 (1/4 filled - top right quadrant) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 372)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :30 (2/4 filled - right half) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 0 4.2 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 391)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :45 (3/4 filled) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 1 1 -4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Full Hour Tick (:00) - Clean hour label without bulky pill box -->
+          <text x="450" y="414" fill="#475569" font-family="monospace" font-size="11" font-weight="800" text-anchor="middle">9h</text>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 429)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :15 (1/4 filled - top right quadrant) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 448)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :30 (2/4 filled - right half) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 0 4.2 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 467)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :45 (3/4 filled) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 1 1 -4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Full Hour Tick (:00) - Clean hour label without bulky pill box -->
+          <text x="450" y="490" fill="#475569" font-family="monospace" font-size="11" font-weight="800" text-anchor="middle">10h</text>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 505)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :15 (1/4 filled - top right quadrant) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 524)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :30 (2/4 filled - right half) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 0 4.2 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- 10:45 PFC (Orange) -->
+          <rect x="416" y="532" width="68" height="22" rx="5" fill="#ea580c" filter="url(#badgeShadow)"/>
+          <text x="450" y="547.5" fill="#ffffff" font-family="monospace" font-size="11.5" font-weight="900" text-anchor="middle">10:45</text>
+        
+      
+        
+          <!-- Full Hour Tick (:00) - Clean hour label without bulky pill box -->
+          <text x="450" y="566" fill="#475569" font-family="monospace" font-size="11" font-weight="800" text-anchor="middle">11h</text>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 581)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :15 (1/4 filled - top right quadrant) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 600)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :30 (2/4 filled - right half) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 0 4.2 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 619)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :45 (3/4 filled) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 1 1 -4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Full Hour Tick (:00) - Clean hour label without bulky pill box -->
+          <text x="450" y="642" fill="#475569" font-family="monospace" font-size="11" font-weight="800" text-anchor="middle">12h</text>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 657)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :15 (1/4 filled - top right quadrant) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 676)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :30 (2/4 filled - right half) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 0 4.2 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 695)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :45 (3/4 filled) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 1 1 -4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- 13:00 HW (Amber) -->
+          <rect x="416" y="703" width="68" height="22" rx="5" fill="#f59e0b" filter="url(#badgeShadow)"/>
+          <text x="450" y="718.5" fill="#ffffff" font-family="monospace" font-size="11.5" font-weight="900" text-anchor="middle">13:00</text>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 733)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :15 (1/4 filled - top right quadrant) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 752)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :30 (2/4 filled - right half) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 0 4.2 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 771)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :45 (3/4 filled) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 1 1 -4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- 14:00 Kentering (Green) -->
+          <rect x="414" y="779" width="72" height="22" rx="5" fill="#16a34a" filter="url(#badgeShadow)"/>
+          <text x="450" y="794.5" fill="#ffffff" font-family="monospace" font-size="11.5" font-weight="900" text-anchor="middle">14:00</text>
+          <text x="495" y="794" font-size="10.5" font-weight="800" fill="#15803d">KENTERING (0.0 m/s)</text>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 809)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :15 (1/4 filled - top right quadrant) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 828)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :30 (2/4 filled - right half) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 0 4.2 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 847)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :45 (3/4 filled) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 1 1 -4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Full Hour Tick (:00) - Clean hour label without bulky pill box -->
+          <text x="450" y="870" fill="#475569" font-family="monospace" font-size="11" font-weight="800" text-anchor="middle">15h</text>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 885)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :15 (1/4 filled - top right quadrant) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 904)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :30 (2/4 filled - right half) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 0 4.2 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 923)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :45 (3/4 filled) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 1 1 -4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Full Hour Tick (:00) - Clean hour label without bulky pill box -->
+          <text x="450" y="946" fill="#475569" font-family="monospace" font-size="11" font-weight="800" text-anchor="middle">16h</text>
+        
+      
+        
+          <!-- 16:15 PEC (Purple) -->
+          <rect x="416" y="950" width="68" height="22" rx="5" fill="#4f46e5" filter="url(#badgeShadow)"/>
+          <text x="450" y="965.5" fill="#ffffff" font-family="monospace" font-size="11.5" font-weight="900" text-anchor="middle">16:15</text>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 980)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :30 (2/4 filled - right half) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 0 4.2 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 999)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :45 (3/4 filled) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 1 1 -4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Full Hour Tick (:00) - Clean hour label without bulky pill box -->
+          <text x="450" y="1022" fill="#475569" font-family="monospace" font-size="11" font-weight="800" text-anchor="middle">17h</text>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 1037)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :15 (1/4 filled - top right quadrant) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 1056)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :30 (2/4 filled - right half) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 0 4.2 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 1075)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :45 (3/4 filled) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 1 1 -4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Full Hour Tick (:00) - Clean hour label without bulky pill box -->
+          <text x="450" y="1098" fill="#475569" font-family="monospace" font-size="11" font-weight="800" text-anchor="middle">18h</text>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 1113)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :15 (1/4 filled - top right quadrant) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 4.2 0 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Elegant pie/quarter discs -->
+          <g transform="translate(450, 1132)">
+            <!-- Background base disc -->
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            
+              <!-- :30 (2/4 filled - right half) -->
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 0 4.2 Z" fill="#64748b"/>
+            
+          </g>
+        
+      
+        
+          <!-- Low water mark (Cyan) -->
+          <rect x="418" y="1141" width="64" height="20" rx="4" fill="#0284c7" filter="url(#softShadow)"/>
+          <text x="450" y="1155" fill="#ffffff" font-family="monospace" font-size="11" font-weight="800" text-anchor="middle">18:45</text>
+        
+      
+        
+          <!-- Full Hour Tick (:00) - Clean hour label without bulky pill box -->
+          <text x="450" y="1174" fill="#475569" font-family="monospace" font-size="11" font-weight="800" text-anchor="middle">19h</text>
+        
+      
+    </g>
+  </g>
+
+  <!-- ================= INSET: SWIMMER PACE BENCHMARK ================= -->
+  <!-- Placed cleanly below the main graph surface -->
+  <g id="swimmer_inset" transform="translate(45, 1222)">
+    <rect x="0" y="0" width="810" height="96" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2" filter="url(#softShadow)"/>
+    
+    <!-- Title -->
+    <text x="24" y="26" font-size="13" font-weight="900" fill="#0f172a">🏊 ZWEMSNELHEID (REFERENTIEKADER VOOR VEILIGHEID)</text>
+    
+    <!-- 3 columns for speeds -->
+    <g transform="translate(24, 42)">
+      <!-- 0.5 m/s -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="240" height="42" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="12" y="18" font-size="12" font-weight="900" fill="#0284c7">0.5 m/s <tspan font-size="10.5" font-weight="500" fill="#64748b">(≈ 1.8 km/h)</tspan></text>
+        <text x="12" y="34" font-size="11" font-weight="600" fill="#334155">Beginner / Recreatieve zwemmer</text>
+      </g>
+
+      <!-- 1.0 m/s -->
+      <g transform="translate(260, 0)">
+        <rect x="0" y="0" width="240" height="42" rx="6" fill="#eff6ff" stroke="#38bdf8" stroke-width="1.2"/>
+        <text x="12" y="18" font-size="12" font-weight="900" fill="#0284c7">1.0 m/s <tspan font-size="10.5" font-weight="500" fill="#64748b">(≈ 3.6 km/h)</tspan></text>
+        <text x="12" y="34" font-size="11" font-weight="700" fill="#0369a1">Competitief amateur (kruissnelheid)</text>
+      </g>
+
+      <!-- 1.5 m/s -->
+      <g transform="translate(520, 0)">
+        <rect x="0" y="0" width="240" height="42" rx="6" fill="#fff7ed" stroke="#fb923c" stroke-width="1.2"/>
+        <text x="12" y="18" font-size="12" font-weight="900" fill="#ea580c">1.5 m/s <tspan font-size="10.5" font-weight="500" fill="#64748b">(≈ 5.4 km/h)</tspan></text>
+        <text x="12" y="34" font-size="11" font-weight="800" fill="#c2410c">Olympisch atleet (wereldtop)</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= KEY INSIGHT CALLOUT BOX ================= -->
+  <g id="insight_box" transform="translate(45, 1332)">
+    <rect x="0" y="0" width="810" height="66" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#softShadow)"/>
+    <text x="22" y="26" font-size="13.5" font-weight="900" fill="#0f172a">💡 ZWEM-INZICHT:</text>
+    <text x="155" y="26" font-size="13.5" font-weight="500" fill="#334155">Piek Vloedstroom (10:45) valt <tspan font-weight="800" fill="#ea580c">2u15 vóór Hoogwater (13:00)</tspan>!</text>
+    <text x="22" y="50" font-size="12" font-weight="500" fill="#64748b">Bij Hoogwater (13:00) is de stroming al sterk verzwakt (0.35 m/s). De kentering (stilstaand water) valt om 14:00.</text>
+  </g>
+
+  <!-- ================= FOOTER / LEGEND ================= -->
+  <g id="legend" transform="translate(45, 1412)">
+    <rect x="0" y="0" width="810" height="74" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    
+    <!-- Row 1: Line styles -->
+    <g transform="translate(24, 25)">
+      <!-- Current vector -->
+      <line x1="0" y1="0" x2="30" y2="0" stroke="#0284c7" stroke-width="4.5" stroke-linecap="round"/>
+      <circle cx="30" cy="0" r="5.5" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+      <text x="44" y="4.5" font-size="11.5" font-weight="600" fill="#334155">Stroomsnelheid (lengte balk) &amp; Stroomhoek (pijltje in cirkel)</text>
+
+      <!-- Water curve -->
+      <line x1="450" y1="0" x2="485" y2="0" stroke="#0ea5e9" stroke-width="3.5" stroke-linecap="round"/>
+      <text x="495" y="4.5" font-size="11.5" font-weight="600" fill="#334155">Waterstandscurve (m TAW)</text>
+    </g>
+
+    <!-- Row 2: Badges & source -->
+    <g transform="translate(24, 52)">
+      <rect x="0" y="-8" width="16" height="16" rx="3.5" fill="#ea580c"/>
+      <text x="22" y="4.5" font-size="11" font-weight="600" fill="#475569">Piek Vloed (PFC)</text>
+
+      <rect x="135" y="-8" width="16" height="16" rx="3.5" fill="#f59e0b"/>
+      <text x="157" y="4.5" font-size="11" font-weight="600" fill="#475569">Hoogwater (HW)</text>
+
+      <rect x="270" y="-8" width="16" height="16" rx="3.5" fill="#16a34a"/>
+      <text x="292" y="4.5" font-size="11" font-weight="600" fill="#475569">Kentering (0.0 m/s)</text>
+
+      <rect x="420" y="-8" width="16" height="16" rx="3.5" fill="#4f46e5"/>
+      <text x="442" y="4.5" font-size="11" font-weight="600" fill="#475569">Piek Eb (PEC)</text>
+      
+      <!-- Source label right-aligned -->
+      <text x="785" y="4.5" font-size="10.5" font-weight="700" fill="#94a3b8" text-anchor="end">CSCM • CMEMS 1.5km Model &amp; MDK Meetnet</text>
+    </g>
+  </g>
+</svg>

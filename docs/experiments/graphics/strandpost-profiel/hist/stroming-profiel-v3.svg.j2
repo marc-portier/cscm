@@ -1,0 +1,397 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 1550" width="100%" height="100%" style="background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Card Drop Shadows -->
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
+    </filter>
+    <filter id="badgeShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.14"/>
+    </filter>
+
+    <!-- Water Level Gradient -->
+    <linearGradient id="waterCurveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0.20"/>
+    </linearGradient>
+    <linearGradient id="legendWaterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0.05"/>
+    </linearGradient>
+
+    <!-- Horizontal Current Bars Gradients -->
+    <linearGradient id="floodBarGrad" gradientUnits="userSpaceOnUse" x1="485" y1="0" x2="760" y2="0">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="1.0"/>
+    </linearGradient>
+    <linearGradient id="ebbBarGrad" gradientUnits="userSpaceOnUse" x1="415" y1="0" x2="160" y2="0">
+      <stop offset="0%" stop-color="#818cf8" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#4f46e5" stop-opacity="1.0"/>
+    </linearGradient>
+    <linearGradient id="legendCurrentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="50%" stop-color="#818cf8"/>
+      <stop offset="50%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <!-- Base Arrow Definition (pointing Right at 0°) -->
+    <g id="vectorArrow">
+      <line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M 1.5 -3 L 4.5 0 L 1.5 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </defs>
+
+  <!-- Canvas Background -->
+  <rect x="0" y="0" width="920" height="1550" fill="#ffffff"/>
+
+  <!-- ================= HEADER SECTION (CENTERED) ================= -->
+  <g id="header" transform="translate(0, 36)">
+    <!-- Centered Titles -->
+    <text x="460" y="20" font-size="12.5" font-weight="800" letter-spacing="1.8" fill="#0284c7" text-anchor="middle">{{ meta.project_title | default("CSCM KUST-STROMINGSPROFIEL") }}</text>
+    <text x="460" y="58" font-size="34" font-weight="900" fill="#0f172a" letter-spacing="-0.6" text-anchor="middle">{{ meta.location_name }}</text>
+    <text x="460" y="84" font-size="15" font-weight="500" fill="#64748b" text-anchor="middle">{{ meta.date_str }} • {{ meta.time_window }}</text>
+
+    <!-- Compass Rosette with Horizontal Coastline Reference (Top Right) -->
+    <g id="compass" transform="translate(775, 2)">
+      <circle cx="45" cy="45" r="38" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" filter="url(#softShadow)"/>
+      <line x1="12" y1="45" x2="78" y2="45" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
+      <text x="45" y="41" font-size="7" font-weight="800" fill="#64748b" letter-spacing="1" text-anchor="middle">KUSTLIJN</text>
+      <text x="45" y="32" font-size="6.5" font-weight="700" fill="#0284c7" text-anchor="middle">▲ ZEE</text>
+      <text x="45" y="56" font-size="6.5" font-weight="700" fill="#94a3b8" text-anchor="middle">▼ STRAND</text>
+      <!-- Rotated North Needle -->
+      <g transform="translate(45, 45) rotate({{ meta.north_angle | default(25) }})">
+        <polygon points="0,-30 6,-8 0,-14 -6,-8" fill="#ef4444"/>
+        <polygon points="0,18 6,0 0,6 -6,0" fill="#94a3b8"/>
+        <text x="0" y="-33" font-size="10.5" font-weight="900" fill="#ef4444" text-anchor="middle">N</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= COASTAL DIRECTION BAR ================= -->
+  <g id="coast_direction" transform="translate(45, 145)">
+    <rect x="0" y="0" width="830" height="42" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>
+    
+    <!-- Left: France / Ebb -->
+    <g transform="translate(18, 21)">
+      <path d="M 16 0 L 0 0 M 0 0 L 6 -5 M 0 0 L 6 5" stroke="#4f46e5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="26" y="5" font-size="12.5" font-weight="800" fill="#4f46e5">[FR] FRANKRIJK • EBBESTROOM (ZW)</text>
+    </g>
+
+    <!-- Center Separator -->
+    <circle cx="415" cy="21" r="3.5" fill="#cbd5e1"/>
+
+    <!-- Right: Netherlands / Flood -->
+    <g transform="translate(812, 21)">
+      <path d="M -16 0 L 0 0 M 0 0 L -6 -5 M 0 0 L -6 5" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="-26" y="5" font-size="12.5" font-weight="800" fill="#0284c7" text-anchor="end">VLOEDSTROOM (NO) • NEDERLAND [NL]</text>
+    </g>
+  </g>
+
+  <!-- ================= GRAPH MAIN AREA ================= -->
+  <!-- 
+    Spine layout:
+    Center: X = 460
+    Center column: X = 425 to 495 (width = 70px)
+    Left edge (0 for Ebb): X = 425
+    Right edge (0 for Flood): X = 495
+    Scale: 1 m/s = 140 pixels
+    Ticks:
+      Ebb (left from 425):
+        -0.5 m/s: 425 - 70  = 355
+        -1.0 m/s: 425 - 140 = 285
+        -1.5 m/s: 425 - 210 = 215
+      Flood (right from 495):
+        +0.5 m/s: 495 + 70  = 565
+        +1.0 m/s: 495 + 140 = 635
+        +1.5 m/s: 495 + 210 = 705
+  -->
+  <g id="graph_surface">
+    <!-- Grid lines -->
+    <g id="grid_lines" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,4">
+      <line x1="215" y1="202" x2="215" y2="1225"/>
+      <line x1="285" y1="202" x2="285" y2="1225"/>
+      <line x1="355" y1="202" x2="355" y2="1225"/>
+      <line x1="565" y1="202" x2="565" y2="1225"/>
+      <line x1="635" y1="202" x2="635" y2="1225"/>
+      <line x1="705" y1="202" x2="705" y2="1225"/>
+    </g>
+
+    <!-- Scale Headers -->
+    <g id="scale_headers" font-size="10.5" font-weight="700" fill="#94a3b8" text-anchor="middle">
+      <text x="215" y="202">-1.5 m/s</text>
+      <text x="285" y="202">-1.0 m/s</text>
+      <text x="355" y="202">-0.5 m/s</text>
+      <text x="460" y="202" fill="#64748b" font-weight="800">TIJD</text>
+      <text x="565" y="202">+0.5 m/s</text>
+      <text x="635" y="202">+1.0 m/s</text>
+      <text x="705" y="202">+1.5 m/s</text>
+    </g>
+
+    <!-- Swimmer Speed Benchmarks (Dashed accent lines) -->
+    <g id="swimmer_benchmarks">
+      <line x1="565" y1="208" x2="565" y2="1220" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.6"/>
+      <line x1="355" y1="208" x2="355" y2="1220" stroke="#c7d2fe" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.6"/>
+
+      <line x1="635" y1="208" x2="635" y2="1220" stroke="#38bdf8" stroke-width="2" stroke-dasharray="5,4" opacity="0.8"/>
+      <line x1="285" y1="208" x2="285" y2="1220" stroke="#818cf8" stroke-width="2" stroke-dasharray="5,4" opacity="0.8"/>
+
+      <line x1="705" y1="208" x2="705" y2="1220" stroke="#0284c7" stroke-width="2" stroke-dasharray="5,4" opacity="0.9"/>
+      <line x1="215" y1="208" x2="215" y2="1220" stroke="#4f46e5" stroke-width="2" stroke-dasharray="5,4" opacity="0.9"/>
+    </g>
+
+    <!-- ================= SYMMETRICAL WATER LEVEL UNDERLAY CURVE ================= -->
+    {% if water_level %}
+    <g id="water_level_curve">
+      <!-- Area Underlay (shaded from center spine) -->
+      {% if water_level.area_d %}
+      <path d="{{ water_level.area_d }}" fill="url(#waterCurveGrad)"/>
+      {% endif %}
+      <!-- Main Wave Line -->
+      {% if water_level.line_d %}
+      <path d="{{ water_level.line_d }}" fill="none" stroke="#0ea5e9" stroke-width="3.5" stroke-linecap="round" opacity="0.88"/>
+      {% endif %}
+
+      <!-- High Water Marker Callout (Right side, at 13:00) -->
+      {% if water_level.hw %}
+      <g transform="translate({{ water_level.hw.x + 10 }}, {{ water_level.hw.y }})">
+        <circle cx="0" cy="0" r="6" fill="#f59e0b" stroke="#ffffff" stroke-width="2" filter="url(#badgeShadow)"/>
+        <line x1="6" y1="0" x2="22" y2="0" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="2,2"/>
+        <g transform="translate(24, -20)">
+          <rect x="0" y="0" width="86" height="42" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.2" filter="url(#softShadow)"/>
+          <text x="8" y="16" font-size="9.5" font-weight="800" fill="#b45309">HOOGWATER</text>
+          <text x="8" y="32" font-size="13" font-weight="900" fill="#92400e">{{ water_level.hw.height }}</text>
+        </g>
+      </g>
+      {% endif %}
+
+      <!-- Low Water 1 Marker Callout (Left side, at 07:15) -->
+      {% if water_level.lw1 %}
+      <g transform="translate({{ water_level.lw1.x + 10 }}, {{ water_level.lw1.y }})">
+        <circle cx="0" cy="0" r="6" fill="#ea580c" stroke="#ffffff" stroke-width="2" filter="url(#badgeShadow)"/>
+        <line x1="-6" y1="0" x2="-22" y2="0" stroke="#ea580c" stroke-width="1.8" stroke-dasharray="2,2"/>
+        <g transform="translate(-110, -20)">
+          <rect x="0" y="0" width="86" height="42" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.2" filter="url(#softShadow)"/>
+          <text x="8" y="16" font-size="9.5" font-weight="800" fill="#c2410c">LAAGWATER</text>
+          <text x="8" y="32" font-size="13" font-weight="900" fill="#9a3412">{{ water_level.lw1.height }}</text>
+        </g>
+      </g>
+      {% endif %}
+
+      <!-- Low Water 2 Marker Callout (Left side, at 19:30) -->
+      {% if water_level.lw2 %}
+      <g transform="translate({{ water_level.lw2.x + 10 }}, {{ water_level.lw2.y }})">
+        <circle cx="0" cy="0" r="6" fill="#ea580c" stroke="#ffffff" stroke-width="2" filter="url(#badgeShadow)"/>
+        <line x1="-6" y1="0" x2="-22" y2="0" stroke="#ea580c" stroke-width="1.8" stroke-dasharray="2,2"/>
+        <g transform="translate(-110, -20)">
+          <rect x="0" y="0" width="86" height="42" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.2" filter="url(#softShadow)"/>
+          <text x="8" y="16" font-size="9.5" font-weight="800" fill="#c2410c">LAAGWATER</text>
+          <text x="8" y="32" font-size="13" font-weight="900" fill="#9a3412">{{ water_level.lw2.height }}</text>
+        </g>
+      </g>
+      {% endif %}
+    </g>
+    {% endif %}
+
+    <!-- Central Spine Guides -->
+    <line x1="425" y1="208" x2="425" y2="1220" stroke="#cbd5e1" stroke-width="1.2"/>
+    <line x1="495" y1="208" x2="495" y2="1220" stroke="#cbd5e1" stroke-width="1.2"/>
+
+    <!-- ================= CURRENT VECTOR BARS & ROTATING ARROWS ================= -->
+    <g id="current_bars">
+      {% for slot in slots %}
+        {% if slot.v > 0.05 %}
+          <!-- Flood bar (Right from X=495) -->
+          {% set bar_len = (slot.v * 140) | round(1) %}
+          {% set end_x = 495 + bar_len %}
+          {% if slot.is_pfc %}
+            <!-- Highlight for Peak Flood Current (PFC) - Blue Family -->
+            <rect x="495" y="{{ slot.y - 10 }}" width="{{ bar_len + 6 }}" height="20" rx="10" fill="#e0f2fe" opacity="0.8"/>
+            <line x1="495" y1="{{ slot.y }}" x2="{{ end_x }}" y2="{{ slot.y }}" stroke="#0284c7" stroke-width="7.5" stroke-linecap="round"/>
+            <circle cx="{{ end_x }}" cy="{{ slot.y }}" r="11" fill="#0284c7" stroke="#ffffff" stroke-width="2" filter="url(#badgeShadow)"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate({{ end_x }}, {{ slot.y }}) rotate({{ slot.angle }})" style="color: #ffffff;">
+              <use href="#vectorArrow"/>
+            </g>
+            <!-- Callout Label in Blue -->
+            <g transform="translate({{ end_x + 18 }}, {{ slot.y }})">
+              <text x="0" y="-2" font-size="13" font-weight="900" fill="#0284c7">{{ slot.v }} m/s</text>
+              <text x="0" y="11" font-size="9.5" font-weight="800" fill="#0369a1">PIEK VLOED (PFC)</text>
+            </g>
+          {% else %}
+            <!-- Standard Flood bar -->
+            <line x1="495" y1="{{ slot.y }}" x2="{{ end_x }}" y2="{{ slot.y }}" stroke="url(#floodBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="{{ end_x }}" cy="{{ slot.y }}" r="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate({{ end_x }}, {{ slot.y }}) rotate({{ slot.angle }})" style="color: #0284c7;">
+              <use href="#vectorArrow"/>
+            </g>
+          {% endif %}
+        {% elif slot.v < -0.05 %}
+          <!-- Ebb bar (Left from X=425) -->
+          {% set bar_len = ((-slot.v) * 140) | round(1) %}
+          {% set end_x = 425 - bar_len %}
+          {% if slot.is_pec %}
+            <!-- Highlight for Peak Ebb Current (PEC) - Purple Family -->
+            <rect x="{{ end_x }}" y="{{ slot.y - 10 }}" width="{{ bar_len }}" height="20" rx="10" fill="#ede9fe" opacity="0.8"/>
+            <line x1="425" y1="{{ slot.y }}" x2="{{ end_x }}" y2="{{ slot.y }}" stroke="#4f46e5" stroke-width="7.5" stroke-linecap="round"/>
+            <circle cx="{{ end_x }}" cy="{{ slot.y }}" r="11" fill="#4f46e5" stroke="#ffffff" stroke-width="2" filter="url(#badgeShadow)"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate({{ end_x }}, {{ slot.y }}) rotate({{ slot.angle }})" style="color: #ffffff;">
+              <use href="#vectorArrow"/>
+            </g>
+            <!-- Callout Label in Purple -->
+            <g transform="translate({{ end_x - 18 }}, {{ slot.y }})">
+              <text x="0" y="-2" font-size="13" font-weight="900" fill="#4f46e5" text-anchor="end">{{ slot.v }} m/s</text>
+              <text x="0" y="11" font-size="9.5" font-weight="800" fill="#4338ca" text-anchor="end">PIEK EB (PEC)</text>
+            </g>
+          {% else %}
+            <!-- Standard Ebb bar -->
+            <line x1="425" y1="{{ slot.y }}" x2="{{ end_x }}" y2="{{ slot.y }}" stroke="url(#ebbBarGrad)" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="{{ end_x }}" cy="{{ slot.y }}" r="8" fill="#ffffff" stroke="#4f46e5" stroke-width="1.6"/>
+            <!-- Rotating arrow inside circle -->
+            <g transform="translate({{ end_x }}, {{ slot.y }}) rotate({{ slot.angle }})" style="color: #4f46e5;">
+              <use href="#vectorArrow"/>
+            </g>
+          {% endif %}
+        {% else %}
+          <!-- Kentering / Slack Water (v ≈ 0.0 m/s): Neutral circle in center column with rotating arrow -->
+          <circle cx="460" cy="{{ slot.y }}" r="8.5" fill="#ffffff" stroke="#16a34a" stroke-width="2" filter="url(#softShadow)"/>
+          <g transform="translate(460, {{ slot.y }}) rotate({{ slot.angle }})" style="color: #16a34a;">
+            <use href="#vectorArrow"/>
+          </g>
+        {% endif %}
+      {% endfor %}
+    </g>
+
+    <!-- ================= TIME SPINE & TICK MARKS ================= -->
+    <g id="time_spine">
+      {% for slot in slots %}
+        {% if slot.is_pfc %}
+          <!-- 10:45 PFC (Blue Badge) -->
+          <rect x="426" y="{{ slot.y - 11 }}" width="68" height="22" rx="5" fill="#0284c7" filter="url(#badgeShadow)"/>
+          <text x="460" y="{{ slot.y + 4.5 }}" fill="#ffffff" font-family="monospace" font-size="11.5" font-weight="900" text-anchor="middle">{{ slot.time }}</text>
+        {% elif slot.is_hw %}
+          <!-- 13:00 HW (Amber Badge) -->
+          <rect x="426" y="{{ slot.y - 11 }}" width="68" height="22" rx="5" fill="#f59e0b" filter="url(#badgeShadow)"/>
+          <text x="460" y="{{ slot.y + 4.5 }}" fill="#ffffff" font-family="monospace" font-size="11.5" font-weight="900" text-anchor="middle">{{ slot.time }}</text>
+        {% elif slot.is_kentering %}
+          <!-- 08:00 or 14:00 Kentering (Green Badge) -->
+          <rect x="424" y="{{ slot.y - 11 }}" width="72" height="22" rx="5" fill="#16a34a" filter="url(#badgeShadow)"/>
+          <text x="460" y="{{ slot.y + 4.5 }}" fill="#ffffff" font-family="monospace" font-size="11.5" font-weight="900" text-anchor="middle">{{ slot.time }}</text>
+          <text x="505" y="{{ slot.y + 4 }}" font-size="10.5" font-weight="800" fill="#15803d">KENTERING (0.0 m/s)</text>
+        {% elif slot.is_pec %}
+          <!-- 16:30 PEC (Purple Badge) -->
+          <rect x="426" y="{{ slot.y - 11 }}" width="68" height="22" rx="5" fill="#4f46e5" filter="url(#badgeShadow)"/>
+          <text x="460" y="{{ slot.y + 4.5 }}" fill="#ffffff" font-family="monospace" font-size="11.5" font-weight="900" text-anchor="middle">{{ slot.time }}</text>
+        {% elif slot.is_lw %}
+          <!-- 07:15 or 19:30 LW (Orange Badge) -->
+          <rect x="426" y="{{ slot.y - 11 }}" width="68" height="22" rx="5" fill="#ea580c" filter="url(#badgeShadow)"/>
+          <text x="460" y="{{ slot.y + 4.5 }}" fill="#ffffff" font-family="monospace" font-size="11.5" font-weight="900" text-anchor="middle">{{ slot.time }}</text>
+        {% elif slot.minute == 0 %}
+          <!-- Full Hour Tick (:00) - Clean text -->
+          <text x="460" y="{{ slot.y + 4 }}" fill="#475569" font-family="monospace" font-size="11" font-weight="800" text-anchor="middle">{{ slot.hour_label }}</text>
+        {% else %}
+          <!-- Quarter-Hour Ticks (:15, :30, :45) - Harvey Balls -->
+          <g transform="translate(460, {{ slot.y }})">
+            <circle cx="0" cy="0" r="4.2" fill="#ffffff" stroke="#94a3b8" stroke-width="0.9"/>
+            {% if slot.quarter_type == 1 %}
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 4.2 0 Z" fill="#64748b"/>
+            {% elif slot.quarter_type == 2 %}
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 0 1 0 4.2 Z" fill="#64748b"/>
+            {% elif slot.quarter_type == 3 %}
+              <path d="M 0 0 L 0 -4.2 A 4.2 4.2 0 1 1 -4.2 0 Z" fill="#64748b"/>
+            {% endif %}
+          </g>
+        {% endif %}
+      {% endfor %}
+    </g>
+  </g>
+
+  <!-- ================= INSET: SWIMMER PACE BENCHMARK ================= -->
+  <g id="swimmer_inset" transform="translate(45, 1248)">
+    <rect x="0" y="0" width="830" height="96" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2" filter="url(#softShadow)"/>
+    <text x="24" y="26" font-size="13" font-weight="900" fill="#0f172a">🏊 ZWEMSNELHEID (REFERENTIEKADER VOOR VEILIGHEID)</text>
+    
+    <g transform="translate(24, 42)">
+      <!-- 0.5 m/s -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="245" height="42" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="12" y="18" font-size="12" font-weight="900" fill="#0284c7">0.5 m/s <tspan font-size="10.5" font-weight="500" fill="#64748b">(≈ 1.8 km/h)</tspan></text>
+        <text x="12" y="34" font-size="11" font-weight="600" fill="#334155">Beginner / Recreatieve zwemmer</text>
+      </g>
+
+      <!-- 1.0 m/s -->
+      <g transform="translate(268, 0)">
+        <rect x="0" y="0" width="245" height="42" rx="6" fill="#eff6ff" stroke="#38bdf8" stroke-width="1.2"/>
+        <text x="12" y="18" font-size="12" font-weight="900" fill="#0284c7">1.0 m/s <tspan font-size="10.5" font-weight="500" fill="#64748b">(≈ 3.6 km/h)</tspan></text>
+        <text x="12" y="34" font-size="11" font-weight="700" fill="#0369a1">Competitief amateur (kruissnelheid)</text>
+      </g>
+
+      <!-- 1.5 m/s -->
+      <g transform="translate(536, 0)">
+        <rect x="0" y="0" width="245" height="42" rx="6" fill="#fff7ed" stroke="#fb923c" stroke-width="1.2"/>
+        <text x="12" y="18" font-size="12" font-weight="900" fill="#ea580c">1.5 m/s <tspan font-size="10.5" font-weight="500" fill="#64748b">(≈ 5.4 km/h)</tspan></text>
+        <text x="12" y="34" font-size="11" font-weight="800" fill="#c2410c">Olympisch atleet (wereldtop)</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= KEY INSIGHT CALLOUT BOX ================= -->
+  <g id="insight_box" transform="translate(45, 1358)">
+    <rect x="0" y="0" width="830" height="66" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#softShadow)"/>
+    <text x="22" y="26" font-size="13.5" font-weight="900" fill="#0f172a">💡 ZWEM-INZICHT:</text>
+    <text x="155" y="26" font-size="13.5" font-weight="500" fill="#334155">{{ insight.headline | safe }}</text>
+    <text x="22" y="50" font-size="12" font-weight="500" fill="#64748b">{{ insight.detail }}</text>
+  </g>
+
+  <!-- ================= FOOTER / LEGEND ================= -->
+  <g id="legend" transform="translate(45, 1438)">
+    <rect x="0" y="0" width="830" height="78" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    
+    <!-- Row 1: Line styles -->
+    <g transform="translate(24, 25)">
+      <!-- Dual-ended Current vector -->
+      <g transform="translate(0, 0)">
+        <circle cx="8" cy="0" r="7" fill="#ffffff" stroke="#4f46e5" stroke-width="1.5"/>
+        <path d="M 10 0 L 6 0 M 8 -2.5 L 6 0 L 8 2.5" fill="none" stroke="#4f46e5" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="16" y1="0" x2="48" y2="0" stroke="url(#legendCurrentGrad)" stroke-width="4.5" stroke-linecap="round"/>
+        <circle cx="56" cy="0" r="7" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+        <path d="M 54 0 L 58 0 M 56 -2.5 L 58 0 L 56 2.5" fill="none" stroke="#0284c7" stroke-width="1.5" stroke-linecap="round"/>
+        <text x="74" y="4" font-size="11.5" font-weight="600" fill="#334155">Stroomsnelheid (lengte balk) &amp; Stroomhoek (pijltje)</text>
+      </g>
+
+      <!-- Curving Water Level Wave with Gradient -->
+      <g transform="translate(480, 0)">
+        <path d="M 0 5 Q 12 -6 24 5 Q 36 16 48 5 L 48 12 L 0 12 Z" fill="url(#legendWaterGrad)"/>
+        <path d="M 0 5 Q 12 -6 24 5 Q 36 16 48 5" fill="none" stroke="#0ea5e9" stroke-width="3" stroke-linecap="round"/>
+        <text x="60" y="4" font-size="11.5" font-weight="600" fill="#334155">Waterstandscurve (m TAW)</text>
+      </g>
+    </g>
+
+    <!-- Row 2: Badges (evenly spaced across entire width) -->
+    <g transform="translate(24, 55)">
+      <!-- Blue PFC -->
+      <rect x="0" y="-8" width="16" height="16" rx="3.5" fill="#0284c7"/>
+      <text x="22" y="4.5" font-size="11" font-weight="600" fill="#475569">Piek Vloed (PFC)</text>
+
+      <!-- Purple PEC -->
+      <rect x="155" y="-8" width="16" height="16" rx="3.5" fill="#4f46e5"/>
+      <text x="177" y="4.5" font-size="11" font-weight="600" fill="#475569">Piek Eb (PEC)</text>
+
+      <!-- Amber HW -->
+      <rect x="310" y="-8" width="16" height="16" rx="3.5" fill="#f59e0b"/>
+      <text x="332" y="4.5" font-size="11" font-weight="600" fill="#475569">Hoogwater (HW)</text>
+
+      <!-- Orange LW -->
+      <rect x="470" y="-8" width="16" height="16" rx="3.5" fill="#ea580c"/>
+      <text x="492" y="4.5" font-size="11" font-weight="600" fill="#475569">Laagwater (LW)</text>
+
+      <!-- Green Kentering -->
+      <rect x="625" y="-8" width="16" height="16" rx="3.5" fill="#16a34a"/>
+      <text x="647" y="4.5" font-size="11" font-weight="600" fill="#475569">Kentering (0.0 m/s)</text>
+    </g>
+  </g>
+
+  <!-- Footer Metadata Attribution -->
+  <text x="875" y="1532" font-size="10.5" font-weight="700" fill="#94a3b8" text-anchor="end">{{ meta.source_label | default("CSCM • CMEMS 1.5km Model &amp; MDK Meetnet") }}</text>
+</svg>

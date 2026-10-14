@@ -27,9 +27,9 @@ This document outlines the ordered development roadmap for the **Channel Swimmer
   * Refactor `get_latest_forecast_nc` in `predict.py` to query `CMEMSDataManager.catalog` for exact date range overlaps (`data_start_dt` / `data_end_dt`), unlocking historical simulations and offline test suites.
 * **1.2 Code Convergence & Shared Infrastructure**:
   * Unify the historically separate code paths (`model.py`, `current/cmems`, and `simulation`).
-  * Introduce a shared `cscm.cli` / `cscm.config` module for common arguments (`--log-level`, `--data-dir`, `--config`) and standardized logging to both stdout and [cscm.log](file:///home/marc.portier@vliz.be/projects/mpo/cscm/cscm.log).
-  * Refactor `CmemsForecastCurrentsModel` to implement the abstract [CurrentsModel](file:///home/marc.portier@vliz.be/projects/mpo/cscm/src/cscm/model.py#L264) interface.
-  * Refactor `simulate_test_swim` to run through [TrajectoryCalculator](file:///home/marc.portier@vliz.be/projects/mpo/cscm/src/cscm/model.py#L343) driving a concrete [Swimmer](file:///home/marc.portier@vliz.be/projects/mpo/cscm/src/cscm/model.py#L204) instance.
+  * Introduce a shared `cscm.cli` / `cscm.config` module for common arguments (`--log-level`, `--data-dir`, `--config`) and standardized logging to both stdout and [cscm.log](../cscm.log).
+  * Refactor `CmemsForecastCurrentsModel` to implement the abstract [CurrentsModel](../src/cscm/model.py#L264) interface.
+  * Refactor `simulate_test_swim` to run through [TrajectoryCalculator](../src/cscm/model.py#L343) driving a concrete [Swimmer](../src/cscm/model.py#L204) instance.
 * **1.3 Automated Test Suite**:
   * Establish a robust `pytest` suite under `tests/`:
     * Vector algebra, coordinate translations, heading trigonometry, WKT geometry loaders, and YAML job schema validation.
@@ -79,7 +79,7 @@ This document outlines the ordered development roadmap for the **Channel Swimmer
 ### Milestone 4 (February 2027): Harmonized `CurrentsModel` Subsystem
 
 * **4.1 Unified Currents Interface**:
-  * Extend [CurrentsModel](file:///home/marc.portier@vliz.be/projects/mpo/cscm/src/cscm/model.py#L264) to intelligently resolve and serve current vectors across three distinct data tiers:
+  * Extend [CurrentsModel](../src/cscm/model.py#L264) to intelligently resolve and serve current vectors across three distinct data tiers:
     1. *Historical Data*: Stored multi-month CMEMS NetCDF archives.
     2. *Near-Term Operational Forecast*: Live 7-day CMEMS forecast datasets.
     3. *Long-Term Synthesized Model*: Normalized astronomical tensors re-scaled to arbitrary future target dates.
@@ -101,7 +101,7 @@ This document outlines the ordered development roadmap for the **Channel Swimmer
   * Parse and process smartwatch activity files (Garmin FIT and Polar TCX) from long-distance training sessions.
   * Extract empirical stroke rate, heart rate, and speed metrics across varying durations and sea temperatures.
 * **5.2 Non-Linear Fatigue Modeling**:
-  * Implement concrete behavioral functions in [MovingObject](file:///home/marc.portier@vliz.be/projects/mpo/cscm/src/cscm/model.py#L105):
+  * Implement concrete behavioral functions in [MovingObject](../src/cscm/model.py#L105):
     * `calculate_proper_speed_mps`: Non-linear speed decay curve ($v(t) = v_0 \cdot f(\text{fatigue}, \text{temperature})$).
     * `calculate_proper_direction_deviation`: Model heading variance and steering drift induced by physical exhaustion, cross-seas, and wind chop.
 * **5.3 Relay Team Kinematics (`RelaySwimmerTeam`)**:
@@ -112,7 +112,7 @@ This document outlines the ordered development roadmap for the **Channel Swimmer
 ### Milestone 6 (April 2027): Spatiotemporal Trajectory Optimization
 
 * **6.1 Formalizing Zermelo's Problem in Space-Time ($x, y, t$)**:
-  * Complete [TrajectoryFinder](file:///home/marc.portier@vliz.be/projects/mpo/cscm/src/cscm/model.py#L390) using Time-Dependent Space-Time A* (STA*) or dynamic programming over a discrete $(latitude, longitude, epoch\_time)$ graph.
+  * Complete [TrajectoryFinder](../src/cscm/model.py#L390) using Time-Dependent Space-Time A* (STA*) or dynamic programming over a discrete $(latitude, longitude, epoch\_time)$ graph.
 * **6.2 Optimal Start Window & Course Optimization**:
   * Given a specific swimmer profile and an arbitrary origin/destination pair:
     * Scan the lunar cycle to identify optimal departure time windows ($t_0$) maximizing favorable tidal assist in order to minimise for total swim time (not neccessarily shortest distance)
@@ -159,42 +159,73 @@ This document outlines the ordered development roadmap for the **Channel Swimmer
 
 ## 🌊 Feature Track: Kust-Stromingsprofielen & Strandposten (Public Swim Safety)
 
-This initiative translates abstract model hydrodynamics into an intuitive, high-impact infographic profile per coastal bathing resort and lifeguard post (starting with **Bredene Post 4 "Droogen Opganck"**).
+This initiative translates abstract model hydrodynamics into an intuitive, high-impact infographic profile per coastal bathing resort and lifeguard post (anchored on **Bredene Strandpost 4 "Droogen Opganck"**).
 
-### 1. Status & Prototype Assets
-* **Design Evolution**: Iterated from remarkable sketchbook (v0) through v1, v2, v3 to **v4 (Approved Target Design)**.
-* **Archive & Reference**: Full visual changelog preserved in [`experimenting/graphics/hist/`](file:///home/marc.portier@vliz.be/projects/mpo/cscm/experimenting/graphics/hist/).
-* **Active Production Prototype**:
-  * Visual Render: [`experimenting/graphics/ontwerp-stroming-profiel-preview.png`](file:///home/marc.portier@vliz.be/projects/mpo/cscm/experimenting/graphics/ontwerp-stroming-profiel-preview.png)
-  * Vector Source: [`experimenting/graphics/ontwerp-stroming-profiel.svg`](file:///home/marc.portier@vliz.be/projects/mpo/cscm/experimenting/graphics/ontwerp-stroming-profiel.svg)
-  * Jinja2 SVG Template: [`experimenting/graphics/stroming-profiel-v4.svg.j2`](file:///home/marc.portier@vliz.be/projects/mpo/cscm/experimenting/graphics/stroming-profiel-v4.svg.j2)
-  * Test Generator Script: [`experimenting/graphics/generate_v4.py`](file:///home/marc.portier@vliz.be/projects/mpo/cscm/experimenting/graphics/generate_v4.py)
+### 1. Status & Active Prototype (v10 Standard)
+* **Design Evolution**: Iterated from initial sketches through v1–v4 (spine layout), v6 (universal bearings), v7 (open-sea cell bypass), v8 (spring-tide zoom), v9 (local CEST conversion) to **v10 (Full MDK Sensor Data Integration)**.
+* **Active Production Files**:
+  * Visual Render: [ontwerp-stroming-profiel-preview.png](./experiments/graphics/strandpost-profiel/latest/ontwerp-stroming-profiel-preview.png)
+  * Vector Source: [ontwerp-stroming-profiel.svg](./experiments/graphics/strandpost-profiel/latest/ontwerp-stroming-profiel.svg)
+  * Data Contract: [data_to_plot.yaml](./experiments/graphics/strandpost-profiel/latest/data_to_plot.yaml)
+  * Generator Scripts: [`fetch_data.py`](./experiments/graphics/strandpost-profiel/latest/fetch_data.py) & [`render.py`](./experiments/graphics/strandpost-profiel/latest/render.py)
+  * Full Changelog: [versions.md](./experiments/graphics/strandpost-profiel/hist/versions.md)
 
-### 2. Core Visual & Infographic Principles (v4 Standard)
+![Strandpost Profiel v10](./experiments/graphics/strandpost-profiel/latest/ontwerp-stroming-profiel-preview.png)
+
+### 2. Core Visual & Infographic Architecture
 * **Beach Perspective**: Looking seaward (NNW); Left = SW / France (Ebb), Right = NE / Netherlands (Flood).
-* **Tidal Ellipse Vector Rotation**: Block-wave characteristic: steady alongshore angles (0° for flood, 180° for ebb) with smooth, rapid counter-clockwise (cyclonic) transitions through seaward (-90°) around slack high water, and landward (+90°) around slack low water.
-* **Symmetrical Water Level Curve**: Centered around Mean Sea Level (MSL ~2.56 m TAW), showing water mass expansion from the 0m TAW baseline on the far left. True peaks/troughs coincide mathematically with High Water (amber callout) and Low Water (orange callouts).
-* **Swimmer Pace Benchmark (Inset)**: Dedicated safety reference defining 0.5 m/s (beginner), 1.0 m/s (amateur cruise speed), and 1.5 m/s (olympic athlete), accompanied by dashed gridlines across the chart.
-* **15-Minute Resolution with Minimalist Spine**: Harvey-ball quarter-hour ticks (:15, :30, :45) keeping the central spine tranquil, reserving full `HH:MM` badges strictly for key tidal events (PFC, HW, Kentering, PEC, LW).
+* **Tidal Vector Spine**: 15-minute resolution with rotating directional arrows and cyclonic slack transitions.
+* **Empirical Water Level Underlay**: Filled from 0m TAW baseline on left to measured curve. HW/LW callout badges positioned collision-free in open margins.
+* **Phase Shift Insight**: Automatically highlights timing difference between peak flood (PFC) and High Water (HW) (e.g. 15 min lag at Bredene Post 4).
+* **Decoupled Architecture**: Strict separation between data retrieval (`fetch_data_v10.py`), YAML data contract (`data_to_plot_v10.yaml`), and SVG renderer (`render_v10.py`).
 
-### 3. Data Sourcing Architecture
-* **Currents (CMEMS 1.5km 2D)**: Extract $v_{\text{along}}$ and $u_{\text{cross}}$ vectors for coordinates from the operational `cscm.current.cmems` datastore (supporting 7-day live forecasts and 2-year historical analysis).
-* **Water Levels (Meetnet Vlaamse Banken / MDK)**:
-  * Open REST API (`https://api.meetnetvlaamsebanken.be/V2-api-docs/`)
-  * Stations: Oostende (`OST`), Nieuwpoort (`NP`), Zeebrugge (`ZB`).
-  * Parameters: Astronomical prediction (`WATHTE_ASTRO`), forecast with meteorological surge (`WATHTE_VOORSP`), real-time gauge (`WATHTE`), and tidal extremes (`GETIJ_HW` / `GETIJ_LW`).
-* **Lifeguard Post Registry (IKWV)**:
-  * Seeded registry file: [`src/cscm/resources/be_lifeguard_posts.yaml`](file:///home/marc.portier@vliz.be/projects/mpo/cscm/src/cscm/resources/be_lifeguard_posts.yaml).
-  * Contains coastal orientation (~65°-245°), station mapping, and exact coordinates for Bredene (Post 1 Turkeyen, Post 2 Duingat, Post 3 Astrid, Post 4 Droogen Opganck, Post 6 Hippodroom).
-  * Expansion path: Query NGI GeoHub Kustreferentiepunten and VLIZ Kustportaal WFS services to complete the remaining 9 coastal municipalities.
+---
 
-### 4. Backlog Tasks (When Resuming)
-1. **MDK Water Level Connector (`cscm.tide.mdk`)**:
-   * Implement a lightweight client querying MDK API v2 for 7-day water level curves and extremes per station.
-2. **CMEMS Coastal Extractor**:
-   * Build helper to sample the nearest wet grid point or coastal projection for any post in `be_lifeguard_posts.yaml`.
-3. **Automated Static Publishing Pipeline**:
-   * Python pipeline generating daily SVGs (10 municipalities × 5 posts × 7 forecast days = ~350 SVGs in ~2s).
-   * Hugo static site repository deployment on GitHub Pages.
-4. **Physical Lifeguard Board Edition**:
-   * Export an analog A1/A2 whiteboard template design for daily chalk/marker usage by beach lifeguards.
+## 🏊 Feature Track: Kustzwem-Trajectprofielen (Lagrangiaans Ruimte-Tijd Routeprofiel)
+
+This initiative translates the fixed-point strandpost profile into a **space-time route profile** for open water swimmers navigating coastal trajectories (e.g. Bredene ➔ De Haan, or 16km / 20km / 67km coast-swim events by *Ommeweg vzw*).
+
+### 1. Conceptual Foundation (Marc Portier Sketchbook v0 ➔ Prototype v1)
+* **Lagrangian Perspective**: Follows the swimmer through space ($s$) and time ($t$), rather than monitoring a single static beach coordinate.
+* **Space-Time Spine Alignment (Vertical Shift)**:
+  * Each checkpoint spine (spaced along the route) is vertically shifted by the elapsed swim time of a reference swimmer ($v_0 \approx 1.0\text{ m/s}$).
+  * **Result**: The reference swimmer's journey becomes a straight horizontal line across the canvas! Looking horizontally from left to right reveals the continuous tidal current and phase experienced along the swim.
+* **Prototype Location**:
+  * Sketch: [ontwerp-kustzwem-profiel-v0.png](./experiments/graphics/kust-zwem-profiel/hist/ontwerp-kustzwem-profiel-v0.png)
+  * Digital Vector Prototype: [ontwerp-kustzwem-profiel-preview.png](./experiments/graphics/kust-zwem-profiel/latest/ontwerp-kustzwem-profiel-preview.png)
+  * Vector Source: [ontwerp-kustzwem-profiel.svg](./experiments/graphics/kust-zwem-profiel/latest/ontwerp-kustzwem-profiel.svg)
+  * Changelog: [versions.md](./experiments/graphics/kust-zwem-profiel/hist/versions.md)
+
+![Marc Portier Sketchbook v0](./experiments/graphics/kust-zwem-profiel/hist/ontwerp-kustzwem-profiel-v0.png)
+
+![Kustzwem Trajectprofiel v1](./experiments/graphics/kust-zwem-profiel/latest/ontwerp-kustzwem-profiel-preview.png)
+
+### 2. Design Vision for Trajectory Profile v2
+* **Decoupled Distance Grid**:
+  * Decouple distance marks from lifeguard post numbers (using clean ticks `0k0`, `0k75`, `1k5`, `2k25`, etc., rotated 90° along the axis).
+* **Coastal Landmark Banner**:
+  * An overarching top strip mapping actual physical landmarks (piers, harbour channels of Nieuwpoort, Oostende, Blankenberge, Zeebrugge) with subtle coastal geometry.
+* **Isotachen-Mesh (Velocity Contours)**:
+  * Replace static normative pace labels ("snel/recreatief") with a continuous velocity contour mesh (isotachen in steps of $0.1\text{ m/s}$ from $0.5$ to $1.5\text{ m/s}$, rendered as a smooth rainbow/spectral field).
+  * Centerline parameterized to the individual swimmer's target pace ($v_{\text{target}} \pm 0.5\text{ m/s}$).
+* **Isochronen (Time Contours)**:
+  * Thin 15-minute time curves traversing the shifted spines with timestamps (`HH:MM`), illustrating the space-time transform and showing arrival times at checkpoints without requiring bulky bottom tables.
+* **Out-and-Back Support**:
+  * Ability to mirror/fold the return leg horizontally on the right for return swims (e.g. Bredene ➔ Vosseslag ➔ Bredene).
+* **Scalability**:
+  * Adaptable canvas layout to handle short training routes (3–5 km) up to long-distance events (16 km, 20 km, or full 67 km Belgian coast swim).
+
+---
+
+## 📋 Consolidated Active Backlog
+
+| ID | Priority | Initiative | Description | Status |
+| :--- | :---: | :--- | :--- | :---: |
+| **BL-1** | 🔴 **High (Next)** | **HIC / Waterinfo KiWIS Connector (`today+1`)** | Implement client via `pywaterinfo` for HIC Waterinfo API to fetch forecasted water levels (astronomical + surge) for coastal stations (Oostende, Zeebrugge, Nieuwpoort). | **To Do** |
+| **BL-2** | 🔴 **High** | **Strandpost-Profiel `today+1` Live Forecast** | Generate daily predictive profile for Bredene Post 4 using HIC water level forecasts and CMEMS 7-day hydrodynamic forecasts. | **To Do** |
+| **BL-3** | 🟡 **Medium** | **Kust-Interpolatiemodel (Alle 82 Posten)** | Extend the validated $+7$ min Bredene shift to a full 1D alongshore interpolation model covering all 82 IKWV posts from `be_lifeguard_posts.yaml`. | **To Do** |
+| **BL-4** | 🟡 **Medium** | **Kustzwem-Trajectprofiel v2** | Implement Isotachen-mesh ($0.1\text{ m/s}$ contours), 15-min Isochronen, landmark banner, and scalable distances in `docs/experiments/graphics/kust-zwem-profiel/`. | **Parked** |
+| **BL-5** | 🟢 **Normal** | **Maancyclus Dynamiek & Variatie** | Analyze spring-neap tidal current envelope over a full 29.5-day synodic lunar cycle across all coastal stations. | **To Do** |
+| **BL-6** | 🟢 **Normal** | **Standalone Harmonisch Getijdenmodel** | Standalone Python module computing astronomical water levels using standard tidal constituents ($M_2, S_2, N_2, K_1, O_1$) as an offline fallback. | **To Do** |
+| **BL-7** | 🟢 **Normal** | **Automated Static Publishing Pipeline** | Batch generation pipeline rendering SVGs/PNGs for all posts, deployed to a lightweight Hugo/GitHub Pages site. | **To Do** |
+| **BL-8** | ⚪ **Low** | **Fysiek Redders-Whiteboard Template** | High-contrast A1/A2 analog whiteboard template for daily chalk/marker logging at beach rescue stations. | **To Do** |

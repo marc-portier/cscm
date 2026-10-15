@@ -170,7 +170,7 @@ This initiative translates abstract model hydrodynamics into an intuitive, high-
   * Generator Scripts: [`fetch_data.py`](./experiments/graphics/strandpost-profiel/latest/fetch_data.py) & [`render.py`](./experiments/graphics/strandpost-profiel/latest/render.py)
   * Full Changelog: [versions.md](./experiments/graphics/strandpost-profiel/hist/versions.md)
 
-![Strandpost Profiel v10](./experiments/graphics/strandpost-profiel/latest/ontwerp-stroming-profiel-preview.png)
+![Strandpost Profiel v10](./experiments/graphics/strandpost-profiel/hist/ontwerp-stroming-profiel-v10.png)
 
 ### 2. Core Visual & Infographic Architecture
 * **Beach Perspective**: Looking seaward (NNW); Left = SW / France (Ebb), Right = NE / Netherlands (Flood).
@@ -198,7 +198,7 @@ This initiative translates the fixed-point strandpost profile into a **space-tim
 
 ![Marc Portier Sketchbook v0](./experiments/graphics/kust-zwem-profiel/hist/ontwerp-kustzwem-profiel-v0.png)
 
-![Kustzwem Trajectprofiel v1](./experiments/graphics/kust-zwem-profiel/latest/ontwerp-kustzwem-profiel-preview.png)
+![Kustzwem Trajectprofiel v1](./experiments/graphics/kust-zwem-profiel/hist/ontwerp-kustzwem-profiel-v1.png)
 
 ### 2. Design Vision for Trajectory Profile v2
 * **Decoupled Distance Grid**:

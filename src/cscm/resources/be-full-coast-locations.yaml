@@ -1,0 +1,1746 @@
+metadata:
+  country_code: BE
+  region: Flemish North Sea Coast
+  timezone: Europe/Brussels
+  seaward_bearing_deg: 335.0
+  tidal_cycle_hours: 12.42
+  total_chainage_km: 66.0
+  chainage_step_m: 750
+water_level_stations:
+  oostende:
+    station_code: OST
+    name: Oostende Haven / Staketsel
+    chainage_km: 31.5
+    lat: 51.2333
+    lon: 2.9167
+    api_endpoint: https://api.meetnetvlaamsebanken.be/V2-api/rest
+    params:
+      astronomical: WATHTE_ASTRO
+      forecast: WATHTE_VOORSP
+      observed: WATHTE
+  nieuwpoort:
+    station_code: NP
+    name: Nieuwpoort Haven
+    chainage_km: 15.0
+    lat: 51.15
+    lon: 2.7167
+  zeebrugge:
+    station_code: ZB
+    name: Zeebrugge Haven
+    chainage_km: 53.25
+    lat: 51.35
+    lon: 3.2
+landmarks:
+- name: Grens Frankrijk (Westhoek)
+  type: grens
+  chainage_km: 0.0
+  lat: 51.092
+  lon: 2.544
+  description: Grenspaal 369 / De Westhoek duinenreservaat (Start Belgische kust 0.0
+    km)
+- name: De Panne Leopold I Esplanade
+  type: monument
+  chainage_km: 3.0
+  lat: 51.0987
+  lon: 2.5811
+  description: Monument Leopold I en brede Esplanade
+- name: Koksijde Hoge Blekker
+  type: natuur
+  chainage_km: 6.75
+  lat: 51.1188
+  lon: 2.6265
+  description: Hoogste kustduin van Vlaanderen (33m TAW) / Zeedijk Koksijde
+- name: Havengeul Nieuwpoort (IJzermonding)
+  type: haven_transitie
+  chainage_km: 15.0
+  lat: 51.157
+  lon: 2.7258
+  description: Havenmond IJzermonding en staketsels (oversteekverbod / zwemtransitie)
+- name: Lombardsijde Strand
+  type: strand
+  chainage_km: 17.25
+  lat: 51.171
+  lon: 2.756
+  description: Militair domein en overgangszone IJzermonding
+- name: Westende Rotonde
+  type: architectuur
+  chainage_km: 19.5
+  lat: 51.175
+  lon: 2.7827
+  description: Grand Hotel Belle Vue (De Rotonde) aan het einde van de Zeedijk
+- name: Middelkerke Silt (Casino)
+  type: architectuur
+  chainage_km: 21.75
+  lat: 51.188
+  lon: 2.8125
+  description: Iconisch nieuw casinogebouw Silt en evenementenplein
+- name: Raversijde Atlantikwall
+  type: erfgoed
+  chainage_km: 26.25
+  lat: 51.206
+  lon: 2.865
+  description: Provinciedomein Raversijde / historische bunkerlinie in de open duinen
+- name: Oostende Thermae Palace & Gaanderijen
+  type: architectuur
+  chainage_km: 30.0
+  lat: 51.228
+  lon: 2.9033
+  description: Koninklijke Venetiaanse Gaanderijen en Thermae Palace
+- name: Oostende Kursaal
+  type: architectuur
+  chainage_km: 30.0
+  lat: 51.2321
+  lon: 2.9101
+  description: Kursaal Oostende uitspringend op de Zeedijk
+- name: Havengeul Oostende (Havenmond & Lange Nelle)
+  type: haven_transitie
+  chainage_km: 31.5
+  lat: 51.239
+  lon: 2.9255
+  description: Havenmond Oostende, staketsels en Lange Nelle vuurtoren (oversteekverbod
+    / zwemtransitie)
+- name: Bredene Duinenfront (Twins Club)
+  type: sport_baken
+  chainage_km: 33.75
+  lat: 51.248
+  lon: 2.9538
+  description: Twins Club aan de voet van het ononderbroken duinenfront
+- name: De Haan Concessie (Belle Époque)
+  type: architectuur
+  chainage_km: 40.5
+  lat: 51.279
+  lon: 3.0305
+  description: Historisch villadorp zonder hoogbouw / Leopoldplein zeedijk
+- name: Wenduine De Spioenkop
+  type: uitkijkpunt
+  chainage_km: 45.0
+  lat: 51.303
+  lon: 3.0805
+  description: Wit paviljoentje op de hoge duin (31m TAW) / primair zeebaken
+- name: Havengeul Blankenberge (Staketsels)
+  type: haven_transitie
+  chainage_km: 47.25
+  lat: 51.314
+  lon: 3.1169
+  description: Toegang havengeul en jachthaven Blankenberge
+- name: Blankenberge Pier
+  type: monument
+  chainage_km: 49.5
+  lat: 51.3204
+  lon: 3.1414
+  description: Monumentale art-deco wandelpier (350m in zee gestrekt)
+- name: Haven Zeebrugge (Buitenhaven & Vaargeul)
+  type: haven_transitie
+  chainage_km: 53.25
+  lat: 51.345
+  lon: 3.195
+  description: Buitenhaven Zeebrugge en scheepvaartgeul (oversteekverbod / verplichte
+    boottransitie)
+- name: Knokke Lichttorenplein
+  type: architectuur
+  chainage_km: 60.75
+  lat: 51.3538
+  lon: 3.289
+  description: Centrum Knokke / Historisch Lichttorenplein
+- name: Het Zwin / Grens Nederland
+  type: grens
+  chainage_km: 66.0
+  lat: 51.365
+  lon: 3.36
+  description: Zwingeul en getijdenreservaat / Grens België-Nederland (Einde 66.5
+    km)
+chainage_750m:
+- marker: 0k0
+  chainage_km: 0.0
+  lat: 51.092
+  lon: 2.544
+  nearest_cmems_cell: cell_68_28
+  cmems_dist_m: 1796.2
+- marker: 0k750
+  chainage_km: 0.75
+  lat: 51.094
+  lon: 2.55426
+  nearest_cmems_cell: cell_68_28
+  cmems_dist_m: 1687.0
+- marker: 1k500
+  chainage_km: 1.5
+  lat: 51.096
+  lon: 2.56451
+  nearest_cmems_cell: cell_68_28
+  cmems_dist_m: 1895.4
+- marker: 2k250
+  chainage_km: 2.25
+  lat: 51.098
+  lon: 2.57477
+  nearest_cmems_cell: cell_68_28
+  cmems_dist_m: 2338.1
+- marker: 3k0
+  chainage_km: 3.0
+  lat: 51.10001
+  lon: 2.58502
+  nearest_cmems_cell: cell_69_29
+  cmems_dist_m: 2491.5
+- marker: 3k750
+  chainage_km: 3.75
+  lat: 51.10328
+  lon: 2.59441
+  nearest_cmems_cell: cell_69_29
+  cmems_dist_m: 2422.1
+- marker: 4k500
+  chainage_km: 4.5
+  lat: 51.10656
+  lon: 2.6038
+  nearest_cmems_cell: cell_69_29
+  cmems_dist_m: 2579.3
+- marker: 5k250
+  chainage_km: 5.25
+  lat: 51.10984
+  lon: 2.6132
+  nearest_cmems_cell: cell_70_30
+  cmems_dist_m: 2860.7
+- marker: 6k0
+  chainage_km: 6.0
+  lat: 51.11311
+  lon: 2.62259
+  nearest_cmems_cell: cell_70_30
+  cmems_dist_m: 2710.6
+- marker: 6k750
+  chainage_km: 6.75
+  lat: 51.11656
+  lon: 2.63181
+  nearest_cmems_cell: cell_70_30
+  cmems_dist_m: 2741.6
+- marker: 7k500
+  chainage_km: 7.5
+  lat: 51.12024
+  lon: 2.64081
+  nearest_cmems_cell: cell_70_30
+  cmems_dist_m: 2940.7
+- marker: 8k250
+  chainage_km: 8.25
+  lat: 51.12393
+  lon: 2.64982
+  nearest_cmems_cell: cell_71_31
+  cmems_dist_m: 2908.5
+- marker: 9k0
+  chainage_km: 9.0
+  lat: 51.12696
+  lon: 2.65941
+  nearest_cmems_cell: cell_71_31
+  cmems_dist_m: 2902.6
+- marker: 9k750
+  chainage_km: 9.75
+  lat: 51.12998
+  lon: 2.66902
+  nearest_cmems_cell: cell_71_31
+  cmems_dist_m: 3086.6
+- marker: 10k500
+  chainage_km: 10.5
+  lat: 51.133
+  lon: 2.67863
+  nearest_cmems_cell: cell_72_32
+  cmems_dist_m: 3352.0
+- marker: 11k250
+  chainage_km: 11.25
+  lat: 51.13653
+  lon: 2.6877
+  nearest_cmems_cell: cell_72_32
+  cmems_dist_m: 3209.4
+- marker: 12k0
+  chainage_km: 12.0
+  lat: 51.14104
+  lon: 2.69568
+  nearest_cmems_cell: cell_72_32
+  cmems_dist_m: 3103.5
+- marker: 12k750
+  chainage_km: 12.75
+  lat: 51.14556
+  lon: 2.70366
+  nearest_cmems_cell: cell_72_32
+  cmems_dist_m: 3176.4
+- marker: 13k500
+  chainage_km: 13.5
+  lat: 51.15008
+  lon: 2.71165
+  nearest_cmems_cell: cell_73_33
+  cmems_dist_m: 3027.8
+- marker: 14k250
+  chainage_km: 14.25
+  lat: 51.15459
+  lon: 2.71963
+  nearest_cmems_cell: cell_74_33
+  cmems_dist_m: 2406.0
+- marker: 15k0
+  chainage_km: 15.0
+  lat: 51.15769
+  lon: 2.72889
+  nearest_cmems_cell: cell_74_33
+  cmems_dist_m: 2004.7
+- marker: 15k750
+  chainage_km: 15.75
+  lat: 51.16185
+  lon: 2.73736
+  nearest_cmems_cell: cell_74_33
+  cmems_dist_m: 1692.2
+- marker: 16k500
+  chainage_km: 16.5
+  lat: 51.16601
+  lon: 2.74583
+  nearest_cmems_cell: cell_74_33
+  cmems_dist_m: 1683.8
+- marker: 17k250
+  chainage_km: 17.25
+  lat: 51.17016
+  lon: 2.75429
+  nearest_cmems_cell: cell_74_33
+  cmems_dist_m: 1983.4
+- marker: 18k0
+  chainage_km: 18.0
+  lat: 51.17436
+  lon: 2.76272
+  nearest_cmems_cell: cell_75_34
+  cmems_dist_m: 1689.5
+- marker: 18k750
+  chainage_km: 18.75
+  lat: 51.17856
+  lon: 2.77113
+  nearest_cmems_cell: cell_75_34
+  cmems_dist_m: 1514.3
+- marker: 19k500
+  chainage_km: 19.5
+  lat: 51.1824
+  lon: 2.77987
+  nearest_cmems_cell: cell_75_34
+  cmems_dist_m: 1729.3
+- marker: 20k250
+  chainage_km: 20.25
+  lat: 51.18456
+  lon: 2.79006
+  nearest_cmems_cell: cell_76_35
+  cmems_dist_m: 2024.8
+- marker: 21k0
+  chainage_km: 21.0
+  lat: 51.18673
+  lon: 2.80025
+  nearest_cmems_cell: cell_76_35
+  cmems_dist_m: 1976.4
+- marker: 21k750
+  chainage_km: 21.75
+  lat: 51.18889
+  lon: 2.81044
+  nearest_cmems_cell: cell_77_35
+  cmems_dist_m: 1629.0
+- marker: 22k500
+  chainage_km: 22.5
+  lat: 51.19131
+  lon: 2.82046
+  nearest_cmems_cell: cell_77_35
+  cmems_dist_m: 1277.7
+- marker: 23k250
+  chainage_km: 23.25
+  lat: 51.19445
+  lon: 2.82998
+  nearest_cmems_cell: cell_77_35
+  cmems_dist_m: 1233.3
+- marker: 24k0
+  chainage_km: 24.0
+  lat: 51.19759
+  lon: 2.83951
+  nearest_cmems_cell: cell_77_35
+  cmems_dist_m: 1592.8
+- marker: 24k750
+  chainage_km: 24.75
+  lat: 51.20073
+  lon: 2.84904
+  nearest_cmems_cell: cell_77_35
+  cmems_dist_m: 2163.3
+- marker: 25k500
+  chainage_km: 25.5
+  lat: 51.20388
+  lon: 2.85856
+  nearest_cmems_cell: cell_77_35
+  cmems_dist_m: 2819.5
+- marker: 26k250
+  chainage_km: 26.25
+  lat: 51.20718
+  lon: 2.86794
+  nearest_cmems_cell: cell_78_37
+  cmems_dist_m: 2854.1
+- marker: 27k0
+  chainage_km: 27.0
+  lat: 51.21081
+  lon: 2.87701
+  nearest_cmems_cell: cell_78_37
+  cmems_dist_m: 2897.9
+- marker: 27k750
+  chainage_km: 27.75
+  lat: 51.21444
+  lon: 2.88609
+  nearest_cmems_cell: cell_78_37
+  cmems_dist_m: 3126.7
+- marker: 28k500
+  chainage_km: 28.5
+  lat: 51.21809
+  lon: 2.89513
+  nearest_cmems_cell: cell_79_38
+  cmems_dist_m: 3022.4
+- marker: 29k250
+  chainage_km: 29.25
+  lat: 51.22316
+  lon: 2.90223
+  nearest_cmems_cell: cell_79_38
+  cmems_dist_m: 2768.6
+- marker: 30k0
+  chainage_km: 30.0
+  lat: 51.22824
+  lon: 2.90933
+  nearest_cmems_cell: cell_79_38
+  cmems_dist_m: 2706.0
+- marker: 30k750
+  chainage_km: 30.75
+  lat: 51.23331
+  lon: 2.91643
+  nearest_cmems_cell: cell_80_39
+  cmems_dist_m: 2660.4
+- marker: 31k500
+  chainage_km: 31.5
+  lat: 51.23831
+  lon: 2.92363
+  nearest_cmems_cell: cell_80_39
+  cmems_dist_m: 2289.8
+- marker: 32k250
+  chainage_km: 32.25
+  lat: 51.24166
+  lon: 2.93284
+  nearest_cmems_cell: cell_80_39
+  cmems_dist_m: 2358.8
+- marker: 33k0
+  chainage_km: 33.0
+  lat: 51.24408
+  lon: 2.9429
+  nearest_cmems_cell: cell_80_39
+  cmems_dist_m: 2746.7
+- marker: 33k750
+  chainage_km: 33.75
+  lat: 51.24649
+  lon: 2.95296
+  nearest_cmems_cell: cell_81_40
+  cmems_dist_m: 2811.0
+- marker: 34k500
+  chainage_km: 34.5
+  lat: 51.24989
+  lon: 2.96226
+  nearest_cmems_cell: cell_81_40
+  cmems_dist_m: 2771.9
+- marker: 35k250
+  chainage_km: 35.25
+  lat: 51.2533
+  lon: 2.97156
+  nearest_cmems_cell: cell_81_40
+  cmems_dist_m: 2930.8
+- marker: 36k0
+  chainage_km: 36.0
+  lat: 51.25721
+  lon: 2.98033
+  nearest_cmems_cell: cell_82_41
+  cmems_dist_m: 3049.0
+- marker: 36k750
+  chainage_km: 36.75
+  lat: 51.26129
+  lon: 2.9889
+  nearest_cmems_cell: cell_82_41
+  cmems_dist_m: 2838.4
+- marker: 37k500
+  chainage_km: 37.5
+  lat: 51.26538
+  lon: 2.99748
+  nearest_cmems_cell: cell_82_41
+  cmems_dist_m: 2818.3
+- marker: 38k250
+  chainage_km: 38.25
+  lat: 51.26954
+  lon: 3.00596
+  nearest_cmems_cell: cell_82_41
+  cmems_dist_m: 2982.2
+- marker: 39k0
+  chainage_km: 39.0
+  lat: 51.27384
+  lon: 3.01427
+  nearest_cmems_cell: cell_83_42
+  cmems_dist_m: 2794.0
+- marker: 39k750
+  chainage_km: 39.75
+  lat: 51.27815
+  lon: 3.02257
+  nearest_cmems_cell: cell_84_42
+  cmems_dist_m: 2199.2
+- marker: 40k500
+  chainage_km: 40.5
+  lat: 51.28233
+  lon: 3.03099
+  nearest_cmems_cell: cell_84_42
+  cmems_dist_m: 1667.0
+- marker: 41k250
+  chainage_km: 41.25
+  lat: 51.2855
+  lon: 3.04051
+  nearest_cmems_cell: cell_84_42
+  cmems_dist_m: 1493.3
+- marker: 42k0
+  chainage_km: 42.0
+  lat: 51.28868
+  lon: 3.05003
+  nearest_cmems_cell: cell_84_42
+  cmems_dist_m: 1675.8
+- marker: 42k750
+  chainage_km: 42.75
+  lat: 51.29185
+  lon: 3.05955
+  nearest_cmems_cell: cell_85_43
+  cmems_dist_m: 2112.0
+- marker: 43k500
+  chainage_km: 43.5
+  lat: 51.29502
+  lon: 3.06907
+  nearest_cmems_cell: cell_85_43
+  cmems_dist_m: 1853.5
+- marker: 44k250
+  chainage_km: 44.25
+  lat: 51.29825
+  lon: 3.07852
+  nearest_cmems_cell: cell_85_43
+  cmems_dist_m: 1873.1
+- marker: 45k0
+  chainage_km: 45.0
+  lat: 51.30239
+  lon: 3.08705
+  nearest_cmems_cell: cell_85_43
+  cmems_dist_m: 2065.2
+- marker: 45k750
+  chainage_km: 45.75
+  lat: 51.30652
+  lon: 3.09557
+  nearest_cmems_cell: cell_86_44
+  cmems_dist_m: 2008.9
+- marker: 46k500
+  chainage_km: 46.5
+  lat: 51.31065
+  lon: 3.1041
+  nearest_cmems_cell: cell_86_44
+  cmems_dist_m: 1777.6
+- marker: 47k250
+  chainage_km: 47.25
+  lat: 51.31473
+  lon: 3.1127
+  nearest_cmems_cell: cell_86_44
+  cmems_dist_m: 1854.9
+- marker: 48k0
+  chainage_km: 48.0
+  lat: 51.31854
+  lon: 3.1216
+  nearest_cmems_cell: cell_87_45
+  cmems_dist_m: 2148.5
+- marker: 48k750
+  chainage_km: 48.75
+  lat: 51.32225
+  lon: 3.13061
+  nearest_cmems_cell: cell_87_45
+  cmems_dist_m: 1855.1
+- marker: 49k500
+  chainage_km: 49.5
+  lat: 51.32588
+  lon: 3.13971
+  nearest_cmems_cell: cell_87_45
+  cmems_dist_m: 1851.3
+- marker: 50k250
+  chainage_km: 50.25
+  lat: 51.32952
+  lon: 3.1488
+  nearest_cmems_cell: cell_87_45
+  cmems_dist_m: 2130.8
+- marker: 51k0
+  chainage_km: 51.0
+  lat: 51.33316
+  lon: 3.15789
+  nearest_cmems_cell: cell_87_45
+  cmems_dist_m: 2603.8
+- marker: 51k750
+  chainage_km: 51.75
+  lat: 51.33679
+  lon: 3.16698
+  nearest_cmems_cell: cell_87_45
+  cmems_dist_m: 3185.3
+- marker: 52k500
+  chainage_km: 52.5
+  lat: 51.33976
+  lon: 3.17621
+  nearest_cmems_cell: cell_89_47
+  cmems_dist_m: 2821.5
+- marker: 53k250
+  chainage_km: 53.25
+  lat: 51.3377
+  lon: 3.18649
+  nearest_cmems_cell: cell_89_47
+  cmems_dist_m: 3040.8
+- marker: 54k0
+  chainage_km: 54.0
+  lat: 51.33564
+  lon: 3.19678
+  nearest_cmems_cell: cell_89_47
+  cmems_dist_m: 3414.6
+- marker: 54k750
+  chainage_km: 54.75
+  lat: 51.33451
+  lon: 3.207
+  nearest_cmems_cell: cell_90_47
+  cmems_dist_m: 3396.8
+- marker: 55k500
+  chainage_km: 55.5
+  lat: 51.33708
+  lon: 3.21698
+  nearest_cmems_cell: cell_90_47
+  cmems_dist_m: 3110.8
+- marker: 56k250
+  chainage_km: 56.25
+  lat: 51.33965
+  lon: 3.22697
+  nearest_cmems_cell: cell_90_47
+  cmems_dist_m: 2990.4
+- marker: 57k0
+  chainage_km: 57.0
+  lat: 51.34222
+  lon: 3.23695
+  nearest_cmems_cell: cell_91_47
+  cmems_dist_m: 2549.2
+- marker: 57k750
+  chainage_km: 57.75
+  lat: 51.34514
+  lon: 3.24667
+  nearest_cmems_cell: cell_91_47
+  cmems_dist_m: 2214.6
+- marker: 58k500
+  chainage_km: 58.5
+  lat: 51.34823
+  lon: 3.25627
+  nearest_cmems_cell: cell_91_47
+  cmems_dist_m: 2086.8
+- marker: 59k250
+  chainage_km: 59.25
+  lat: 51.35132
+  lon: 3.26587
+  nearest_cmems_cell: cell_92_47
+  cmems_dist_m: 1581.2
+- marker: 60k0
+  chainage_km: 60.0
+  lat: 51.35395
+  lon: 3.27581
+  nearest_cmems_cell: cell_92_47
+  cmems_dist_m: 1233.0
+- marker: 60k750
+  chainage_km: 60.75
+  lat: 51.35646
+  lon: 3.28583
+  nearest_cmems_cell: cell_92_47
+  cmems_dist_m: 1305.6
+- marker: 61k500
+  chainage_km: 61.5
+  lat: 51.35877
+  lon: 3.29597
+  nearest_cmems_cell: cell_93_47
+  cmems_dist_m: 836.7
+- marker: 62k250
+  chainage_km: 62.25
+  lat: 51.36078
+  lon: 3.30629
+  nearest_cmems_cell: cell_93_47
+  cmems_dist_m: 507.7
+- marker: 63k0
+  chainage_km: 63.0
+  lat: 51.36278
+  lon: 3.3166
+  nearest_cmems_cell: cell_93_47
+  cmems_dist_m: 971.0
+- marker: 63k750
+  chainage_km: 63.75
+  lat: 51.36479
+  lon: 3.32691
+  nearest_cmems_cell: cell_94_48
+  cmems_dist_m: 1577.4
+- marker: 64k500
+  chainage_km: 64.5
+  lat: 51.36628
+  lon: 3.33745
+  nearest_cmems_cell: cell_94_48
+  cmems_dist_m: 1377.4
+- marker: 65k250
+  chainage_km: 65.25
+  lat: 51.3677
+  lon: 3.348
+  nearest_cmems_cell: cell_94_48
+  cmems_dist_m: 1566.1
+- marker: 66k0
+  chainage_km: 66.0
+  lat: 51.36913
+  lon: 3.35856
+  nearest_cmems_cell: cell_94_48
+  cmems_dist_m: 2033.6
+municipalities:
+  de_panne:
+    name: De Panne
+    water_level_station: nieuwpoort
+    seaward_bearing_deg: 340.0
+    posts:
+      post_r1:
+        code: R1
+        name: De Panne - Post R1 (Leopold HP)
+        description: Zeedijk / Leopold I Esplanade (Zeilwagenclub - Bortierplein)
+        lat: 51.1001
+        lon: 2.5781
+        guarded_zone_m: 500
+        chainage_km: 2.25
+        nearest_marker: 2k250
+        nearest_cmems_cell: cell_68_28
+        is_hp: true
+        season: 01/07-31/08
+      post_r2:
+        code: R2
+        name: De Panne - Post R2 (West)
+        description: Zeedijk (Bortierplein - Halmenstraat)
+        lat: 51.1015
+        lon: 2.5815
+        guarded_zone_m: 400
+        chainage_km: 3.0
+        nearest_marker: 3k0
+        nearest_cmems_cell: cell_69_29
+        is_hp: false
+        season: 01/07-31/08
+      post_r3:
+        code: R3
+        name: De Panne - Post R3 (Centrum HP)
+        description: Zeedijk Centrum (Halmenstraat - Walckierstraat)
+        lat: 51.1029
+        lon: 2.5852
+        guarded_zone_m: 300
+        chainage_km: 3.0
+        nearest_marker: 3k0
+        nearest_cmems_cell: cell_69_29
+        is_hp: true
+        season: 11/06-18/09
+      post_r4:
+        code: R4
+        name: De Panne - Post R4 (Oost)
+        description: Zeedijk (Walckierstraat - Canadezenplein)
+        lat: 51.1055
+        lon: 2.5927
+        guarded_zone_m: 500
+        chainage_km: 3.75
+        nearest_marker: 3k750
+        nearest_cmems_cell: cell_69_29
+        is_hp: false
+        season: 01/07-31/08
+      post_r5:
+        code: R5
+        name: De Panne - Post R5 (Camping)
+        description: Zeedijk Oost (Canadezenplein - grens St-Idesbald)
+        lat: 51.1083
+        lon: 2.6004
+        guarded_zone_m: 600
+        chainage_km: 4.5
+        nearest_marker: 4k500
+        nearest_cmems_cell: cell_69_29
+        is_hp: false
+        season: 01/07-31/08
+  koksijde_oostduinkerke:
+    name: Koksijde — Oostduinkerke
+    water_level_station: nieuwpoort
+    seaward_bearing_deg: 338.0
+    posts:
+      post_1:
+        code: '1'
+        name: Sint-Idesbald - Post 1 (Strandlaan HP)
+        description: Zeedijk Sint-Idesbald / Strandlaan
+        lat: 51.1121
+        lon: 2.6111
+        guarded_zone_m: 585
+        chainage_km: 5.25
+        nearest_marker: 5k250
+        nearest_cmems_cell: cell_70_30
+        is_hp: true
+        season: 15/06-15/09
+      post_2:
+        code: '2'
+        name: Koksijde - Post 2 (Ster der Zee HP)
+        description: Zeedijk Koksijde-Bad / Sloepenlaan
+        lat: 51.1151
+        lon: 2.6183
+        guarded_zone_m: 650
+        chainage_km: 6.0
+        nearest_marker: 6k0
+        nearest_cmems_cell: cell_70_30
+        is_hp: true
+        season: 01/07-31/08
+      post_3:
+        code: '3'
+        name: Koksijde - Post 3 (Hoge Dijk)
+        description: Zeedijk Koksijde-Bad / Zavelplein
+        lat: 51.1188
+        lon: 2.6265
+        guarded_zone_m: 665
+        chainage_km: 6.75
+        nearest_marker: 6k750
+        nearest_cmems_cell: cell_70_30
+        is_hp: false
+        season: 01/07-31/08
+      post_4:
+        code: '4'
+        name: Koksijde - Post 4 (Centrum HP)
+        description: Zeedijk Koksijde-Bad / Terlinckplein
+        lat: 51.1215
+        lon: 2.6331
+        guarded_zone_m: 440
+        chainage_km: 7.5
+        nearest_marker: 7k500
+        nearest_cmems_cell: cell_70_30
+        is_hp: true
+        season: 15/06-15/09
+      post_5:
+        code: '5'
+        name: Koksijde - Post 5 (Zouaven HP)
+        description: Zeedijk Koksijde-Bad / Joststraat
+        lat: 51.1235
+        lon: 2.6381
+        guarded_zone_m: 500
+        chainage_km: 7.5
+        nearest_marker: 7k500
+        nearest_cmems_cell: cell_70_30
+        is_hp: true
+        season: 01/07-31/08
+      post_6:
+        code: '6'
+        name: Oostduinkerke - Post 6 (Sint-André HP)
+        description: Zeedijk Oostduinkerke / G. Scottlaan
+        lat: 51.13
+        lon: 2.6559
+        guarded_zone_m: 300
+        chainage_km: 9.0
+        nearest_marker: 9k0
+        nearest_cmems_cell: cell_71_31
+        is_hp: true
+        season: 01/07-31/08
+      post_7:
+        code: '7'
+        name: Oostduinkerke - Post 7 (Centrum HP)
+        description: Zeedijk Oostduinkerke-Bad / Astridplein
+        lat: 51.1338
+        lon: 2.6692
+        guarded_zone_m: 550
+        chainage_km: 9.75
+        nearest_marker: 9k750
+        nearest_cmems_cell: cell_71_31
+        is_hp: true
+        season: 15/06-15/09
+      post_8:
+        code: '8'
+        name: Oostduinkerke - Post 8 (Twenty One)
+        description: Zeedijk Oostduinkerke / Barkenstraat
+        lat: 51.1352
+        lon: 2.6748
+        guarded_zone_m: 400
+        chainage_km: 10.5
+        nearest_marker: 10k500
+        nearest_cmems_cell: cell_72_32
+        is_hp: false
+        season: 01/07-31/08
+      post_9:
+        code: '9'
+        name: Oostduinkerke - Post 9 (Groenendijk HP)
+        description: Strand Groenendijk / Paardevissersweg
+        lat: 51.1436
+        lon: 2.7008
+        guarded_zone_m: 435
+        chainage_km: 12.75
+        nearest_marker: 12k750
+        nearest_cmems_cell: cell_72_32
+        is_hp: true
+        season: 01/07-31/08
+  nieuwpoort:
+    name: Nieuwpoort
+    water_level_station: nieuwpoort
+    seaward_bearing_deg: 337.0
+    posts:
+      post_5:
+        code: '5'
+        name: Nieuwpoort - Post 5 (Meeuwenlaan)
+        description: Zeedijk Nieuwpoort-Bad / Meeuwenlaan (grens Groenendijk)
+        lat: 51.1448
+        lon: 2.705
+        guarded_zone_m: 250
+        chainage_km: 12.75
+        nearest_marker: 12k750
+        nearest_cmems_cell: cell_72_32
+        is_hp: false
+        season: 01/07-31/08
+      post_4:
+        code: '4'
+        name: Nieuwpoort - Post 4 (Leopoldplein HP)
+        description: Zeedijk Nieuwpoort-Bad / Leopoldplein
+        lat: 51.1465
+        lon: 2.7088
+        guarded_zone_m: 250
+        chainage_km: 12.75
+        nearest_marker: 12k750
+        nearest_cmems_cell: cell_72_32
+        is_hp: true
+        season: 01/07-31/08
+      post_3:
+        code: '3'
+        name: Nieuwpoort - Post 3 (Henegouwenstraat)
+        description: Zeedijk Nieuwpoort-Bad / Henegouwenstraat
+        lat: 51.1478
+        lon: 2.7125
+        guarded_zone_m: 250
+        chainage_km: 13.5
+        nearest_marker: 13k500
+        nearest_cmems_cell: cell_73_33
+        is_hp: false
+        season: 01/07-31/08
+      post_2:
+        code: '2'
+        name: Nieuwpoort - Post 2 (Veurnestraat HP)
+        description: Zeedijk Nieuwpoort-Bad / Veurnestraat
+        lat: 51.1492
+        lon: 2.7165
+        guarded_zone_m: 250
+        chainage_km: 13.5
+        nearest_marker: 13k500
+        nearest_cmems_cell: cell_73_33
+        is_hp: true
+        season: 15/06-15/09
+      post_1:
+        code: '1'
+        name: Nieuwpoort - Post 1 (Hendrikaplein)
+        description: Zeedijk Nieuwpoort-Bad / Hendrikaplein (Rotonde)
+        lat: 51.1506
+        lon: 2.7196
+        guarded_zone_m: 250
+        chainage_km: 14.25
+        nearest_marker: 14k250
+        nearest_cmems_cell: cell_74_33
+        is_hp: false
+        season: 01/07-31/08
+  middelkerke_westende:
+    name: Middelkerke — Westende
+    water_level_station: oostende
+    seaward_bearing_deg: 336.0
+    posts:
+      post_16:
+        code: '16'
+        name: Westende - Post 16 (Cristal Palace)
+        description: Strand Westende / Lombardsijde bad (Cristal Palace)
+        lat: 51.163
+        lon: 2.753
+        guarded_zone_m: 400
+        chainage_km: 16.5
+        nearest_marker: 16k500
+        nearest_cmems_cell: cell_74_33
+        is_hp: false
+        season: 01/07-31/08
+      post_15:
+        code: '15'
+        name: Westende - Post 15 (Sint-Laureins)
+        description: Strand Westende / Sint-Laureins duinen
+        lat: 51.1665
+        lon: 2.7616
+        guarded_zone_m: 400
+        chainage_km: 17.25
+        nearest_marker: 17k250
+        nearest_cmems_cell: cell_74_33
+        is_hp: false
+        season: 01/07-31/08
+      post_13:
+        code: '13'
+        name: Westende - Post 13 (Flandrialaan)
+        description: Zeedijk Westende / Flandrialaan
+        lat: 51.17
+        lon: 2.7702
+        guarded_zone_m: 400
+        chainage_km: 18.0
+        nearest_marker: 18k0
+        nearest_cmems_cell: cell_75_34
+        is_hp: false
+        season: 15/06-15/09
+      post_12:
+        code: '12'
+        name: Westende - Post 12 (Meeuwenlaan HP)
+        description: Zeedijk Westende / Meeuwenlaan
+        lat: 51.1715
+        lon: 2.7743
+        guarded_zone_m: 500
+        chainage_km: 18.75
+        nearest_marker: 18k750
+        nearest_cmems_cell: cell_75_34
+        is_hp: true
+        season: 01/07-31/08
+      post_11:
+        code: '11'
+        name: Westende - Post 11 (Priorijlaan)
+        description: Zeedijk Westende / Priorijlaan
+        lat: 51.1732
+        lon: 2.7786
+        guarded_zone_m: 500
+        chainage_km: 18.75
+        nearest_marker: 18k750
+        nearest_cmems_cell: cell_75_34
+        is_hp: false
+        season: 01/07-31/08
+      post_10:
+        code: '10'
+        name: Westende - Post 10 (Zeeravenlaan HP)
+        description: Zeedijk Westende / Zeeravenlaan (Rotonde)
+        lat: 51.175
+        lon: 2.7827
+        guarded_zone_m: 500
+        chainage_km: 19.5
+        nearest_marker: 19k500
+        nearest_cmems_cell: cell_75_34
+        is_hp: true
+        season: 01/07-31/08
+      post_9:
+        code: '9'
+        name: Middelkerke - Post 9 (Krokodiel)
+        description: Zeedijk Middelkerke / Krokodielduinen
+        lat: 51.1772
+        lon: 2.788
+        guarded_zone_m: 250
+        chainage_km: 19.5
+        nearest_marker: 19k500
+        nearest_cmems_cell: cell_75_34
+        is_hp: false
+        season: 01/07-31/08
+      post_8:
+        code: '8'
+        name: Middelkerke - Post 8 (Kwintestraat)
+        description: Zeedijk Middelkerke / Kwintestraat
+        lat: 51.1794
+        lon: 2.7936
+        guarded_zone_m: 230
+        chainage_km: 20.25
+        nearest_marker: 20k250
+        nearest_cmems_cell: cell_76_35
+        is_hp: false
+        season: 01/07-31/08
+      post_7:
+        code: '7'
+        name: Middelkerke - Post 7 (Houyouxstraat HP)
+        description: Zeedijk Middelkerke / Houyouxstraat
+        lat: 51.1812
+        lon: 2.7975
+        guarded_zone_m: 400
+        chainage_km: 20.25
+        nearest_marker: 20k250
+        nearest_cmems_cell: cell_76_35
+        is_hp: true
+        season: 01/07-31/08
+      post_6:
+        code: '6'
+        name: Middelkerke - Post 6 (Johannastraat)
+        description: Zeedijk Middelkerke / Johannastraat
+        lat: 51.1835
+        lon: 2.8027
+        guarded_zone_m: 400
+        chainage_km: 21.0
+        nearest_marker: 21k0
+        nearest_cmems_cell: cell_76_35
+        is_hp: false
+        season: 01/07-31/08
+      post_5:
+        code: '5'
+        name: Middelkerke - Post 5 (Pouletstraat)
+        description: Zeedijk Middelkerke / Pouletstraat (Silt West)
+        lat: 51.1854
+        lon: 2.807
+        guarded_zone_m: 400
+        chainage_km: 21.75
+        nearest_marker: 21k750
+        nearest_cmems_cell: cell_77_35
+        is_hp: false
+        season: 01/07-31/08
+      post_4:
+        code: '4'
+        name: Middelkerke - Post 4 (Casino West HP)
+        description: Zeedijk Middelkerke / Silt Casino West
+        lat: 51.1873
+        lon: 2.8109
+        guarded_zone_m: 400
+        chainage_km: 21.75
+        nearest_marker: 21k750
+        nearest_cmems_cell: cell_77_35
+        is_hp: true
+        season: 01/07-31/08
+      post_3:
+        code: '3'
+        name: Middelkerke - Post 3 (Casino Oost HP)
+        description: Zeedijk Middelkerke / Silt Casino Oost
+        lat: 51.189
+        lon: 2.8148
+        guarded_zone_m: 400
+        chainage_km: 21.75
+        nearest_marker: 21k750
+        nearest_cmems_cell: cell_77_35
+        is_hp: true
+        season: 15/06-15/09
+      post_2:
+        code: '2'
+        name: Middelkerke - Post 2 (Excelsior)
+        description: Zeedijk Middelkerke / Excelsiorlaan
+        lat: 51.1903
+        lon: 2.8188
+        guarded_zone_m: 400
+        chainage_km: 22.5
+        nearest_marker: 22k500
+        nearest_cmems_cell: cell_77_35
+        is_hp: false
+        season: 01/07-31/08
+      post_1:
+        code: '1'
+        name: Middelkerke - Post 1 (Carlton)
+        description: Zeedijk Middelkerke / Carlton (grens Raversijde)
+        lat: 51.192
+        lon: 2.823
+        guarded_zone_m: 400
+        chainage_km: 22.5
+        nearest_marker: 22k500
+        nearest_cmems_cell: cell_77_35
+        is_hp: false
+        season: 01/07-31/08
+  oostende:
+    name: Oostende
+    water_level_station: oostende
+    seaward_bearing_deg: 335.0
+    posts:
+      post_1:
+        code: '1'
+        name: Oostende - Post 1 (Raversijde)
+        description: Zeedijk Raversijde / Zeedijklaan
+        lat: 51.2077
+        lon: 2.8594
+        guarded_zone_m: 200
+        chainage_km: 25.5
+        nearest_marker: 25k500
+        nearest_cmems_cell: cell_77_35
+        is_hp: false
+        season: 01/07-31/08
+      post_2:
+        code: '2'
+        name: Oostende - Post 2 (Kinkhoorn)
+        description: Zeedijk Mariakerke / Kinkhoorn
+        lat: 51.2142
+        lon: 2.8733
+        guarded_zone_m: 420
+        chainage_km: 27.0
+        nearest_marker: 27k0
+        nearest_cmems_cell: cell_78_37
+        is_hp: false
+        season: 01/07-31/08
+      post_3:
+        code: '3'
+        name: Oostende - Post 3 (Diksmuide HP)
+        description: Zeedijk Mariakerke / Diksmuidestraat
+        lat: 51.2167
+        lon: 2.8777
+        guarded_zone_m: 370
+        chainage_km: 27.75
+        nearest_marker: 27k750
+        nearest_cmems_cell: cell_78_37
+        is_hp: true
+        season: 01/07-31/08
+      post_4:
+        code: '4'
+        name: Oostende - Post 4 (Mariakerke HP)
+        description: Zeedijk Mariakerke / Badhuizen
+        lat: 51.2189
+        lon: 2.8827
+        guarded_zone_m: 480
+        chainage_km: 27.75
+        nearest_marker: 27k750
+        nearest_cmems_cell: cell_78_37
+        is_hp: true
+        season: 15/06-14/09
+      post_5:
+        code: '5'
+        name: Oostende - Post 5 (Northlaan)
+        description: Zeedijk Oostende / Northlaan
+        lat: 51.2214
+        lon: 2.8883
+        guarded_zone_m: 480
+        chainage_km: 28.5
+        nearest_marker: 28k500
+        nearest_cmems_cell: cell_79_38
+        is_hp: false
+        season: 01/07-31/08
+      post_6:
+        code: '6'
+        name: Oostende - Post 6 (Koninginnelaan)
+        description: Albert I-promenade / Koninginnelaan (Venetiaanse Gaanderijen)
+        lat: 51.228
+        lon: 2.9033
+        guarded_zone_m: 420
+        chainage_km: 30.0
+        nearest_marker: 30k0
+        nearest_cmems_cell: cell_79_38
+        is_hp: false
+        season: 15/06-14/09
+      post_7:
+        code: '7'
+        name: Oostende - Post 7 (Kemmelberg HP)
+        description: Albert I-promenade / Kemmelbergstraat (Thermae)
+        lat: 51.2304
+        lon: 2.9074
+        guarded_zone_m: 350
+        chainage_km: 30.0
+        nearest_marker: 30k0
+        nearest_cmems_cell: cell_79_38
+        is_hp: true
+        season: 15/06-14/09
+      post_8:
+        code: '8'
+        name: Oostende - Post 8 (Kursaal)
+        description: Albert I-promenade / Kursaal Oostende
+        lat: 51.2321
+        lon: 2.9101
+        guarded_zone_m: 170
+        chainage_km: 30.0
+        nearest_marker: 30k0
+        nearest_cmems_cell: cell_79_38
+        is_hp: false
+        season: 01/07-31/08
+      post_9:
+        code: '9'
+        name: Oostende - Post 9 (Oosthelling HP)
+        description: Groot Strand / Oosthelling Kursaal
+        lat: 51.2331
+        lon: 2.9118
+        guarded_zone_m: 175
+        chainage_km: 30.75
+        nearest_marker: 30k750
+        nearest_cmems_cell: cell_80_39
+        is_hp: true
+        season: 01/07-31/08
+      post_10:
+        code: '10'
+        name: Oostende - Post 10 (Christinastraat)
+        description: Groot Strand / Christinastraat
+        lat: 51.2341
+        lon: 2.9139
+        guarded_zone_m: 180
+        chainage_km: 30.75
+        nearest_marker: 30k750
+        nearest_cmems_cell: cell_80_39
+        is_hp: false
+        season: 01/07-31/08
+      post_11:
+        code: '11'
+        name: Oostende - Post 11 (Louisastraat HP)
+        description: Klein Strand / Zeeheldenplein - Louisastraat
+        lat: 51.2355
+        lon: 2.919
+        guarded_zone_m: 235
+        chainage_km: 30.75
+        nearest_marker: 30k750
+        nearest_cmems_cell: cell_80_39
+        is_hp: true
+        season: 01/07-31/08
+      post_12:
+        code: '12'
+        name: Oostende - Post 12 (Fort Napoleon)
+        description: Oosteroever / Halve Maan (Fort Napoleon)
+        lat: 51.2395
+        lon: 2.9325
+        guarded_zone_m: 275
+        chainage_km: 32.25
+        nearest_marker: 32k250
+        nearest_cmems_cell: cell_80_39
+        is_hp: false
+        season: 01/07-31/08
+      post_13:
+        code: '13'
+        name: Oostende - Post 13 (Duin & Zee)
+        description: Oosteroever / Duin & Zee (grens Bredene)
+        lat: 51.241
+        lon: 2.9371
+        guarded_zone_m: 350
+        chainage_km: 32.25
+        nearest_marker: 32k250
+        nearest_cmems_cell: cell_80_39
+        is_hp: false
+        season: 01/07-31/08
+  bredene:
+    name: Bredene
+    water_level_station: oostende
+    seaward_bearing_deg: 335.0
+    posts:
+      post_1:
+        code: '1'
+        name: Bredene - Post 1 (Turkeyen)
+        description: Strand Bredene / Twins watersportclub
+        lat: 51.248
+        lon: 2.9538
+        guarded_zone_m: 280
+        chainage_km: 33.75
+        nearest_marker: 33k750
+        nearest_cmems_cell: cell_81_40
+        is_hp: false
+        season: 01/07-31/08
+      post_2:
+        code: '2'
+        name: Bredene - Post 2 (Duingat HP)
+        description: Strand Bredene-Bad / Duingat (Centrum Hoofdpost)
+        lat: 51.2501
+        lon: 2.9602
+        guarded_zone_m: 250
+        chainage_km: 34.5
+        nearest_marker: 34k500
+        nearest_cmems_cell: cell_81_40
+        is_hp: true
+        season: 15/06-15/09
+      post_3:
+        code: '3'
+        name: Bredene - Post 3 (Astrid)
+        description: Strand Bredene / Astridplein - Kapelstraat
+        lat: 51.2524
+        lon: 2.9664
+        guarded_zone_m: 250
+        chainage_km: 35.25
+        nearest_marker: 35k250
+        nearest_cmems_cell: cell_81_40
+        is_hp: false
+        season: 01/07-31/08
+      post_4:
+        code: '4'
+        name: Bredene - Post 4 (Droogen Opganck)
+        description: Strand Bredene / De Droge Opgang - K. Astridlaan
+        lat: 51.2548
+        lon: 2.9724
+        guarded_zone_m: 240
+        chainage_km: 35.25
+        nearest_marker: 35k250
+        nearest_cmems_cell: cell_81_40
+        is_hp: false
+        season: 01/07-31/08
+        is_default_benchmark: true
+      post_6:
+        code: '6'
+        name: Bredene - Post 6 (De Duinpan / Hippo)
+        description: Strand Bredene / De Duinpan (Hippo Beach)
+        lat: 51.2583
+        lon: 2.9807
+        guarded_zone_m: 150
+        chainage_km: 36.0
+        nearest_marker: 36k0
+        nearest_cmems_cell: cell_82_41
+        is_hp: false
+        season: 01/07-31/08
+      post_naaktstrand:
+        code: Naaktstrand
+        name: Bredene - Post Naaktstrand
+        description: Strand Bredene / Naaktstrand (ten oosten van Post 6)
+        lat: 51.26
+        lon: 2.9854
+        guarded_zone_m: 170
+        chainage_km: 36.75
+        nearest_marker: 36k750
+        nearest_cmems_cell: cell_82_41
+        is_hp: false
+        season: 01/07-31/08
+  de_haan_wenduine:
+    name: De Haan — Wenduine
+    water_level_station: oostende
+    seaward_bearing_deg: 334.0
+    posts:
+      post_vosseslag:
+        code: Vosseslag
+        name: De Haan - Post Vosseslag HP
+        description: Strand Vosseslag / Vosseslag strandopgang
+        lat: 51.2669
+        lon: 3.0017
+        guarded_zone_m: 250
+        chainage_km: 37.5
+        nearest_marker: 37k500
+        nearest_cmems_cell: cell_82_41
+        is_hp: true
+        season: 01/07-31/08
+      post_1:
+        code: '1'
+        name: De Haan - Post 1 (West)
+        description: Zeedijk De Haan / Prinses Josephinelaan
+        lat: 51.2745
+        lon: 3.021
+        guarded_zone_m: 250
+        chainage_km: 39.75
+        nearest_marker: 39k750
+        nearest_cmems_cell: cell_84_42
+        is_hp: false
+        season: 01/07-31/08
+      post_2:
+        code: '2'
+        name: De Haan - Post 2 (Centrum West)
+        description: Zeedijk De Haan / Strandplein West
+        lat: 51.277
+        lon: 3.026
+        guarded_zone_m: 250
+        chainage_km: 39.75
+        nearest_marker: 39k750
+        nearest_cmems_cell: cell_84_42
+        is_hp: false
+        season: 01/07-31/08
+      post_3:
+        code: '3'
+        name: De Haan - Post 3 (Centrum HP)
+        description: Zeedijk De Haan / Leopoldplein (Hoofdpost)
+        lat: 51.279
+        lon: 3.0305
+        guarded_zone_m: 250
+        chainage_km: 40.5
+        nearest_marker: 40k500
+        nearest_cmems_cell: cell_84_42
+        is_hp: true
+        season: 11/06-18/09
+      post_4:
+        code: '4'
+        name: De Haan - Post 4 (Centrum Oost)
+        description: Zeedijk De Haan / Strandplein Oost
+        lat: 51.2815
+        lon: 3.0355
+        guarded_zone_m: 250
+        chainage_km: 40.5
+        nearest_marker: 40k500
+        nearest_cmems_cell: cell_84_42
+        is_hp: false
+        season: 01/07-31/08
+      post_5:
+        code: '5'
+        name: De Haan - Post 5 (Oost)
+        description: Zeedijk De Haan / Zwarte Kiezel
+        lat: 51.2845
+        lon: 3.042
+        guarded_zone_m: 200
+        chainage_km: 41.25
+        nearest_marker: 41k250
+        nearest_cmems_cell: cell_84_42
+        is_hp: false
+        season: 01/07-31/08
+      post_wenduine_west:
+        code: Wenduine-West
+        name: Wenduine - Post West
+        description: Zeedijk Wenduine / Zio strandopgang
+        lat: 51.2995
+        lon: 3.0732
+        guarded_zone_m: 250
+        chainage_km: 44.25
+        nearest_marker: 44k250
+        nearest_cmems_cell: cell_85_43
+        is_hp: false
+        season: 01/07-31/08
+      post_wenduine_alfa:
+        code: Wenduine-Alfa
+        name: Wenduine - Post Alfa
+        description: Zeedijk Wenduine / Spioenkop West
+        lat: 51.3015
+        lon: 3.077
+        guarded_zone_m: 250
+        chainage_km: 44.25
+        nearest_marker: 44k250
+        nearest_cmems_cell: cell_85_43
+        is_hp: false
+        season: 01/07-31/08
+      post_wenduine_bravo:
+        code: Wenduine-Bravo
+        name: Wenduine - Post Bravo HP
+        description: Zeedijk Wenduine / Rotonde Hoofdpost
+        lat: 51.303
+        lon: 3.0805
+        guarded_zone_m: 250
+        chainage_km: 45.0
+        nearest_marker: 45k0
+        nearest_cmems_cell: cell_85_43
+        is_hp: true
+        season: 11/06-18/09
+      post_wenduine_charlie:
+        code: Wenduine-Charlie
+        name: Wenduine - Post Charlie
+        description: Zeedijk Wenduine / Wielenerf Oost
+        lat: 51.3045
+        lon: 3.0845
+        guarded_zone_m: 250
+        chainage_km: 45.0
+        nearest_marker: 45k0
+        nearest_cmems_cell: cell_85_43
+        is_hp: false
+        season: 01/07-31/08
+      post_harendijke:
+        code: Harendijke
+        name: Wenduine - Post Harendijke
+        description: Strand Harendijke / Duinengrens Blankenberge
+        lat: 51.3096
+        lon: 3.1014
+        guarded_zone_m: 250
+        chainage_km: 46.5
+        nearest_marker: 46k500
+        nearest_cmems_cell: cell_86_44
+        is_hp: false
+        season: 01/07-31/08
+  blankenberge:
+    name: Blankenberge
+    water_level_station: zeebrugge
+    seaward_bearing_deg: 333.0
+    posts:
+      post_0:
+        code: '0'
+        name: Blankenberge - Post 0 (Staketsel)
+        description: Zeedijk Blankenberge / Westelijk Staketsel
+        lat: 51.314
+        lon: 3.1169
+        guarded_zone_m: 300
+        chainage_km: 47.25
+        nearest_marker: 47k250
+        nearest_cmems_cell: cell_86_44
+        is_hp: false
+        season: 13/05-15/09
+      post_1:
+        code: '1'
+        name: Blankenberge - Post 1 (Weststraat)
+        description: Zeedijk Blankenberge / Weststraat
+        lat: 51.3152
+        lon: 3.1211
+        guarded_zone_m: 300
+        chainage_km: 48.0
+        nearest_marker: 48k0
+        nearest_cmems_cell: cell_87_45
+        is_hp: false
+        season: 13/05-15/09
+      post_2:
+        code: '2'
+        name: Blankenberge - Post 2 (Bakkerstrap)
+        description: Zeedijk Blankenberge / Bakkerstrap
+        lat: 51.3162
+        lon: 3.1249
+        guarded_zone_m: 300
+        chainage_km: 48.0
+        nearest_marker: 48k0
+        nearest_cmems_cell: cell_87_45
+        is_hp: false
+        season: 13/05-15/09
+      post_3:
+        code: '3'
+        name: Blankenberge - Post 3 (Kerkstraat HP)
+        description: Zeedijk Blankenberge / Kerkstraat - Casino (Hoofdpost)
+        lat: 51.3168
+        lon: 3.1277
+        guarded_zone_m: 300
+        chainage_km: 48.0
+        nearest_marker: 48k0
+        nearest_cmems_cell: cell_87_45
+        is_hp: true
+        season: 13/05-15/09
+      post_4:
+        code: '4'
+        name: Blankenberge - Post 4 (Charlierhelling)
+        description: Zeedijk Blankenberge / Charlierhelling
+        lat: 51.3175
+        lon: 3.1304
+        guarded_zone_m: 300
+        chainage_km: 48.75
+        nearest_marker: 48k750
+        nearest_cmems_cell: cell_87_45
+        is_hp: false
+        season: 13/05-15/09
+      post_5:
+        code: '5'
+        name: Blankenberge - Post 5 (Artanhelling)
+        description: Zeedijk Blankenberge / Artanhelling
+        lat: 51.3186
+        lon: 3.1346
+        guarded_zone_m: 300
+        chainage_km: 48.75
+        nearest_marker: 48k750
+        nearest_cmems_cell: cell_87_45
+        is_hp: false
+        season: 13/05-15/09
+      post_6:
+        code: '6'
+        name: Blankenberge - Post 6 (Pier)
+        description: Zeedijk Blankenberge / Pier
+        lat: 51.3204
+        lon: 3.1414
+        guarded_zone_m: 300
+        chainage_km: 49.5
+        nearest_marker: 49k500
+        nearest_cmems_cell: cell_87_45
+        is_hp: false
+        season: 13/05-15/09
+  zeebrugge:
+    name: Zeebrugge
+    water_level_station: zeebrugge
+    seaward_bearing_deg: 332.0
+    posts:
+      post_1:
+        code: '1'
+        name: Zeebrugge - Post 1 (Badstrand HP)
+        description: Zeedijk Zeebrugge / Westelijke Havendam
+        lat: 51.329
+        lon: 3.1758
+        guarded_zone_m: 700
+        chainage_km: 51.75
+        nearest_marker: 51k750
+        nearest_cmems_cell: cell_87_45
+        is_hp: true
+        season: 11/06-11/09
+  knokke_heist:
+    name: Knokke-Heist
+    water_level_station: zeebrugge
+    seaward_bearing_deg: 331.0
+    posts:
+      post_b1a:
+        code: B1a
+        name: Heist - Post B1a (Heldenplein HP)
+        description: Zeedijk Heist / Heldenplein West
+        lat: 51.3415
+        lon: 3.237
+        guarded_zone_m: 287
+        chainage_km: 57.0
+        nearest_marker: 57k0
+        nearest_cmems_cell: cell_91_47
+        is_hp: true
+        season: 01/07-31/08
+      post_b1b:
+        code: B1b
+        name: Heist - Post B1b (Centrum HP)
+        description: Zeedijk Heist / Kursaalstraat Oost
+        lat: 51.3435
+        lon: 3.244
+        guarded_zone_m: 287
+        chainage_km: 57.75
+        nearest_marker: 57k750
+        nearest_cmems_cell: cell_91_47
+        is_hp: true
+        season: 01/07-31/08
+      post_b2:
+        code: B2
+        name: Heist - Post B2 (Willemspark HP)
+        description: Zeedijk Heist / Dir.-Gen. Willemspark
+        lat: 51.3445
+        lon: 3.251
+        guarded_zone_m: 420
+        chainage_km: 57.75
+        nearest_marker: 57k750
+        nearest_cmems_cell: cell_91_47
+        is_hp: true
+        season: 15/06-15/09
+      post_b3:
+        code: B3
+        name: Duinbergen - Post B3 (Centrum HP)
+        description: Zeedijk Duinbergen / Joseph Stübbenpark
+        lat: 51.346
+        lon: 3.26
+        guarded_zone_m: 460
+        chainage_km: 58.5
+        nearest_marker: 58k500
+        nearest_cmems_cell: cell_91_47
+        is_hp: true
+        season: 15/06-15/09
+      post_b4:
+        code: B4
+        name: Albertstrand - Post B4 (Meerlaan HP)
+        description: Zeedijk Albertstrand / Meerlaan
+        lat: 51.3481
+        lon: 3.2729
+        guarded_zone_m: 470
+        chainage_km: 59.25
+        nearest_marker: 59k250
+        nearest_cmems_cell: cell_92_47
+        is_hp: true
+        season: 01/07-31/08
+      post_b5:
+        code: B5
+        name: Albertstrand - Post B5 (Casino HP)
+        description: Zeedijk Albertstrand / Canadasquare - Casino
+        lat: 51.3509
+        lon: 3.2791
+        guarded_zone_m: 230
+        chainage_km: 60.0
+        nearest_marker: 60k0
+        nearest_cmems_cell: cell_92_47
+        is_hp: true
+        season: 01/07-31/08
+      post_b6:
+        code: B6
+        name: Albertstrand - Post B6 (Rubensplein HP)
+        description: Zeedijk Albertstrand / Rubensplein Oost
+        lat: 51.3518
+        lon: 3.2816
+        guarded_zone_m: 220
+        chainage_km: 60.0
+        nearest_marker: 60k0
+        nearest_cmems_cell: cell_92_47
+        is_hp: true
+        season: 15/06-15/09
+      post_b7:
+        code: B7
+        name: Knokke - Post B7 (Lichttorenplein HP)
+        description: Zeedijk Knokke / Lichttorenplein
+        lat: 51.3538
+        lon: 3.289
+        guarded_zone_m: 210
+        chainage_km: 60.75
+        nearest_marker: 60k750
+        nearest_cmems_cell: cell_92_47
+        is_hp: true
+        season: 15/06-15/09
+      post_b8:
+        code: B8
+        name: Knokke - Post B8 (Centrum HP)
+        description: Zeedijk Knokke / Drie Driehoeken
+        lat: 51.3552
+        lon: 3.295
+        guarded_zone_m: 270
+        chainage_km: 61.5
+        nearest_marker: 61k500
+        nearest_cmems_cell: cell_93_47
+        is_hp: true
+        season: 01/07-31/08
+      post_b9:
+        code: B9
+        name: Het Zoute - Post B9 (De Wielingen HP)
+        description: Zeedijk Het Zoute / De Wielingen
+        lat: 51.3565
+        lon: 3.301
+        guarded_zone_m: 250
+        chainage_km: 61.5
+        nearest_marker: 61k500
+        nearest_cmems_cell: cell_93_47
+        is_hp: true
+        season: 15/06-15/09
+      post_b10:
+        code: B10
+        name: Het Zoute - Post B10 (Appelzak HP)
+        description: Zeedijk Het Zoute / Appelzak
+        lat: 51.3585
+        lon: 3.309
+        guarded_zone_m: 255
+        chainage_km: 62.25
+        nearest_marker: 62k250
+        nearest_cmems_cell: cell_93_47
+        is_hp: true
+        season: 01/07-31/08
+      post_b11:
+        code: B11
+        name: Het Zoute - Post B11 (Lekkerbek)
+        description: Strand Het Zoute / De Lekkerbek (Het Zwin)
+        lat: 51.361
+        lon: 3.3216
+        guarded_zone_m: 225
+        chainage_km: 63.0
+        nearest_marker: 63k0
+        nearest_cmems_cell: cell_93_47
+        is_hp: false
+        season: 01/07-31/08

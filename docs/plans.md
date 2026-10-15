@@ -157,7 +157,7 @@ This document outlines the ordered development roadmap for the **Channel Swimmer
 
 ---
 
-## 🌊 Feature Track: Kust-Stromingsprofielen & Strandposten (Public Swim Safety)
+## 🌊 Feature Track: Coastal Tidal & Current Profiles for Lifeguard Posts (Public Swim Safety)
 
 This initiative translates abstract model hydrodynamics into an intuitive, high-impact infographic profile per coastal bathing resort and lifeguard post (anchored on **Bredene Strandpost 4 "Droogen Opganck"**).
 
@@ -179,9 +179,27 @@ This initiative translates abstract model hydrodynamics into an intuitive, high-
 * **Phase Shift Insight**: Automatically highlights timing difference between peak flood (PFC) and High Water (HW) (e.g. 15 min lag at Bredene Post 4).
 * **Decoupled Architecture**: Strict separation between data retrieval (`fetch_data_v10.py`), YAML data contract (`data_to_plot_v10.yaml`), and SVG renderer (`render_v10.py`).
 
+### 3. Architectural Perspective: Universal Tidal Interface & Regional Scalability (Channel Scope)
+Although the current implementation focuses on the Belgian coast, `cscm` (Cross-Channel Swim Model) has an international focus spanning the entire English Channel and North Sea boundary (at least BE, NL, FR, and the UK). To foster an active open-source community where international swimmers and coastal hydrodynamics contributors can readily plug in local expertise, we adopt the following design principles:
+
+* **Modular Regional Structure (Subfolders / Prefixes)**:
+  * Water level gauge networks and predictive models are inherently managed by national or regional authorities.
+  * The code structure under `cscm.tide` should be organized modularly by region (e.g. `cscm.tide.be` for `mdk` and `hic`, with future extensions such as `cscm.tide.nl` for Rijkswaterstaat, `cscm.tide.fr` for SHOM, `cscm.tide.uk` for EA / UKHO / BODC).
+  * This allows local contributors to plug in their own regional data adapters without merge conflicts or tangled dependencies.
+* **Uniform Abstract Tidal Interface (`TideModel` / `TideProvider`)**:
+  * A single standardized query signature: `get_water_levels(latitude, longitude, start_time, end_time)`.
+  * Seamless abstraction over historical sensor observations vs. operational forecast models depending on the requested query window.
+  * **Rich Result Metadata**:
+    * Data source and provider (e.g. HIC KiWIS `KT-Last`, MDK `WS5`, SHOM, Rijkswaterstaat).
+    * Explicit **vertical datum / benchmark**: `TAW` (BE), `NAP` (NL), `IGN69`/`ZH` (FR), `ODN`/`LAT` (UK).
+    * Quality, surge, and confidence flags.
+* **Automated Region- and Source-Driven Coastal Interpolation**:
+  * Practical fixed time shifts (e.g. the $+7$ min Bredene lag relative to Oostende Haven) must evolve into an automated interpolator that resolves coordinates `(lat, lon)`, identifies bounding reference stations, and computes alongshore tidal wave phase propagation.
+  * The interpolation method, reference stations, and computed phase delay must be explicitly returned in the response metadata.
+
 ---
 
-## 🏊 Feature Track: Kustzwem-Trajectprofielen (Lagrangiaans Ruimte-Tijd Routeprofiel)
+## 🏊 Feature Track: Coastal Swim Trajectory Profiles (Lagrangian Space-Time Route Profile)
 
 This initiative translates the fixed-point strandpost profile into a **space-time route profile** for open water swimmers navigating coastal trajectories (e.g. Bredene ➔ De Haan, or 16km / 20km / 67km coast-swim events by *Ommeweg vzw*).
 
@@ -221,11 +239,12 @@ This initiative translates the fixed-point strandpost profile into a **space-tim
 
 | ID | Priority | Initiative | Description | Status |
 | :--- | :---: | :--- | :--- | :---: |
-| **BL-1** | 🔴 **High (Next)** | **HIC / Waterinfo KiWIS Connector (`today+1`)** | Implement client via `pywaterinfo` for HIC Waterinfo API to fetch forecasted water levels (astronomical + surge) for coastal stations (Oostende, Zeebrugge, Nieuwpoort). | **To Do** |
-| **BL-2** | 🔴 **High** | **Strandpost-Profiel `today+1` Live Forecast** | Generate daily predictive profile for Bredene Post 4 using HIC water level forecasts and CMEMS 7-day hydrodynamic forecasts. | **To Do** |
-| **BL-3** | 🟡 **Medium** | **Kust-Interpolatiemodel (Alle 82 Posten)** | Extend the validated $+7$ min Bredene shift to a full 1D alongshore interpolation model covering all 82 IKWV posts from `be_lifeguard_posts.yaml`. | **To Do** |
-| **BL-4** | 🟡 **Medium** | **Kustzwem-Trajectprofiel v2** | Implement Isotachen-mesh ($0.1\text{ m/s}$ contours), 15-min Isochronen, landmark banner, and scalable distances in `docs/experiments/graphics/kust-zwem-profiel/`. | **Parked** |
-| **BL-5** | 🟢 **Normal** | **Maancyclus Dynamiek & Variatie** | Analyze spring-neap tidal current envelope over a full 29.5-day synodic lunar cycle across all coastal stations. | **To Do** |
-| **BL-6** | 🟢 **Normal** | **Standalone Harmonisch Getijdenmodel** | Standalone Python module computing astronomical water levels using standard tidal constituents ($M_2, S_2, N_2, K_1, O_1$) as an offline fallback. | **To Do** |
+| **BL-1** | 🟢 **Done** | **HIC / Waterinfo KiWIS Connector (`today+1`)** | Implement client via `pywaterinfo` for HIC Waterinfo API to fetch forecasted water levels (astronomical + surge) for coastal stations (Oostende, Zeebrugge, Nieuwpoort). | **Done** |
+| **BL-2** | 🔴 **High (Next)** | **Strandpost Profile `today+1` Live Forecast** | Generate daily predictive profile for Bredene Post 4 using HIC water level forecasts and CMEMS 7-day hydrodynamic forecasts. | **To Do** |
+| **BL-3** | 🟡 **Medium** | **Alongshore Interpolation Model (Automated & Region-Driven)** | Extend the validated $+7$ min Bredene shift to an automated, coordinate-based alongshore interpolation model (calculating tidal wave phase delays and returning rich interpolation metadata). | **To Do** |
+| **BL-4** | 🟡 **Medium** | **Coastal Swim Trajectory Profile v2** | Implement Isotachen-mesh ($0.1\text{ m/s}$ contours), 15-min Isochronen, landmark banner, and scalable distances in `docs/experiments/graphics/kust-zwem-profiel/`. | **Parked** |
+| **BL-5** | 🟢 **Normal** | **Lunar Cycle Dynamics & Variation** | Analyze spring-neap tidal current envelope over a full 29.5-day synodic lunar cycle across all coastal stations. | **To Do** |
+| **BL-6** | 🟢 **Normal** | **Standalone Harmonic Tidal Model** | Standalone Python module computing astronomical water levels using standard tidal constituents ($M_2, S_2, N_2, K_1, O_1$) as an offline fallback. | **To Do** |
 | **BL-7** | 🟢 **Normal** | **Automated Static Publishing Pipeline** | Batch generation pipeline rendering SVGs/PNGs for all posts, deployed to a lightweight Hugo/GitHub Pages site. | **To Do** |
-| **BL-8** | ⚪ **Low** | **Fysiek Redders-Whiteboard Template** | High-contrast A1/A2 analog whiteboard template for daily chalk/marker logging at beach rescue stations. | **To Do** |
+| **BL-8** | ⚪ **Low** | **Physical Lifeguard Whiteboard Template** | High-contrast A1/A2 analog whiteboard template for daily chalk/marker logging at beach rescue stations. | **To Do** |
+| **BL-9** | 🟡 **Medium** | **Unified `TideModel` Interface & Regional Architecture** | Design abstract `TideModel` interface `(lat, lon, start, end)` with vertical datum metadata (TAW/NAP/LAT/ODN) and modular regional subpackages (`cscm.tide.be`, `nl`, `fr`, `uk`) for international community contributions. | **To Do** |

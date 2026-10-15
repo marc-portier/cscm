@@ -18,9 +18,15 @@ dependencies = [
     "geodatasets (>=2026.5.1,<2027.0.0)",
     "geopandas (>=1.1.4,<2.0.0)",
     "scipy (>=1.18.1,<2.0.0)",
+    "pywaterinfo (>=0.9.0,<0.10.0)",
 ]
 
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.1.1,<10.0.0)"
+]

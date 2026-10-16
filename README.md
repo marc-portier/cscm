@@ -4,6 +4,8 @@ Assists in Current Modeling & Trajectory Optimization for swimmers in the North 
 
 A tactical routing, tidal analysis, and trajectory optimization system designed specifically for ultra-distance open-water swimmers operating in highly dynamic, non-linear coastal current fields.
 
+Note: AI assisted documentation is available through [Mintlify](https://mintlify.wiki/marc-portier/cscm)
+
 ---
 
 ## 🎯 Project Goals

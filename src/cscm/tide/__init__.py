@@ -1,7 +1,20 @@
-"""CSCM Tide Module for Flemish coastal water levels, MDK sensors, and HIC predictions."""
+"""
+CSCM Tide Module for coastal water levels, regional models, and gauge networks.
 
-from cscm.tide.mdk import MdkClient, MdkStation, COASTAL_TIDE_STATIONS
-from cscm.tide.hic import HicClient, HicStation, HIC_COASTAL_STATIONS
+Re-exports Belgian regional models and clients (MDK, HIC) from cscm.tide.be
+for backward compatibility.
+"""
+
+from cscm.tide.be import (
+    AlongshoreTidalModel,
+    COASTAL_TIDE_STATIONS,
+    HIC_COASTAL_STATIONS,
+    HicClient,
+    HicStation,
+    InterpolatedTidePoint,
+    MdkClient,
+    MdkStation,
+)
 
 __all__ = [
     "MdkClient",
@@ -10,4 +23,6 @@ __all__ = [
     "HicClient",
     "HicStation",
     "HIC_COASTAL_STATIONS",
+    "AlongshoreTidalModel",
+    "InterpolatedTidePoint",
 ]

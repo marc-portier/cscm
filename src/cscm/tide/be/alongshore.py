@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from cscm.tide.hic import HicClient
+from cscm.tide.be.hic import HicClient
 
 logger = logging.getLogger(__name__)
 
@@ -201,13 +201,44 @@ class AlongshoreTidalModel:
         self,
         start_dt: datetime,
         end_dt: datetime,
+        provider: str = "hic",
         source: str = "forecast",
     ) -> Dict[str, pd.DataFrame]:
-        """Fetch 5-minute water levels for NPT, OST, and ZLD from HIC."""
+        """
+        Fetch 5-minute water levels for reference stations (NPT, OST, ZLD)
+        from either HIC (predictive models / astronomical) or MDK (sensor observations).
+
+        Args:
+            start_dt: Start timestamp (UTC).
+            end_dt: End timestamp (UTC).
+            provider: 'hic' (forecast/astro models) or 'mdk' (physical sensor gauge observations).
+            source: Source filter for HIC ('forecast', 'astro', 'observed'). Ignored for MDK.
+
+        Returns:
+            Dictionary mapping station codes ('NPT', 'OST', 'ZLD') to DataFrames
+            with columns ['timestamp', 'water_level_m_taw'].
+        """
         data = {}
-        for code in ["NPT", "OST", "ZLD"]:
-            df = self.hic.get_water_levels(code, start_dt, end_dt, source=source)
-            data[code] = df
+        if provider.lower() == "hic":
+            for code in ["NPT", "OST", "ZLD"]:
+                df = self.hic.get_water_levels(code, start_dt, end_dt, source=source)
+                data[code] = df
+        elif provider.lower() == "mdk":
+            from cscm.tide.be.mdk import MdkClient
+
+            mdk = MdkClient()
+            # MDK codes: NPT (Nieuwpoort), OHM (Oostende Haven), ZLD (Zeebrugge)
+            mdk_map = {"NPT": "NPT", "OST": "OHM", "ZLD": "ZLD"}
+            for canon_code, mdk_code in mdk_map.items():
+                df_mdk = mdk.get_water_levels(
+                    stations=[mdk_code], start_time=start_dt, end_time=end_dt
+                )
+                if not df_mdk.empty and "water_level_m_taw" in df_mdk.columns:
+                    data[canon_code] = df_mdk[["timestamp", "water_level_m_taw"]].copy()
+                else:
+                    data[canon_code] = pd.DataFrame(columns=["timestamp", "water_level_m_taw"])
+        else:
+            raise ValueError(f"Unknown provider '{provider}'. Choose 'hic' or 'mdk'.")
         return data
 
     def predict_all_chainage_nodes(

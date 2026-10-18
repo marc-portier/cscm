@@ -105,3 +105,29 @@ def test_predict_all_chainage_nodes(synthetic_station_data):
     assert len(results) == len(model.chainage_nodes)
     assert results[0].chainage_km == pytest.approx(0.0)
     assert results[-1].chainage_km == pytest.approx(66.0)
+
+
+def test_fetch_reference_station_data_mdk():
+    """Verify that AlongshoreTidalModel supports MDK station data retrieval."""
+    from unittest.mock import patch, MagicMock
+
+    model = AlongshoreTidalModel()
+
+    with patch("cscm.tide.be.mdk.MdkClient") as mock_mdk_cls:
+        mock_instance = MagicMock()
+        mock_instance.get_water_levels.return_value = pd.DataFrame(
+            {
+                "timestamp": ["2026-10-18T12:00:00+00:00"],
+                "water_level_m_taw": [4.2],
+            }
+        )
+        mock_mdk_cls.return_value = mock_instance
+
+        t0 = datetime(2026, 10, 18, 12, 0, tzinfo=timezone.utc)
+        t1 = datetime(2026, 10, 18, 13, 0, tzinfo=timezone.utc)
+        res = model.fetch_reference_station_data(t0, t1, provider="mdk")
+
+        assert "NPT" in res
+        assert "OST" in res
+        assert "ZLD" in res
+        assert res["OST"]["water_level_m_taw"].iloc[0] == pytest.approx(4.2)

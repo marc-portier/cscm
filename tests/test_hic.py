@@ -6,7 +6,8 @@ from unittest.mock import MagicMock
 import pandas as pd
 import pytest
 
-from cscm.tide.hic import HicClient, HicStation, HIC_COASTAL_STATIONS
+from cscm.tide.be.hic import HicClient, HicStation, HIC_COASTAL_STATIONS
+from cscm.tide import HicClient as ReexportedHicClient
 
 
 def test_station_resolution():
@@ -29,6 +30,9 @@ def test_station_resolution():
     # Unknown code raises ValueError
     with pytest.raises(ValueError, match="Unknown station code"):
         client.get_station("XYZ")
+
+    # Verify backward compatibility of re-export from cscm.tide
+    assert ReexportedHicClient is HicClient
 
 
 def test_get_water_levels_mocked():

@@ -23,11 +23,11 @@ import xarray as xr
 import yaml
 
 from cscm.current.cmems.analyse import classify_grid_cells
-from cscm.tide.mdk import MdkClient
+from cscm.tide.be.mdk import MdkClient
 
 HIST_DIR = Path(__file__).resolve().parent
 REPO_ROOT = HIST_DIR.parents[3]
-YAML_PATH = REPO_ROOT / "src" / "cscm" / "resources" / "be_lifeguard_posts.yaml"
+YAML_PATH = REPO_ROOT / "src" / "cscm" / "resources" / "be-full-coast-locations.yaml"
 CMEMS_DIR = REPO_ROOT / "src" / "cscm" / "current" / "cmems" / "data_store"
 
 OUTPUT_YAML = HIST_DIR / "data_to_plot_v10.yaml"

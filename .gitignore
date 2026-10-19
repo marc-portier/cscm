@@ -7,3 +7,7 @@ experimenting/
 qgis/
 **/cmems/data_store/
 *.pyc
+
+# Local private agent customizations
+.agents/**/local*
+.agents/local*

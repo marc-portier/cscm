@@ -222,20 +222,21 @@ This initiative translates the fixed-point strandpost profile into a **space-tim
 
 ![Kustzwem Trajectprofiel v1](./experiments/graphics/kust-zwem-profiel/hist/ontwerp-kustzwem-profiel-v1.png)
 
-### 2. Design Vision for Trajectory Profile v2
-* **Decoupled Distance Grid**:
-  * Decouple distance marks from lifeguard post numbers (using clean ticks `0k0`, `0k75`, `1k5`, `2k25`, etc., rotated 90° along the axis).
-* **Coastal Landmark Banner**:
-  * An overarching top strip mapping actual physical landmarks (piers, harbour channels of Nieuwpoort, Oostende, Blankenberge, Zeebrugge) with subtle coastal geometry.
-* **Isotachen-Mesh (Velocity Contours)**:
-  * Replace static normative pace labels ("snel/recreatief") with a continuous velocity contour mesh (isotachen in steps of $0.1\text{ m/s}$ from $0.5$ to $1.5\text{ m/s}$, rendered as a smooth rainbow/spectral field).
-  * Centerline parameterized to the individual swimmer's target pace ($v_{\text{target}} \pm 0.5\text{ m/s}$).
-* **Isochronen (Time Contours)**:
-  * Thin 15-minute time curves traversing the shifted spines with timestamps (`HH:MM`), illustrating the space-time transform and showing arrival times at checkpoints without requiring bulky bottom tables.
-* **Out-and-Back Support**:
-  * Ability to mirror/fold the return leg horizontally on the right for return swims (e.g. Bredene ➔ Vosseslag ➔ Bredene).
-* **Scalability**:
-  * Adaptable canvas layout to handle short training routes (3–5 km) up to long-distance events (16 km, 20 km, or full 67 km Belgian coast swim).
+### 2. Design Evolution (v1 ➔ v5 DIN A3 Landscape Standard)
+* **Discrete Kinematics on Fine Grid ($\Delta s = 25\text{ m}$)**:
+  * Eliminates global spline artifacts through step-by-step numerical integration ($dt = ds / (v_{\text{water}} + u_{\text{alongshore}}(t))$).
+* **Alongshore Current Projection Policy**:
+  * For coastal trajectory profiles, 2D hydrodynamic current vectors $(u_x, u_y)$ are explicitly projected onto the alongshore route tangent vector ($u_{\text{alongshore}} = \vec{u} \cdot \hat{t}_{\text{coast}}$). Swimmer ground speed represents alongshore forward progress ($v_{\text{ground}} = v_{\text{water}} + u_{\text{alongshore}}$), unlike open-sea / cross-channel swims which require full 2D leeway and drift vector trigonometry.
+* **Out-and-Back Trajectory Fold & Decoupled Turnaround Buffer**:
+  * Unfolds return leg onto the right side of the canvas with reversed beach perspective tint (`#f8fafc`). Isotachs decouple cleanly across the 180° turnaround buffer ("Niemandsland").
+* **9-Isotach Continuous Velocity Fan ($0.6$ to $1.4\text{ m/s}$)**:
+  * Fine $0.1\text{ m/s}$ pacing fan with bold nominal swimmer ($1.0\text{ m/s}$) and right-hand finish table displaying exact finish times and relative deltas.
+* **8 Calibrated Schalingsbalken (Bottom Vector Ribbon)**:
+  * Scaled at $0.10\text{ px/m}$ with black target tick marks at 750m. Clearly contrasts tailwind legs (swimmer + current = 750m) against headwind legs (full 916m swimmer effort with opposing current subtracting back to the 750m mark).
+* **Nautical White Cross-Hatching & Starttijd-Venster Density Gradient**:
+  * Bidirectional white cross-hatching (`#whiteCrossHatch`) cleanly distinguishes return leg staves and cards. Translucent emerald departure envelope features vertical density gradient peaking at 22% opacity along the nominal path and fading to 2% at $\pm 30\text{ min}$ boundaries.
+* **DIN A3 Landscape Geometry ($1420 \times 1004\text{ px}$)**:
+  * Tailored for high-impact print presentations and wall charts.
 
 ---
 
@@ -246,10 +247,11 @@ This initiative translates the fixed-point strandpost profile into a **space-tim
 | **BL-1** | 🟢 **Done** | **HIC / Waterinfo KiWIS Connector (`today+1`)** | Implement client via `pywaterinfo` for HIC Waterinfo API to fetch forecasted water levels (astronomical + surge) for coastal stations (Oostende, Zeebrugge, Nieuwpoort). | **Done** |
 | **BL-2** | 🟢 **Done** | **Strandpost Profile `today+1` Live Forecast** | Generate daily predictive profile for Bredene Post 4 using HIC water level forecasts and CMEMS 7-day hydrodynamic forecasts. | **Done** |
 | **BL-3** | 🟢 **Done** | **Alongshore Tidal Interpolation Model (`src/cscm/tide/be/`)** | Coordinate-based alongshore interpolation and boundary extrapolation across all 89 chainage nodes ($0\text{k}0 - 66\text{k}0$) from Nieuwpoort, Oostende, and Zeebrugge with space-time 24h tidal wave progression. | **Done** |
-| **BL-4** | 🟡 **Medium** | **Coastal Swim Trajectory Profile v2** | Implement Isotachen-mesh ($0.1\text{ m/s}$ contours), 15-min Isochronen, landmark banner, and scalable distances in `docs/experiments/graphics/kust-zwem-profiel/`. | **Parked** |
+| **BL-4** | 🟢 **Done** | **Coastal Swim Trajectory Profile (Exploratory Prototype v1–v5)** | Discrete 25m kinematics, 9-isotach fan, 10-min isochrones, 8 bottom vector cards, DIN A3 landscape layout, and multi-regime tidal phase calibration in `docs/experiments/graphics/kust-zwem-profiel/`. | **Done** |
 | **BL-5** | 🟢 **Normal** | **Lunar Cycle Dynamics & Phase Velocity Variation** | Analyze spring-neap tidal current envelope and empirical alongshore phase velocity variations ($c_{\text{HW}}$, $c_{\text{LW}}$, and time lags NPT ➔ OST ➔ ZLD) across a full 29.5-day synodic lunar cycle using historical MDK observations to evaluate dynamic phase shifts and tidal asymmetry. | **To Do** |
 | **BL-6** | 🟢 **Normal** | **Standalone Harmonic Tidal Model** | Standalone Python module computing astronomical water levels using standard tidal constituents ($M_2, S_2, N_2, K_1, O_1$) as an offline fallback. | **To Do** |
 | **BL-7** | 🟢 **Normal** | **Automated Static Publishing Pipeline** | Batch generation pipeline rendering SVGs/PNGs for all posts, deployed to a lightweight Hugo/GitHub Pages site. | **To Do** |
 | **BL-8** | ⚪ **Low** | **Physical Lifeguard Whiteboard Template** | High-contrast A1/A2 analog whiteboard template for daily chalk/marker logging at beach rescue stations. | **To Do** |
-| **BL-9** | 🔴 **High** | **Unified Hydrodynamic Provider Abstraction (`TideProvider` / `CurrentProvider`)** | Abstract data interface supplying both simulation engines (`TrajectoryCalculator`) and visualization pipelines. Standardized pluggable regional subpackages (`cscm.tide.be`, `cscm.tide.uk`, `cscm.current.cmems`, UK local current models) enabling international community contributors (e.g. UK swim organizers) to seamlessly plug in local knowledge without merge conflicts. | **To Do** |
-| **BL-10** | 🟡 **Medium** | **Productionization & Landing of Graphics Pipelines into `src/cscm/**`** | Transition experimental infographic generators from `docs/experiments/graphics/` into production core modules under `src/cscm/viz/` or `src/cscm/graphics/` consuming the standardized regional providers. | **To Do** |
+| **BL-9** | 🔴 **High** | **Unified Hydrodynamic Provider Abstraction (`TideProvider` / `CurrentProvider`)** | Standardized data access interfaces supplying both simulation engines (`TrajectoryCalculator`) and visualization pipelines:<br>1. **Uniform Data Retrieval & Caching Engine**: Centralized, hash/query-based caching layer for NetCDF forecasts and tidal observations with offline execution support and zero duplicate upstream network queries.<br>2. **Abstract Provider Contracts**: Clean `TideProvider` and `CurrentProvider` interfaces with regional modularity (`cscm.tide.be`, `cscm.tide.uk`, `cscm.current.cmems`).<br>3. **Pragmatic Delivery for Saturday Expert Panel**: Fast-track real CMEMS forecast data into the trajectory profile generator to produce authentic A3 prints for Saturday. | **To Do** |
+| **BL-10** | 🟡 **Medium** | **Graphics Architecture Harmonization & Core Landing (`src/cscm/viz/`)** | 1. **SVG Architecture Analysis**: Compare Jinja2 SVG templating (`strandpost-profiel`) vs programmatic Python SVG generation (`kust-zwem-profiel`). Evaluate trade-offs (declarative layout separation vs mathematical curve geometry) and establish a unified pattern before landing into `src/cscm/viz/`.<br>2. **Alongshore Current Projection Policy**: Codify the standard of projecting 2D currents onto coastal route tangents for alongshore swimming profiles. | **To Do** |
+

@@ -5,8 +5,8 @@ geometry:
   format: DIN A3/A4 Landscape (ratio 1.414)
   width: 1420
   height: 1004
-  matrix_height: 550.0
-  vertical_scale_px_per_min: 6.55
+  matrix_height: 620.0
+  vertical_scale_px_per_min: 7.38
 isochrone_resolution_min: 10
 departure_window_min: 30
 checkpoints:
@@ -16,70 +16,70 @@ checkpoints:
   name: Bredene P4 (Start)
   s_km: 0.0
   leg: out
-  x: 140
+  x: 105
 - idx: 1
   km_tot: '0.75'
   label: 0.75 km
   name: ''
   s_km: 0.75
   leg: out
-  x: 265
+  x: 230
 - idx: 2
   km_tot: '1.50'
   label: 1.50 km
   name: ''
   s_km: 1.5
   leg: out
-  x: 390
+  x: 355
 - idx: 3
   km_tot: '2.25'
   label: 2.25 km
   name: ''
   s_km: 2.25
   leg: out
-  x: 515
+  x: 480
 - idx: 4
   km_tot: '3.00'
   label: 3.00 km
   name: Vosseslag (Aankomst)
   s_km: 3.0
   leg: out_turn
-  x: 640
+  x: 605
 - idx: 5
   km_tot: '3.00'
   label: 3.00 km
   name: Vosseslag (Vertrek)
   s_km: 3.0
   leg: ret_turn
-  x: 720
+  x: 685
 - idx: 6
   km_tot: '3.75'
   label: 3.75 km
   name: ''
   s_km: 2.25
   leg: ret
-  x: 845
+  x: 810
 - idx: 7
   km_tot: '4.50'
   label: 4.50 km
   name: ''
   s_km: 1.5
   leg: ret
-  x: 970
+  x: 935
 - idx: 8
   km_tot: '5.25'
   label: 5.25 km
   name: ''
   s_km: 0.75
   leg: ret
-  x: 1095
+  x: 1060
 - idx: 9
   km_tot: '6.00'
   label: 6.00 km
   name: Bredene P4 (Finish)
   s_km: 0.0
   leg: ret
-  x: 1220
+  x: 1185
 nominal_schedule:
 - km: 0.00 km
   name: Bredene P4 (Start)
@@ -89,28 +89,28 @@ nominal_schedule:
   time: '10:08'
 - km: 1.50 km
   name: ''
-  time: '10:17'
+  time: '10:16'
 - km: 2.25 km
   name: ''
-  time: '10:26'
+  time: '10:25'
 - km: 3.00 km
   name: Vosseslag (Aankomst)
-  time: '10:37'
+  time: '10:34'
 - km: 3.00 km
   name: Vosseslag (Vertrek)
-  time: '10:37'
+  time: '10:34'
 - km: 3.75 km
   name: ''
-  time: '10:50'
+  time: '10:49'
 - km: 4.50 km
   name: ''
-  time: '11:01'
+  time: '11:02'
 - km: 5.25 km
   name: ''
-  time: '11:11'
+  time: '11:13'
 - km: 6.00 km
   name: Bredene P4 (Finish)
-  time: '11:19'
+  time: '11:22'
 leg_breakdown:
 - leg_idx: 1
   name: Leg 1/8
@@ -118,11 +118,11 @@ leg_breakdown:
   from_km: 0.0
   to_km: 0.75
   t_start_min: 0.0
-  t_end_min: 8.075139179496567
-  dt_min: 8.075139179496567
-  dist_swimmer_m: 484.508350769794
-  dist_current_m: 265.491649230206
-  u_avg_mps: 0.5479609356750796
+  t_end_min: 8.225446696779125
+  dt_min: 8.225446696779125
+  dist_swimmer_m: 493.52680180674747
+  dist_current_m: 256.47319819325253
+  u_avg_mps: 0.5196743059431267
   is_tailwind: true
   is_flood: true
 - leg_idx: 2
@@ -130,12 +130,12 @@ leg_breakdown:
   direction: out
   from_km: 0.75
   to_km: 1.5
-  t_start_min: 8.075139179496567
-  t_end_min: 16.778390221324134
-  dt_min: 8.703251041827567
-  dist_swimmer_m: 522.195062509654
-  dist_current_m: 227.804937490346
-  u_avg_mps: 0.4362449089340719
+  t_start_min: 8.225446696779125
+  t_end_min: 16.20672076040745
+  dt_min: 7.981274063628325
+  dist_swimmer_m: 478.8764438176995
+  dist_current_m: 271.1235561823005
+  u_avg_mps: 0.5661659905858991
   is_tailwind: true
   is_flood: true
 - leg_idx: 3
@@ -143,12 +143,12 @@ leg_breakdown:
   direction: out
   from_km: 1.5
   to_km: 2.25
-  t_start_min: 16.778390221324134
-  t_end_min: 26.283860256566168
-  dt_min: 9.505470035242034
-  dist_swimmer_m: 570.328202114522
-  dist_current_m: 179.671797885478
-  u_avg_mps: 0.3150322870574088
+  t_start_min: 16.20672076040745
+  t_end_min: 24.75577051980769
+  dt_min: 8.54904975940024
+  dist_swimmer_m: 512.9429855640144
+  dist_current_m: 237.0570144359856
+  u_avg_mps: 0.46215080643967843
   is_tailwind: true
   is_flood: true
 - leg_idx: 4
@@ -156,12 +156,12 @@ leg_breakdown:
   direction: out
   from_km: 2.25
   to_km: 3.0
-  t_start_min: 26.283860256566168
-  t_end_min: 36.86486187985346
-  dt_min: 10.581001623287289
-  dist_swimmer_m: 634.8600973972374
-  dist_current_m: 115.13990260276262
-  u_avg_mps: 0.18136263891022056
+  t_start_min: 24.75577051980769
+  t_end_min: 34.06128879683118
+  dt_min: 9.305518277023488
+  dist_swimmer_m: 558.3310966214093
+  dist_current_m: 191.6689033785907
+  u_avg_mps: 0.3432889633739256
   is_tailwind: true
   is_flood: true
 - leg_idx: 5
@@ -169,12 +169,12 @@ leg_breakdown:
   direction: ret
   from_km: 3.0
   to_km: 3.75
-  t_start_min: 36.86486187985346
-  t_end_min: 49.69574460776796
-  dt_min: 12.830882727914506
-  dist_swimmer_m: 769.8529636748704
-  dist_current_m: -19.852963674870352
-  u_avg_mps: -0.02578799408669263
+  t_start_min: 34.06128879683118
+  t_end_min: 49.32117760197895
+  dt_min: 15.259888805147774
+  dist_swimmer_m: 915.5933283088665
+  dist_current_m: -165.5933283088665
+  u_avg_mps: -0.1808590377288171
   is_tailwind: false
   is_flood: true
 - leg_idx: 6
@@ -182,12 +182,12 @@ leg_breakdown:
   direction: ret
   from_km: 3.75
   to_km: 4.5
-  t_start_min: 49.69574460776796
-  t_end_min: 60.72193772905819
-  dt_min: 11.026193121290227
-  dist_swimmer_m: 661.5715872774136
-  dist_current_m: 88.42841272258636
-  u_avg_mps: 0.13366416336967943
+  t_start_min: 49.32117760197895
+  t_end_min: 61.765515678452026
+  dt_min: 12.444338076473073
+  dist_swimmer_m: 746.6602845883845
+  dist_current_m: 3.3397154116155434
+  u_avg_mps: 0.0044728713720948035
   is_tailwind: true
   is_flood: false
 - leg_idx: 7
@@ -195,12 +195,12 @@ leg_breakdown:
   direction: ret
   from_km: 4.5
   to_km: 5.25
-  t_start_min: 60.72193772905819
-  t_end_min: 70.54196767303051
-  dt_min: 9.820029943972322
-  dist_swimmer_m: 589.2017966383394
-  dist_current_m: 160.79820336166063
-  u_avg_mps: 0.2729085421651572
+  t_start_min: 61.765515678452026
+  t_end_min: 72.54446171187863
+  dt_min: 10.7789460334266
+  dist_swimmer_m: 646.736762005596
+  dist_current_m: 103.263237994404
+  u_avg_mps: 0.15966811237724335
   is_tailwind: true
   is_flood: false
 - leg_idx: 8
@@ -208,57 +208,57 @@ leg_breakdown:
   direction: ret
   from_km: 5.25
   to_km: 6.0
-  t_start_min: 70.54196767303051
-  t_end_min: 79.48220468727573
-  dt_min: 8.940237014245213
-  dist_swimmer_m: 536.4142208547128
-  dist_current_m: 213.58577914528723
-  u_avg_mps: 0.39817322293388024
+  t_start_min: 72.54446171187863
+  t_end_min: 82.18894500708893
+  dt_min: 9.644483295210307
+  dist_swimmer_m: 578.6689977126184
+  dist_current_m: 171.33100228738158
+  u_avg_mps: 0.29607772831208223
   is_tailwind: true
   is_flood: false
 speeds_analyzed:
 - speed_mps: 0.6
   color: '#ea580c'
-  eta_finish: '11:53'
-  delta_min: +33'
-  total_time_min: 112.8
+  eta_finish: '11:47'
+  delta_min: +25'
+  total_time_min: 106.8
 - speed_mps: 0.7
   color: '#f97316'
   eta_finish: '11:39'
-  delta_min: +19'
-  total_time_min: 98.6
+  delta_min: +17'
+  total_time_min: 99.2
 - speed_mps: 0.8
   color: '#f59e0b'
-  eta_finish: '11:31'
+  eta_finish: '11:33'
   delta_min: +11'
-  total_time_min: 90.7
+  total_time_min: 93.0
 - speed_mps: 0.9
   color: '#84cc16'
-  eta_finish: '11:25'
+  eta_finish: '11:27'
   delta_min: +5'
-  total_time_min: 84.7
+  total_time_min: 87.4
 - speed_mps: 1.0
   color: '#16a34a'
-  eta_finish: '11:19'
+  eta_finish: '11:22'
   delta_min: 0'
-  total_time_min: 79.5
+  total_time_min: 82.2
 - speed_mps: 1.1
   color: '#10b981'
-  eta_finish: '11:15'
+  eta_finish: '11:17'
   delta_min: -5'
-  total_time_min: 74.8
+  total_time_min: 77.4
 - speed_mps: 1.2
   color: '#06b6d4'
-  eta_finish: '11:11'
+  eta_finish: '11:13'
   delta_min: -9'
-  total_time_min: 70.5
+  total_time_min: 73.1
 - speed_mps: 1.3
   color: '#0ea5e9'
-  eta_finish: '11:07'
+  eta_finish: '11:09'
   delta_min: -13'
-  total_time_min: 66.7
+  total_time_min: 69.1
 - speed_mps: 1.4
   color: '#2563eb'
-  eta_finish: '11:03'
-  delta_min: -16'
-  total_time_min: 63.2
+  eta_finish: '11:05'
+  delta_min: -17'
+  total_time_min: 65.4

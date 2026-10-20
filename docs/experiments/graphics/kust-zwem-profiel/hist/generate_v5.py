@@ -54,17 +54,16 @@ def get_triangle_current(t_min):
     """
     Predictable synthetic tidal current u(t) in m/s.
     Period = 180 min (3h).
-    Peak flood (+0.60 m/s) at 10:00 (t = 0 min).
-    Delta = 0.20 m/s per 15 min.
-    Kentering (0.00 m/s) at 10:45 (t = 45 min).
-    Peak ebb (-0.60 m/s) at 11:30 (t = 90 min).
-    Next kentering (0.00 m/s) at 12:15 (t = 135 min).
+    Peak flood (+0.60 m/s) at 10:10 (t = 10 min).
+    Kentering (0.00 m/s) at 10:55 (t = 55 min).
+    Peak ebb (-0.60 m/s) at 11:40 (t = 100 min).
+    Next kentering (0.00 m/s) at 12:25 (t = 145 min).
     """
-    t_mod = (t_min + 90.0) % 180.0
+    t_mod = (t_min - 55.0 + 45.0) % 180.0
     if t_mod <= 90.0:
-        return -0.6 + (t_mod / 90.0) * 1.2
+        return 0.6 - (t_mod / 90.0) * 1.2
     else:
-        return 0.6 - ((t_mod - 90.0) / 90.0) * 1.2
+        return -0.6 + ((t_mod - 90.0) / 90.0) * 1.2
 
 
 def simulate_swim(v_water, t_start_min=0.0, ds=25.0):
@@ -158,14 +157,14 @@ def generate_profile():
     width = 1420
     height = 1004
 
-    # Horizontal Spacing: 8 etappes of dx = 125px + buffer 80px
+    # Horizontal Spacing: 8 etappes of dx = 125px + buffer 80px (Centered on A3 canvas)
     dx = 125
-    x_start = 140
-    x_heen = [x_start + i * dx for i in range(5)]           # 140, 265, 390, 515, 640
+    x_start = 105
+    x_heen = [x_start + i * dx for i in range(5)]           # 105, 230, 355, 480, 605
     buffer_dx = 80
-    x_terug_start = x_heen[-1] + buffer_dx                 # 720
-    x_terug = [x_terug_start + i * dx for i in range(5)]  # 720, 845, 970, 1095, 1220
-    x_mid_turn = (x_heen[-1] + x_terug[0]) / 2.0           # 680.0
+    x_terug_start = x_heen[-1] + buffer_dx                 # 685
+    x_terug = [x_terug_start + i * dx for i in range(5)]  # 685, 810, 935, 1060, 1185
+    x_mid_turn = (x_heen[-1] + x_terug[0]) / 2.0           # 645.0
     x_coords = x_heen + x_terug
 
     # Checkpoint Metadata
@@ -183,13 +182,13 @@ def generate_profile():
     ]
 
     # Vertical Geometry: Zoomed into operational core window
-    # Window: ±42 minutes around the reference swimmer
-    y_spine_top = 190.0
-    y_spine_bottom = 740.0
-    matrix_height = y_spine_bottom - y_spine_top  # 550.0 px
-    y_ref = (y_spine_top + y_spine_bottom) / 2.0  # 465.0 px
+    # Window: ±42 minutes around the reference swimmer (expanded downwards)
+    y_spine_top = 175.0
+    y_spine_bottom = 795.0
+    matrix_height = y_spine_bottom - y_spine_top  # 620.0 px
+    y_ref = (y_spine_top + y_spine_bottom) / 2.0  # 485.0 px
     t_window_half_min = 42.0
-    scale_t = (matrix_height / 2.0) / t_window_half_min  # ~6.55 px per minute difference
+    scale_t = (matrix_height / 2.0) / t_window_half_min  # ~7.38 px per minute difference
 
     # 1. Simulate Reference Swimmer (1.0 m/s departing at 10:00)
     traj_heen_ref, traj_terug_ref, legs_ref = simulate_swim(1.0, 0.0, ds=25.0)
@@ -403,20 +402,26 @@ def generate_profile():
     svg.append('    <filter id="badgeShadow" x="-15%" y="-15%" width="130%" height="130%">')
     svg.append('      <feDropShadow dx="0" dy="2.5" stdDeviation="3.5" flood-opacity="0.14"/>')
     svg.append('    </filter>')
-    # Subtle hatch pattern for return leg
-    svg.append('    <pattern id="diagonalHatch" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">')
-    svg.append('      <line x1="0" y1="0" x2="0" y2="8" stroke="#94a3b8" stroke-width="1.0" opacity="0.45"/>')
+    # High-Contrast White Nautical Cross-Hatch for Return Leg
+    svg.append('    <pattern id="whiteCrossHatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">')
+    svg.append('      <line x1="0" y1="0" x2="0" y2="6" stroke="#ffffff" stroke-width="1.3" opacity="0.95"/>')
+    svg.append('      <line x1="0" y1="0" x2="6" y2="0" stroke="#ffffff" stroke-width="1.3" opacity="0.95"/>')
     svg.append('    </pattern>')
+    # Bidirectional Vertical Density Gradient for Starttijd-Venster
+    svg.append('    <linearGradient id="envelopeGrad" x1="0" y1="0" x2="0" y2="1">')
+    svg.append('      <stop offset="0%" stop-color="#10b981" stop-opacity="0.02"/>')
+    svg.append('      <stop offset="50%" stop-color="#10b981" stop-opacity="0.22"/>')
+    svg.append('      <stop offset="100%" stop-color="#10b981" stop-opacity="0.02"/>')
+    svg.append('    </linearGradient>')
     svg.append('  </defs>')
 
     # 1. Backgrounds
     svg.append(f'  <!-- Canvas Background -->')
     svg.append(f'  <rect x="0" y="0" width="{width}" height="{height}" fill="#ffffff"/>')
 
-    # Return Leg Background (x_mid_turn to 1385)
+    # Return Leg Background (x_mid_turn to 1370)
     svg.append(f'  <!-- Return Leg Tinted Background (Zwemrichting West / FR) -->')
-    svg.append(f'  <rect x="{x_mid_turn}" y="80" width="{1385 - x_mid_turn}" height="760" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>')
-    svg.append(f'  <rect x="{x_mid_turn}" y="80" width="{1385 - x_mid_turn}" height="760" rx="10" fill="url(#diagonalHatch)" opacity="0.22"/>')
+    svg.append(f'  <rect x="{x_mid_turn}" y="80" width="{1370 - x_mid_turn}" height="800" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>')
 
     # 2. Header
     svg.append('  <!-- ================= HEADER ================= -->')
@@ -427,14 +432,14 @@ def generate_profile():
 
     # 3. Perspective Banners (Above the matrix)
     svg.append('  <!-- ================= PERSPECTIVE BANNERS ================= -->')
-    w_out = (x_mid_turn - 12) - 60
-    svg.append(f'  <g id="banner_out" transform="translate(60, 80)">')
+    w_out = (x_mid_turn - 12) - 45
+    svg.append(f'  <g id="banner_out" transform="translate(45, 80)">')
     svg.append(f'    <rect x="0" y="0" width="{w_out}" height="32" rx="6" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.2"/>')
     svg.append('    <text x="14" y="21" font-size="11.5" font-weight="800" fill="#0369a1">--&gt; ZWEMRICHTING OOST [NL]</text>')
     svg.append(f'    <text x="{w_out - 14}" y="21" font-size="11" font-weight="800" fill="#0284c7" text-anchor="end">RECHTS = MEESTROOM (VLOED --&gt;)</text>')
     svg.append('  </g>')
 
-    w_ret = 1385 - (x_mid_turn + 12)
+    w_ret = 1370 - (x_mid_turn + 12)
     svg.append(f'  <g id="banner_ret" transform="translate({x_mid_turn + 12}, 80)">')
     svg.append(f'    <rect x="0" y="0" width="{w_ret}" height="32" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>')
     svg.append('    <text x="14" y="21" font-size="11.5" font-weight="800" fill="#334155">&lt;-- ZWEMRICHTING WEST [FR]</text>')
@@ -464,10 +469,14 @@ def generate_profile():
         t_nom = nom_times_str[cp_i]
 
         svg.append(f'  <g transform="translate({cx}, 145)">')
-        # Distance (horizontal, bold monospace)
-        svg.append(f'    <text x="0" y="0" font-family="monospace" font-size="12" font-weight="900" fill="{lbl_color}" text-anchor="middle">{cp["km_tot"]}</text>')
-        # ETA timestamp (horizontal)
-        svg.append(f'    <text x="0" y="16" font-family="monospace" font-size="10" font-weight="700" fill="#64748b" text-anchor="middle">{t_nom}</text>')
+        # Distance (horizontal, bold monospace with km prefix)
+        svg.append(f'    <text x="0" y="0" font-family="monospace" font-size="11" font-weight="900" fill="{lbl_color}" text-anchor="middle">km {cp["km_tot"]}</text>')
+        # ETA timestamp with clock icon
+        svg.append(f'    <g transform="translate(0, 16)">')
+        svg.append('      <circle cx="-25" cy="-3.5" r="4.5" fill="none" stroke="#64748b" stroke-width="1.2"/>')
+        svg.append('      <polyline points="-25,-6 -25,-3.5 -23,-3.5" fill="none" stroke="#64748b" stroke-width="1.1"/>')
+        svg.append(f'      <text x="-16" y="0" font-family="monospace" font-size="10" font-weight="700" fill="#64748b" text-anchor="start">{t_nom}</text>')
+        svg.append('    </g>')
         # True landmarks only (Bredene P4 & Vosseslag) pointing cleanly away from the central badge
         if cp_i == 0:
             svg.append('    <text x="0" y="-16" font-size="9.5" font-weight="800" fill="#0284c7" text-anchor="middle">Bredene P4 (Start)</text>')
@@ -479,16 +488,21 @@ def generate_profile():
             svg.append('    <text x="0" y="-16" font-size="9.5" font-weight="800" fill="#0284c7" text-anchor="middle">Bredene P4 (Finish)</text>')
         svg.append('  </g>')
 
-    # 6. Starttijd-Venster: Soft Green Envelope Band (±30 min margin)
-    svg.append('  <!-- ================= STARTTIJD-VENSTER (±30 MIN ENVELOPE BAND) ================= -->')
-    svg.append(f'  <polygon points="{poly_env_heen}" fill="#10b981" fill-opacity="0.08" stroke="#10b981" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.6"/>')
-    svg.append(f'  <polygon points="{poly_env_terug}" fill="#10b981" fill-opacity="0.08" stroke="#10b981" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.6"/>')
-
-    # 7. Function to build SVG polyline from points
+    # 6. Function to build SVG polyline from points
     def poly_to_path(pts):
         if not pts:
             return ""
         return "M " + " L ".join(f"{p[0]:.1f} {p[1]:.1f}" for p in pts)
+
+    # 7. Starttijd-Venster: Soft Green Envelope Band with Vertical Density Gradient
+    svg.append('  <!-- ================= STARTTIJD-VENSTER (±30 MIN ENVELOPE BAND) ================= -->')
+    svg.append(f'  <polygon points="{poly_env_heen}" fill="url(#envelopeGrad)" stroke="none"/>')
+    svg.append(f'  <polygon points="{poly_env_terug}" fill="url(#envelopeGrad)" stroke="none"/>')
+    # Boundary curves at -30 min and +30 min (top and bottom only, no side lines)
+    svg.append(f'  <path d="{poly_to_path(env_heen_top)}" fill="none" stroke="#10b981" stroke-width="1.0" stroke-dasharray="3,3" opacity="0.65"/>')
+    svg.append(f'  <path d="{poly_to_path(env_heen_bot)}" fill="none" stroke="#10b981" stroke-width="1.0" stroke-dasharray="3,3" opacity="0.65"/>')
+    svg.append(f'  <path d="{poly_to_path(env_terug_top)}" fill="none" stroke="#10b981" stroke-width="1.0" stroke-dasharray="3,3" opacity="0.65"/>')
+    svg.append(f'  <path d="{poly_to_path(env_terug_bot)}" fill="none" stroke="#10b981" stroke-width="1.0" stroke-dasharray="3,3" opacity="0.65"/>')
 
     # 8. Draw Isochrones (10-Minute Resolution, Constant Clock Time)
     svg.append('  <!-- ================= ISOCHRONES (10-MIN RESOLUTION) ================= -->')
@@ -509,6 +523,13 @@ def generate_profile():
             svg.append(f'    <line x1="{x_heen[4]}" y1="{y_br:.1f}" x2="{x_terug[0]}" y2="{y_br:.1f}" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="2,2"/>')
             # Clock label centered in buffer
             svg.append(f'    <text x="{x_mid_turn}" y="{y_br - 4:.1f}" font-family="monospace" font-size="9" font-weight="800" fill="#475569" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.5">{iso["time"]}</text>')
+
+        # Labels entering along first spine (Bredene P4, spine 0): placed inside plot to the right
+        if len(iso["pts_h"]) > 1 and iso["pts_h"][0][0] <= x_heen[0] + 2 and y_spine_top <= iso["pts_h"][0][1] <= y_spine_bottom:
+            p0 = iso["pts_h"][0]
+            p1 = iso["pts_h"][min(5, len(iso["pts_h"])-1)]
+            angle = float(np.degrees(np.arctan2(p1[1] - p0[1], p1[0] - p0[0])))
+            svg.append(f'    <text x="{p0[0] + 10:.1f}" y="{p0[1] - 4:.1f}" font-family="monospace" font-size="8.5" font-weight="800" fill="#64748b" transform="rotate({angle:.1f} {p0[0]+10:.1f} {p0[1]-4:.1f})" paint-order="stroke" stroke="#ffffff" stroke-width="3">{iso["time"]}</text>')
 
         # Labels entering midway along bottom border: placed just above the line, rotated to follow slope
         # Heenweg entering isochrone:
@@ -563,8 +584,8 @@ def generate_profile():
                 w_b = max(1.0, bar_len)
                 svg.append(f'    <rect x="{x_b:.1f}" y="{y_bar:.1f}" width="{w_b:.1f}" height="{bar_h}" rx="1.5" fill="{base_col}" opacity="0.9"{stroke_attr}/>')
                 if not b["is_out"]:
-                    # Return leg receives diagonal hatch
-                    svg.append(f'    <rect x="{x_b:.1f}" y="{y_bar:.1f}" width="{w_b:.1f}" height="{bar_h}" rx="1.5" fill="url(#diagonalHatch)"/>')
+                    # Return leg receives high-contrast white nautical cross-hatch
+                    svg.append(f'    <rect x="{x_b:.1f}" y="{y_bar:.1f}" width="{w_b:.1f}" height="{bar_h}" rx="1.5" fill="url(#whiteCrossHatch)"/>')
 
             # Small spine tick
             svg.append(f'    <line x1="{cx - 2}" y1="{by:.1f}" x2="{cx + 2}" y2="{by:.1f}" stroke="#64748b" stroke-width="1"/>')
@@ -580,8 +601,8 @@ def generate_profile():
 
     # Finish Table on Right Margin (Cleanly formatted into two columns, placed cleanly above curves)
     svg.append('  <!-- ================= FINISH TABLE (v vs Delta t) ================= -->')
-    x_tbl_v = x_terug[-1] + 32.0   # 1252.0
-    x_tbl_dt = x_tbl_v + 58.0      # 1310.0
+    x_tbl_v = x_terug[-1] + 32.0   # Centered: 1217.0
+    x_tbl_dt = x_tbl_v + 58.0      # 1275.0
     y_tbl_head = 315.0
 
     svg.append(f'  <g id="finish_table">')
@@ -593,17 +614,21 @@ def generate_profile():
         last_pt = iso["pts_terug"][-1]
         py_row = last_pt[1]
         col = iso["color"]
-        weight = "900" if iso["speed"] == 1.0 else "700"
+        is_nom = (iso["speed"] == 1.0)
+        weight = "900" if is_nom else "700"
 
         # Speed column
         svg.append(f'    <text x="{x_tbl_v + 12}" y="{py_row + 3.5:.1f}" font-family="monospace" font-size="10" font-weight="{weight}" fill="{col}" text-anchor="middle">{iso["speed"]:.1f}</text>')
-        # Delta time column
-        svg.append(f'    <text x="{x_tbl_dt + 20}" y="{py_row + 3.5:.1f}" font-family="monospace" font-size="10" font-weight="{weight}" fill="{col}" text-anchor="middle">{iso["delta_str"]}</text>')
+        # Delta time column (1.0 m/s nominal swimmer displays actual finish ETA)
+        if is_nom:
+            svg.append(f'    <text x="{x_tbl_dt + 20}" y="{py_row + 3.5:.1f}" font-family="monospace" font-size="9" font-weight="900" fill="#16a34a" text-anchor="middle">{iso["eta_finish"]} ETA</text>')
+        else:
+            svg.append(f'    <text x="{x_tbl_dt + 20}" y="{py_row + 3.5:.1f}" font-family="monospace" font-size="10" font-weight="{weight}" fill="{col}" text-anchor="middle">{iso["delta_str"]}</text>')
     svg.append('  </g>')
 
     # 11. 8 Schalingsbalken (All 8 below plot, ribbon layout)
     svg.append('  <!-- ================= 8 SCHALINGSBALKEN (BOTTOM RIBBON) ================= -->')
-    y_ribbon = 765.0
+    y_ribbon = 818.0
     w_box = 115.0
     h_box = 48.0
     w_track = 100.0
@@ -623,7 +648,7 @@ def generate_profile():
         x_b = x_l + ((x_r - x_l) - w_box) / 2.0
         x_mid_leg = (x_l + x_r) / 2.0
 
-        # Subtle leader line down from matrix
+        # Leader line down from matrix
         svg.append(f'    <line x1="{x_mid_leg}" y1="{y_spine_bottom}" x2="{x_mid_leg}" y2="{y_ribbon}" stroke="#cbd5e1" stroke-width="0.9" stroke-dasharray="2,2"/>')
 
         # Card Container
@@ -652,10 +677,10 @@ def generate_profile():
             svg.append(f'      <rect x="{x_trk:.1f}" y="{y_trk}" width="{w_w:.1f}" height="{h_trk}" rx="2" fill="#16a34a"/>')
             svg.append(f'      <rect x="{x_trk + w_w:.1f}" y="{y_trk}" width="{w_u:.1f}" height="{h_trk}" rx="2" fill="{cur_col}"/>')
             if k >= 4:
-                svg.append(f'      <rect x="{x_trk + w_w:.1f}" y="{y_trk}" width="{w_u:.1f}" height="{h_trk}" rx="2" fill="url(#diagonalHatch)"/>')
+                svg.append(f'      <rect x="{x_trk + w_w:.1f}" y="{y_trk}" width="{w_u:.1f}" height="{h_trk}" rx="2" fill="url(#whiteCrossHatch)"/>')
             cur_str = f"+{int(round(d_u))}m"
         else:
-            # Headwind (Tegenstroom, Leg 5): Swimmer covers Dw > 750m, current subtracts back to 750m tick!
+            # Headwind (Tegenstroom, Leg 5): Swimmer covers Dw > 750m, opposing current subtracts back to 750m tick!
             w_w = min(108.0, d_w * scale_bar)
             w_u = max(6.0, abs(d_u) * scale_bar)
             svg.append(f'      <rect x="{x_trk:.1f}" y="{y_trk}" width="{w_w:.1f}" height="{h_trk}" rx="2" fill="#16a34a"/>')
@@ -663,7 +688,7 @@ def generate_profile():
             x_opp = max(x_trk, x_trk + w_w - w_u)
             svg.append(f'      <rect x="{x_opp:.1f}" y="{y_trk}" width="{w_u:.1f}" height="{h_trk}" rx="2" fill="{cur_col}"/>')
             if k >= 4:
-                svg.append(f'      <rect x="{x_opp:.1f}" y="{y_trk}" width="{w_u:.1f}" height="{h_trk}" rx="2" fill="url(#diagonalHatch)"/>')
+                svg.append(f'      <rect x="{x_opp:.1f}" y="{y_trk}" width="{w_u:.1f}" height="{h_trk}" rx="2" fill="url(#whiteCrossHatch)"/>')
             cur_str = f"{int(round(d_u))}m"
 
         # Explicit black tick mark at EXACT 750m (target distance)
@@ -676,53 +701,63 @@ def generate_profile():
         svg.append(f'      <text x="{w_box/2:.1f}" y="40" font-family="monospace" font-size="8" font-weight="700" fill="#64748b" text-anchor="middle">u = {u_avg:+.2f} m/s • {dt_min:.1f}\'</text>')
         svg.append('    </g>')
 
-    # 12. Single-Line Compact Legend (Underneath Schalingsbalken)
+    # 12. Single-Line Compact Legend (Underneath Schalingsbalken, centered)
     svg.append('  <!-- ================= COMPACT SINGLE-LINE LEGEND ================= -->')
-    y_leg = 845.0
-    w_leg = 1260.0
-    x_leg = (width - w_leg) / 2.0
+    y_leg = 890.0
+    w_leg = 1330.0
+    x_leg = (width - w_leg) / 2.0  # 45.0
 
     svg.append(f'  <g id="bottom_legend" transform="translate({x_leg:.1f}, {y_leg})">')
-    svg.append(f'    <rect x="0" y="0" width="{w_leg}" height="42" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2" filter="url(#softShadow)"/>')
+    svg.append(f'    <rect x="0" y="0" width="{w_leg}" height="44" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2" filter="url(#softShadow)"/>')
 
     # Item 1: Snelheid (9-color vector strip)
-    svg.append('    <g transform="translate(20, 15)">')
-    svg.append('      <text x="0" y="10" font-size="11" font-weight="900" fill="#0f172a">Snelheid:</text>')
-    x_strip = 62.0
+    svg.append('    <g transform="translate(18, 16)">')
+    svg.append('      <text x="0" y="10" font-size="10.5" font-weight="900" fill="#0f172a">Snelheid:</text>')
+    x_strip = 58.0
     for sp_i, sp in enumerate(speeds):
         svg.append(f'      <rect x="{x_strip + sp_i*9}" y="2" width="9" height="10" fill="{colors[sp]}"/>')
-    svg.append(f'      <text x="{x_strip + 90}" y="10" font-size="10" font-weight="700" fill="#ea580c">0.6</text>')
-    svg.append(f'      <text x="{x_strip + 112}" y="10" font-size="10" font-weight="900" fill="#16a34a">1.0 [Nom]</text>')
-    svg.append(f'      <text x="{x_strip + 172}" y="10" font-size="10" font-weight="700" fill="#2563eb">1.4 m/s</text>')
+    svg.append(f'      <text x="{x_strip + 88}" y="10" font-size="9.5" font-weight="700" fill="#ea580c">0.6</text>')
+    svg.append(f'      <text x="{x_strip + 110}" y="10" font-size="10" font-weight="900" fill="#16a34a">1.0 [Nom]</text>')
+    svg.append(f'      <text x="{x_strip + 168}" y="10" font-size="9.5" font-weight="700" fill="#2563eb">1.4 m/s</text>')
     svg.append('    </g>')
 
-    # Item 2: Starttijd-venster
-    svg.append('    <g transform="translate(350, 15)">')
-    svg.append('      <rect x="0" y="2" width="18" height="10" rx="2" fill="#10b981" fill-opacity="0.15" stroke="#10b981" stroke-width="0.9" stroke-dasharray="2,2"/>')
-    svg.append('      <text x="26" y="10" font-size="10.5" font-weight="800" fill="#0f172a">Starttijd-venster: <tspan font-weight="600" fill="#64748b">±30 min vertrekmarge</tspan></text>')
+    # Item 2: Starttijd-venster (Bidirectional vertical density gradient + dashed top/bottom borders)
+    svg.append('    <g transform="translate(325, 16)">')
+    svg.append('      <rect x="0" y="2" width="22" height="12" fill="url(#envelopeGrad)"/>')
+    svg.append('      <line x1="0" y1="2" x2="22" y2="2" stroke="#10b981" stroke-width="1.0" stroke-dasharray="2,2"/>')
+    svg.append('      <line x1="0" y1="14" x2="22" y2="14" stroke="#10b981" stroke-width="1.0" stroke-dasharray="2,2"/>')
+    svg.append('      <text x="30" y="10" font-size="10" font-weight="800" fill="#0f172a">Starttijd-venster: <tspan font-weight="600" fill="#64748b">±30 min marge</tspan></text>')
     svg.append('    </g>')
 
-    # Item 3: Getijdestroming
-    svg.append('    <g transform="translate(670, 15)">')
-    svg.append('      <rect x="0" y="2" width="12" height="10" rx="2" fill="#0284c7"/>')
-    svg.append('      <text x="18" y="10" font-size="10.5" font-weight="800" fill="#0284c7">Vloed</text>')
-    svg.append('      <rect x="68" y="2" width="12" height="10" rx="2" fill="#4338ca"/>')
-    svg.append('      <text x="86" y="10" font-size="10.5" font-weight="800" fill="#4338ca">Eb</text>')
-    svg.append('      <rect x="115" y="2" width="14" height="10" rx="2" fill="#4338ca"/>')
-    svg.append('      <rect x="115" y="2" width="14" height="10" rx="2" fill="url(#diagonalHatch)"/>')
-    svg.append('      <text x="135" y="10" font-size="10.5" font-weight="800" fill="#64748b">Terugweg (gearceerd)</text>')
+    # Item 3: Getijdestroming (All 4 physical cases clearly distinguished)
+    svg.append('    <g transform="translate(610, 16)">')
+    # Vloedstroom
+    svg.append('      <text x="0" y="10" font-size="10" font-weight="900" fill="#0284c7">Vloed:</text>')
+    svg.append('      <text x="38" y="10" font-size="9.5" font-weight="700" fill="#64748b">heen</text>')
+    svg.append('      <rect x="66" y="2" width="12" height="10" rx="2" fill="#0284c7"/>')
+    svg.append('      <text x="86" y="10" font-size="9.5" font-weight="700" fill="#64748b">terug</text>')
+    svg.append('      <rect x="118" y="2" width="14" height="10" rx="2" fill="#0284c7"/>')
+    svg.append('      <rect x="118" y="2" width="14" height="10" rx="2" fill="url(#whiteCrossHatch)"/>')
+
+    # Ebstroom
+    svg.append('      <text x="150" y="10" font-size="10" font-weight="900" fill="#4338ca">Eb:</text>')
+    svg.append('      <text x="174" y="10" font-size="9.5" font-weight="700" fill="#64748b">heen</text>')
+    svg.append('      <rect x="202" y="2" width="12" height="10" rx="2" fill="#4338ca"/>')
+    svg.append('      <text x="222" y="10" font-size="9.5" font-weight="700" fill="#64748b">terug</text>')
+    svg.append('      <rect x="254" y="2" width="14" height="10" rx="2" fill="#4338ca"/>')
+    svg.append('      <rect x="254" y="2" width="14" height="10" rx="2" fill="url(#whiteCrossHatch)"/>')
     svg.append('    </g>')
 
     # Item 4: Isochronen
-    svg.append('    <g transform="translate(1005, 15)">')
+    svg.append('    <g transform="translate(1040, 16)">')
     svg.append('      <line x1="0" y1="7" x2="24" y2="7" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,3"/>')
-    svg.append('      <text x="32" y="10" font-size="10.5" font-weight="800" fill="#0f172a">Isochronen: <tspan font-weight="600" fill="#64748b">Lijnen gelijke tijd (10\')</tspan></text>')
+    svg.append('      <text x="32" y="10" font-size="10" font-weight="800" fill="#0f172a">Isochronen: <tspan font-weight="600" fill="#64748b">Lijnen gelijke tijd (10\')</tspan></text>')
     svg.append('    </g>')
     svg.append('  </g>')
 
     # 13. Clean Footer
     svg.append('  <!-- ================= FOOTER ================= -->')
-    svg.append(f'  <g id="footer" transform="translate(80, {height - 35})">')
+    svg.append('  <g id="footer" transform="translate(45, 972)">')
     svg.append('    <text x="0" y="0" font-size="11" font-weight="600" fill="#94a3b8">CSCM • Dynamisch Kustzwem-Trajectmodel • Discrete Kinematica (25m Grid) &amp; Driehoeks-Getij</text>')
     svg.append(f'    <text x="{w_leg}" y="0" font-size="11" font-weight="800" fill="#94a3b8" text-anchor="end">ONTWERP v5 (A3 LIGGEND)</text>')
     svg.append('  </g>')

@@ -1,0 +1,247 @@
+title: CSCM KUSTZWEM-TRAJECTPROFIEL v4
+route: "Bredene Post 4 \u2794 Vosseslag \u2794 Bredene Post 4 (6.0 km Heen-en-Terug)"
+start_time: 10:00 CEST
+synthetic_tidal_model:
+  type: Piecewise linear triangle profile
+  period_min: 180
+  peak_flood_mps: 0.6
+  peak_ebb_mps: -0.6
+  delta_per_15min_mps: 0.2
+  kentering_cest: 10:45 CEST (t = +45 min)
+discretization_step_m: 25.0
+checkpoints:
+- idx: 0
+  km_tot: '0.00'
+  label: 0.00 km
+  name: Bredene Post 4
+  s_km: 0.0
+  leg: out
+  x: 225
+- idx: 1
+  km_tot: '0.75'
+  label: 0.75 km
+  name: Renbaan (P6)
+  s_km: 0.75
+  leg: out
+  x: 340
+- idx: 2
+  km_tot: '1.50'
+  label: 1.50 km
+  name: Duinengordel
+  s_km: 1.5
+  leg: out
+  x: 455
+- idx: 3
+  km_tot: '2.25'
+  label: 2.25 km
+  name: Naaktstrand
+  s_km: 2.25
+  leg: out
+  x: 570
+- idx: 4
+  km_tot: '3.00'
+  label: 3.00 km
+  name: Vosseslag (Aankomst)
+  s_km: 3.0
+  leg: out_turn
+  x: 685
+- idx: 5
+  km_tot: '3.00'
+  label: 3.00 km
+  name: Vosseslag (Vertrek)
+  s_km: 3.0
+  leg: ret_turn
+  x: 765
+- idx: 6
+  km_tot: '3.75'
+  label: 3.75 km
+  name: Naaktstrand
+  s_km: 2.25
+  leg: ret
+  x: 880
+- idx: 7
+  km_tot: '4.50'
+  label: 4.50 km
+  name: Duinengordel
+  s_km: 1.5
+  leg: ret
+  x: 995
+- idx: 8
+  km_tot: '5.25'
+  label: 5.25 km
+  name: Renbaan (P6)
+  s_km: 0.75
+  leg: ret
+  x: 1110
+- idx: 9
+  km_tot: '6.00'
+  label: 6.00 km
+  name: Bredene Post 4 (Finish)
+  s_km: 0.0
+  leg: ret
+  x: 1225
+nominal_schedule:
+- km: 0.00 km
+  name: Bredene Post 4
+  time: '10:00'
+- km: 0.75 km
+  name: Renbaan (P6)
+  time: '10:08'
+- km: 1.50 km
+  name: Duinengordel
+  time: '10:17'
+- km: 2.25 km
+  name: Naaktstrand
+  time: '10:26'
+- km: 3.00 km
+  name: Vosseslag (Aankomst)
+  time: '10:37'
+- km: 3.00 km
+  name: Vosseslag (Vertrek)
+  time: '10:37'
+- km: 3.75 km
+  name: Naaktstrand
+  time: '10:50'
+- km: 4.50 km
+  name: Duinengordel
+  time: '11:01'
+- km: 5.25 km
+  name: Renbaan (P6)
+  time: '11:11'
+- km: 6.00 km
+  name: Bredene Post 4 (Finish)
+  time: '11:19'
+leg_breakdown:
+- leg_idx: 1
+  name: Leg 1/8
+  direction: out
+  from_km: 0.0
+  to_km: 0.75
+  t_start_min: 0.0
+  t_end_min: 8.075139179496567
+  dt_min: 8.075139179496567
+  dist_swimmer_m: 484.508350769794
+  dist_current_m: 265.491649230206
+  u_avg_mps: 0.5479609356750796
+  is_tailwind: true
+- leg_idx: 2
+  name: Leg 2/8
+  direction: out
+  from_km: 0.75
+  to_km: 1.5
+  t_start_min: 8.075139179496567
+  t_end_min: 16.778390221324134
+  dt_min: 8.703251041827567
+  dist_swimmer_m: 522.195062509654
+  dist_current_m: 227.804937490346
+  u_avg_mps: 0.4362449089340719
+  is_tailwind: true
+- leg_idx: 3
+  name: Leg 3/8
+  direction: out
+  from_km: 1.5
+  to_km: 2.25
+  t_start_min: 16.778390221324134
+  t_end_min: 26.283860256566168
+  dt_min: 9.505470035242034
+  dist_swimmer_m: 570.328202114522
+  dist_current_m: 179.671797885478
+  u_avg_mps: 0.3150322870574088
+  is_tailwind: true
+- leg_idx: 4
+  name: Leg 4/8
+  direction: out
+  from_km: 2.25
+  to_km: 3.0
+  t_start_min: 26.283860256566168
+  t_end_min: 36.86486187985346
+  dt_min: 10.581001623287289
+  dist_swimmer_m: 634.8600973972374
+  dist_current_m: 115.13990260276262
+  u_avg_mps: 0.18136263891022056
+  is_tailwind: true
+- leg_idx: 5
+  name: Leg 5/8
+  direction: ret
+  from_km: 3.0
+  to_km: 3.75
+  t_start_min: 36.86486187985346
+  t_end_min: 49.69574460776796
+  dt_min: 12.830882727914506
+  dist_swimmer_m: 769.8529636748704
+  dist_current_m: -19.852963674870352
+  u_avg_mps: -0.02578799408669263
+  is_tailwind: false
+- leg_idx: 6
+  name: Leg 6/8
+  direction: ret
+  from_km: 3.75
+  to_km: 4.5
+  t_start_min: 49.69574460776796
+  t_end_min: 60.72193772905819
+  dt_min: 11.026193121290227
+  dist_swimmer_m: 661.5715872774136
+  dist_current_m: 88.42841272258636
+  u_avg_mps: 0.13366416336967943
+  is_tailwind: true
+- leg_idx: 7
+  name: Leg 7/8
+  direction: ret
+  from_km: 4.5
+  to_km: 5.25
+  t_start_min: 60.72193772905819
+  t_end_min: 70.54196767303051
+  dt_min: 9.820029943972322
+  dist_swimmer_m: 589.2017966383394
+  dist_current_m: 160.79820336166063
+  u_avg_mps: 0.2729085421651572
+  is_tailwind: true
+- leg_idx: 8
+  name: Leg 8/8
+  direction: ret
+  from_km: 5.25
+  to_km: 6.0
+  t_start_min: 70.54196767303051
+  t_end_min: 79.48220468727573
+  dt_min: 8.940237014245213
+  dist_swimmer_m: 536.4142208547128
+  dist_current_m: 213.58577914528723
+  u_avg_mps: 0.39817322293388024
+  is_tailwind: true
+speeds_analyzed:
+- speed_mps: 0.6
+  color: '#ea580c'
+  eta_finish: '11:53'
+  total_time_min: 112.8
+- speed_mps: 0.7
+  color: '#f97316'
+  eta_finish: '11:39'
+  total_time_min: 98.6
+- speed_mps: 0.8
+  color: '#f59e0b'
+  eta_finish: '11:31'
+  total_time_min: 90.7
+- speed_mps: 0.9
+  color: '#84cc16'
+  eta_finish: '11:25'
+  total_time_min: 84.7
+- speed_mps: 1.0
+  color: '#16a34a'
+  eta_finish: '11:19'
+  total_time_min: 79.5
+- speed_mps: 1.1
+  color: '#10b981'
+  eta_finish: '11:15'
+  total_time_min: 74.8
+- speed_mps: 1.2
+  color: '#06b6d4'
+  eta_finish: '11:11'
+  total_time_min: 70.5
+- speed_mps: 1.3
+  color: '#0ea5e9'
+  eta_finish: '11:07'
+  total_time_min: 66.7
+- speed_mps: 1.4
+  color: '#2563eb'
+  eta_finish: '11:03'
+  total_time_min: 63.2

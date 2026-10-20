@@ -1,0 +1,143 @@
+title: CSCM KUSTZWEM-TRAJECTPROFIEL v3
+route: "Bredene Post 4 \u2794 Vosseslag \u2794 Bredene Post 4 (6.0 km Heen-en-Terug)"
+start_time: 10:00 CEST
+checkpoints:
+- idx: 0
+  km_tot: '0.00'
+  label: 0.00 km
+  name: Bredene Post 4
+  s_km: 0.0
+  leg: out
+  x: 210
+- idx: 1
+  km_tot: '0.75'
+  label: 0.75 km
+  name: Renbaan (P6)
+  s_km: 0.75
+  leg: out
+  x: 325
+- idx: 2
+  km_tot: '1.50'
+  label: 1.50 km
+  name: Duinengordel
+  s_km: 1.5
+  leg: out
+  x: 440
+- idx: 3
+  km_tot: '2.25'
+  label: 2.25 km
+  name: Naaktstrand
+  s_km: 2.25
+  leg: out
+  x: 555
+- idx: 4
+  km_tot: '3.00'
+  label: 3.00 km
+  name: Vosseslag (Aankomst)
+  s_km: 3.0
+  leg: out_turn
+  x: 670
+- idx: 5
+  km_tot: '3.00'
+  label: 3.00 km
+  name: Vosseslag (Vertrek)
+  s_km: 3.0
+  leg: ret_turn
+  x: 750
+- idx: 6
+  km_tot: '3.75'
+  label: 3.75 km
+  name: Naaktstrand
+  s_km: 2.25
+  leg: ret
+  x: 865
+- idx: 7
+  km_tot: '4.50'
+  label: 4.50 km
+  name: Duinengordel
+  s_km: 1.5
+  leg: ret
+  x: 980
+- idx: 8
+  km_tot: '5.25'
+  label: 5.25 km
+  name: Renbaan (P6)
+  s_km: 0.75
+  leg: ret
+  x: 1095
+- idx: 9
+  km_tot: '6.00'
+  label: 6.00 km
+  name: Bredene Post 4 (Finish)
+  s_km: 0.0
+  leg: ret
+  x: 1210
+nominal_schedule:
+- km: 0.00 km
+  name: Bredene Post 4
+  time: '10:00'
+- km: 0.75 km
+  name: Renbaan (P6)
+  time: '10:07'
+- km: 1.50 km
+  name: Duinengordel
+  time: '10:14'
+- km: 2.25 km
+  name: Naaktstrand
+  time: '10:21'
+- km: 3.00 km
+  name: Vosseslag (Aankomst)
+  time: '10:29'
+- km: 3.00 km
+  name: Vosseslag (Vertrek)
+  time: '10:29'
+- km: 3.75 km
+  name: Naaktstrand
+  time: '11:10'
+- km: 4.50 km
+  name: Duinengordel
+  time: '11:34'
+- km: 5.25 km
+  name: Renbaan (P6)
+  time: '11:53'
+- km: 6.00 km
+  name: Bredene Post 4 (Finish)
+  time: '12:09'
+speeds_analyzed:
+- 0.6
+- 0.7
+- 0.8
+- 0.9
+- 1.0
+- 1.1
+- 1.2
+- 1.3
+- 1.4
+first_step_breakdown:
+  distance_m: 750.0
+  v_swimmer_mps: 1.0
+  u_current_mps: !!python/object/apply:numpy._core.multiarray.scalar
+  - &id001 !!python/object/apply:numpy.dtype
+    args:
+    - f8
+    - false
+    - true
+    state: !!python/tuple
+    - 3
+    - <
+    - null
+    - null
+    - null
+    - -1
+    - -1
+    - 0
+  - !!binary |
+    UrgehetR6D8=
+  swimmer_share_pct: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    ZmZmZmZmTEA=
+  current_share_pct: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    mpmZmZmZRUA=

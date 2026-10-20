@@ -1,0 +1,158 @@
+title: CSCM KUSTZWEM-TRAJECTPROFIEL v2
+route: "Bredene Post 4 \u2794 Vosseslag \u2794 Bredene Post 4 (6.0 km Heen-en-Terug)"
+start_time: 10:00 CEST
+checkpoints:
+- idx: 0
+  km_tot: 0.0k
+  km_leg: 0.0k
+  name: Post 4 (Start)
+  post: P4
+  x: 170
+  leg: out
+  landmark: Droogen Opganck
+- idx: 1
+  km_tot: 0.75k
+  km_leg: 0.75k
+  name: Post 3
+  post: P3
+  x: 295
+  leg: out
+  landmark: Duinengordel
+- idx: 2
+  km_tot: 1.50k
+  km_leg: 1.50k
+  name: Post 2
+  post: P2
+  x: 420
+  leg: out
+  landmark: Centrum Strand
+- idx: 3
+  km_tot: 2.25k
+  km_leg: 2.25k
+  name: Post 1
+  post: P1
+  x: 545
+  leg: out
+  landmark: Duinenreservaat
+- idx: 4
+  km_tot: 3.00k
+  km_leg: 3.00k
+  name: Vosseslag (Keer)
+  post: VS
+  x: 670
+  leg: turn
+  landmark: Strandhoofd Vosseslag
+- idx: 5
+  km_tot: 3.75k
+  km_leg: 2.25k
+  name: Post 1 (Terug)
+  post: P1
+  x: 795
+  leg: ret
+  landmark: Duinenreservaat
+- idx: 6
+  km_tot: 4.50k
+  km_leg: 1.50k
+  name: Post 2 (Terug)
+  post: P2
+  x: 920
+  leg: ret
+  landmark: Centrum Strand
+- idx: 7
+  km_tot: 5.25k
+  km_leg: 0.75k
+  name: Post 3 (Terug)
+  post: P3
+  x: 1045
+  leg: ret
+  landmark: Duinengordel
+- idx: 8
+  km_tot: 6.00k
+  km_leg: 0.0k
+  name: Post 4 (Finish)
+  post: P4
+  x: 1170
+  leg: ret
+  landmark: Droogen Opganck
+scenarios:
+- speed: 1.4
+  label: 1.4 m/s (Snelle Atleet)
+  color: '#0284c7'
+  times:
+  - '10:00'
+  - '10:09'
+  - '10:18'
+  - '10:27'
+  - '10:36'
+  - '10:45'
+  - '10:54'
+  - '11:02'
+  - '11:11'
+- speed: 1.2
+  label: 1.2 m/s (Vlot Tempo)
+  color: '#38bdf8'
+  times:
+  - '10:00'
+  - '10:10'
+  - '10:21'
+  - '10:31'
+  - '10:42'
+  - '10:52'
+  - '11:02'
+  - '11:13'
+  - '11:23'
+- speed: 1.0
+  label: 1.0 m/s (Referentiezwemmer)
+  color: '#16a34a'
+  times:
+  - '10:00'
+  - '10:12'
+  - '10:25'
+  - '10:38'
+  - '10:50'
+  - '11:02'
+  - '11:15'
+  - '11:28'
+  - '11:40'
+- speed: 0.8
+  label: 0.8 m/s (Recreatief Tempo)
+  color: '#f59e0b'
+  times:
+  - '10:00'
+  - '10:16'
+  - '10:31'
+  - '10:47'
+  - '11:02'
+  - '11:18'
+  - '11:34'
+  - '11:49'
+  - '12:05'
+- speed: 0.6
+  label: 0.6 m/s (Rustige Schoolslag)
+  color: '#ea580c'
+  times:
+  - '10:00'
+  - '10:21'
+  - '10:42'
+  - '11:02'
+  - '11:23'
+  - '11:44'
+  - '12:05'
+  - '12:26'
+  - '12:47'
+water_levels:
+  start:
+    station: Bredene Post 4
+    time: 10:00 CEST
+    level_m_taw: 4.55
+    phase: Vloed / Stijgend (HW - 50m)
+  turn:
+    station: Vosseslag
+    time: 10:50 CEST
+    level_m_taw: 4.95
+    phase: Hoogwater / Kentering (HW)
+  finish:
+    station: Bredene Post 4
+    time: 11:40 CEST
+    level_m_taw: 4.58
+    phase: Eb / Vallend water (HW + 50m)

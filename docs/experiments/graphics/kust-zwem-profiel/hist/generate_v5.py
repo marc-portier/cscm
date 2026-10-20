@@ -436,14 +436,14 @@ def generate_profile():
     svg.append(f'  <g id="banner_out" transform="translate(45, 80)">')
     svg.append(f'    <rect x="0" y="0" width="{w_out}" height="32" rx="6" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.2"/>')
     svg.append('    <text x="14" y="21" font-size="11.5" font-weight="800" fill="#0369a1">--&gt; ZWEMRICHTING OOST [NL]</text>')
-    svg.append(f'    <text x="{w_out - 14}" y="21" font-size="11" font-weight="800" fill="#0284c7" text-anchor="end">RECHTS = MEESTROOM (VLOED --&gt;)</text>')
+    svg.append(f'    <text x="{w_out - 14}" y="21" font-size="11" font-weight="800" fill="#0284c7" text-anchor="end">RECHTS = MEESTROOM (VLOEDSTROOM --&gt;)</text>')
     svg.append('  </g>')
 
     w_ret = 1370 - (x_mid_turn + 12)
     svg.append(f'  <g id="banner_ret" transform="translate({x_mid_turn + 12}, 80)">')
     svg.append(f'    <rect x="0" y="0" width="{w_ret}" height="32" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>')
     svg.append('    <text x="14" y="21" font-size="11.5" font-weight="800" fill="#334155">&lt;-- ZWEMRICHTING WEST [FR]</text>')
-    svg.append(f'    <text x="{w_ret - 14}" y="21" font-size="11" font-weight="800" fill="#4338ca" text-anchor="end">RECHTS = MEESTROOM (EB --&gt;)</text>')
+    svg.append(f'    <text x="{w_ret - 14}" y="21" font-size="11" font-weight="800" fill="#4338ca" text-anchor="end">RECHTS = MEESTROOM (EBSTROOM --&gt;)</text>')
     svg.append('  </g>')
 
     # 4. Turnaround Corridor Milestone ("Niemandsland" between x_coords[4] and x_coords[5])
@@ -631,8 +631,8 @@ def generate_profile():
     y_ribbon = 818.0
     w_box = 115.0
     h_box = 48.0
-    w_track = 100.0
-    scale_bar = w_track / 750.0
+    w_track = 75.0
+    scale_bar = w_track / 750.0  # 0.10 px per meter
 
     for k, leg_info in enumerate(legs_ref):
         if k < 4:
@@ -661,39 +661,43 @@ def generate_profile():
         dt_min = leg_info["dt_min"]
         is_flood = leg_info["is_flood"]
 
-        # Track base
-        x_trk = (w_box - w_track) / 2.0
+        # Track geometry (x_tick is always at exact 750m target distance)
+        x_trk = 12.0
         y_trk = 7.0
         h_trk = 11.0
-        svg.append(f'      <rect x="{x_trk:.1f}" y="{y_trk}" width="{w_track}" height="{h_trk}" rx="2" fill="#e2e8f0"/>')
+        x_tick = x_trk + w_track  # 12.0 + 75.0 = 87.0 px
 
         # Current color: Flood is BLUE (#0284c7), Ebb is PURPLE (#4338ca)
         cur_col = "#0284c7" if is_flood else "#4338ca"
 
         if d_u >= 0:
-            # Tailwind (Meestroom): Swimmer covers Dw < 750m, current bridges to 750m
+            # Tailwind (Meestroom): Swimmer covers Dw < 750m, current bridges to 750m tick
             w_w = d_w * scale_bar
             w_u = d_u * scale_bar
+            svg.append(f'      <rect x="{x_trk:.1f}" y="{y_trk}" width="{w_track}" height="{h_trk}" rx="2" fill="#e2e8f0"/>')
             svg.append(f'      <rect x="{x_trk:.1f}" y="{y_trk}" width="{w_w:.1f}" height="{h_trk}" rx="2" fill="#16a34a"/>')
             svg.append(f'      <rect x="{x_trk + w_w:.1f}" y="{y_trk}" width="{w_u:.1f}" height="{h_trk}" rx="2" fill="{cur_col}"/>')
             if k >= 4:
                 svg.append(f'      <rect x="{x_trk + w_w:.1f}" y="{y_trk}" width="{w_u:.1f}" height="{h_trk}" rx="2" fill="url(#whiteCrossHatch)"/>')
             cur_str = f"+{int(round(d_u))}m"
         else:
-            # Headwind (Tegenstroom, Leg 5): Swimmer covers Dw > 750m, opposing current subtracts back to 750m tick!
-            w_w = min(108.0, d_w * scale_bar)
-            w_u = max(6.0, abs(d_u) * scale_bar)
+            # Headwind (Tegenstroom, Leg 5): Swimmer covers Dw > 750m (916m), current pushes back by 166m!
+            w_w = d_w * scale_bar         # 91.6 px (916m through water)
+            w_u = abs(d_u) * scale_bar    # 16.6 px (166m current push)
+            # Track base covers full swimmer reach (916m)
+            svg.append(f'      <rect x="{x_trk:.1f}" y="{y_trk}" width="{w_w:.1f}" height="{h_trk}" rx="2" fill="#e2e8f0"/>')
+            # Full green bar representing 916m
             svg.append(f'      <rect x="{x_trk:.1f}" y="{y_trk}" width="{w_w:.1f}" height="{h_trk}" rx="2" fill="#16a34a"/>')
-            # Opposing current bar pushing back from w_w to 100px
-            x_opp = max(x_trk, x_trk + w_w - w_u)
-            svg.append(f'      <rect x="{x_opp:.1f}" y="{y_trk}" width="{w_u:.1f}" height="{h_trk}" rx="2" fill="{cur_col}"/>')
+            # Opposing current bar: 166m wide, starting at 750m tick and extending to 916m
+            svg.append(f'      <rect x="{x_tick:.1f}" y="{y_trk}" width="{w_u:.1f}" height="{h_trk}" rx="2" fill="{cur_col}" fill-opacity="0.55"/>')
             if k >= 4:
-                svg.append(f'      <rect x="{x_opp:.1f}" y="{y_trk}" width="{w_u:.1f}" height="{h_trk}" rx="2" fill="url(#whiteCrossHatch)"/>')
+                svg.append(f'      <rect x="{x_tick:.1f}" y="{y_trk}" width="{w_u:.1f}" height="{h_trk}" rx="2" fill="url(#whiteCrossHatch)"/>')
+            # Leftward white arrow showing opposing current pushing back to 750m
+            svg.append(f'      <polygon points="{x_tick + w_u - 2:.1f},{y_trk + 2.5} {x_tick + 2:.1f},{y_trk + 5.5} {x_tick + w_u - 2:.1f},{y_trk + 8.5}" fill="#ffffff" opacity="0.95"/>')
             cur_str = f"{int(round(d_u))}m"
 
-        # Explicit black tick mark at EXACT 750m (target distance)
-        x_tick = x_trk + w_track
-        svg.append(f'      <line x1="{x_tick:.1f}" y1="{y_trk - 2}" x2="{x_tick:.1f}" y2="{y_trk + h_trk + 2}" stroke="#0f172a" stroke-width="1.8"/>')
+        # Explicit black tick mark at EXACT 750m (target distance, inside green bar on headwind leg)
+        svg.append(f'      <line x1="{x_tick:.1f}" y1="{y_trk - 3}" x2="{x_tick:.1f}" y2="{y_trk + h_trk + 3}" stroke="#0f172a" stroke-width="2.0"/>')
 
         # Numerical label row 1: distance breakdown
         svg.append(f'      <text x="{w_box/2:.1f}" y="29" font-family="monospace" font-size="8.5" font-weight="800" text-anchor="middle"><tspan fill="#16a34a">{int(round(d_w))}m</tspan> <tspan fill="{cur_col}">{cur_str}</tspan></text>')
@@ -729,31 +733,32 @@ def generate_profile():
     svg.append('      <text x="30" y="10" font-size="10" font-weight="800" fill="#0f172a">Starttijd-venster: <tspan font-weight="600" fill="#64748b">±30 min marge</tspan></text>')
     svg.append('    </g>')
 
-    # Item 3: Getijdestroming (All 4 physical cases clearly distinguished)
-    svg.append('    <g transform="translate(610, 16)">')
+    # Item 3: Getijdestroming (Vloedstroom & Ebstroom)
+    svg.append('    <g transform="translate(560, 16)">')
     # Vloedstroom
-    svg.append('      <text x="0" y="10" font-size="10" font-weight="900" fill="#0284c7">Vloed:</text>')
-    svg.append('      <text x="38" y="10" font-size="9.5" font-weight="700" fill="#64748b">heen</text>')
-    svg.append('      <rect x="66" y="2" width="12" height="10" rx="2" fill="#0284c7"/>')
-    svg.append('      <text x="86" y="10" font-size="9.5" font-weight="700" fill="#64748b">terug</text>')
-    svg.append('      <rect x="118" y="2" width="14" height="10" rx="2" fill="#0284c7"/>')
-    svg.append('      <rect x="118" y="2" width="14" height="10" rx="2" fill="url(#whiteCrossHatch)"/>')
+    svg.append('      <text x="0" y="10" font-size="10.5" font-weight="900" fill="#0284c7">Vloedstroom:</text>')
+    svg.append('      <text x="75" y="10" font-size="9.5" font-weight="700" fill="#64748b">heen</text>')
+    svg.append('      <rect x="102" y="2" width="12" height="10" rx="2" fill="#0284c7"/>')
+    svg.append('      <text x="122" y="10" font-size="9.5" font-weight="700" fill="#64748b">terug</text>')
+    svg.append('      <rect x="154" y="2" width="14" height="10" rx="2" fill="#0284c7"/>')
+    svg.append('      <rect x="154" y="2" width="14" height="10" rx="2" fill="url(#whiteCrossHatch)"/>')
 
     # Ebstroom
-    svg.append('      <text x="150" y="10" font-size="10" font-weight="900" fill="#4338ca">Eb:</text>')
-    svg.append('      <text x="174" y="10" font-size="9.5" font-weight="700" fill="#64748b">heen</text>')
-    svg.append('      <rect x="202" y="2" width="12" height="10" rx="2" fill="#4338ca"/>')
-    svg.append('      <text x="222" y="10" font-size="9.5" font-weight="700" fill="#64748b">terug</text>')
-    svg.append('      <rect x="254" y="2" width="14" height="10" rx="2" fill="#4338ca"/>')
-    svg.append('      <rect x="254" y="2" width="14" height="10" rx="2" fill="url(#whiteCrossHatch)"/>')
+    svg.append('      <text x="195" y="10" font-size="10.5" font-weight="900" fill="#4338ca">Ebstroom:</text>')
+    svg.append('      <text x="256" y="10" font-size="9.5" font-weight="700" fill="#64748b">heen</text>')
+    svg.append('      <rect x="283" y="2" width="12" height="10" rx="2" fill="#4338ca"/>')
+    svg.append('      <text x="303" y="10" font-size="9.5" font-weight="700" fill="#64748b">terug</text>')
+    svg.append('      <rect x="335" y="2" width="14" height="10" rx="2" fill="#4338ca"/>')
+    svg.append('      <rect x="335" y="2" width="14" height="10" rx="2" fill="url(#whiteCrossHatch)"/>')
     svg.append('    </g>')
 
     # Item 4: Isochronen
-    svg.append('    <g transform="translate(1040, 16)">')
+    svg.append('    <g transform="translate(980, 16)">')
     svg.append('      <line x1="0" y1="7" x2="24" y2="7" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,3"/>')
     svg.append('      <text x="32" y="10" font-size="10" font-weight="800" fill="#0f172a">Isochronen: <tspan font-weight="600" fill="#64748b">Lijnen gelijke tijd (10\')</tspan></text>')
     svg.append('    </g>')
     svg.append('  </g>')
+
 
     # 13. Clean Footer
     svg.append('  <!-- ================= FOOTER ================= -->')

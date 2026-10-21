@@ -53,6 +53,13 @@ def main() -> None:
         description="CSCM CMEMS Data Retriever and Tide Analyzer Module."
     )
     parser.add_argument(
+        "action",
+        nargs="?",
+        default="run",
+        choices=["run", "status"],
+        help="Action to perform: 'run' (default: retrieve and analyze) or 'status' (inspect storage catalog)."
+    )
+    parser.add_argument(
         "--skip-update",
         action="store_true",
         help="Skip CMEMS database download update."
@@ -100,11 +107,27 @@ def main() -> None:
     )
 
     # Delay heavy imports so dotenv is loaded and logger is configured first
-    from cscm.current.cmems.retrieve import CMEMSDataManager
+    from cscm.current.cmems.retrieve import CmemsCurrentManager
     from cscm.current.cmems.analyse import process_catalog
     from cscm.wellknown import POSITIONS as wk_positions
 
-    cmems_data_manager = CMEMSDataManager()
+    cmems_data_manager = CmemsCurrentManager()
+
+    if args.action == "status":
+        st = cmems_data_manager.status()
+        print("\n" + "=" * 50)
+        print("CSCM CMEMS Current Data Store Status")
+        print("=" * 50)
+        print(f"Data folder:     {st['data_folder']}")
+        print(f"Catalog file:    {st['catalog_path']}")
+        print(f"Entries count:   {st['total_entries']}")
+        print(f"Total size:      {st['total_size_bytes'] / (1024 * 1024):.2f} MB")
+        print(f"Earliest data:   {st['earliest_dt']}")
+        print(f"Latest data:     {st['latest_dt']}")
+        print(f"Forecast files:  {st['forecast_entries']}")
+        print(f"Stale forecasts: {st['stale_forecast_entries']}")
+        print("=" * 50 + "\n")
+        return
 
     # Handle cleaning logic if requested
     if args.clean != "none":

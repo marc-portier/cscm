@@ -114,3 +114,44 @@ def test_get_interpolated_curve_mocked():
     expected_ts = pd.Timestamp("2026-10-15 12:07:00+00:00")
     assert df["timestamp"].iloc[0] == expected_ts
     assert df["target_offset_min"].iloc[0] == 7.0
+
+
+def test_hic_tide_manager_caching_and_catalog(tmp_path):
+    """Verify that HicTideManager stores data and registers entries in catalog.json."""
+    from cscm.tide.be.hic import HicTideManager
+
+    mock_client = MagicMock(spec=HicClient)
+    ost_station = HIC_COASTAL_STATIONS["OST"]
+    mock_client.get_station.return_value = ost_station
+
+    dummy_df = pd.DataFrame({
+        "timestamp": [
+            pd.Timestamp("2026-10-21 00:00:00+00:00"),
+            pd.Timestamp("2026-10-21 01:00:00+00:00"),
+        ],
+        "water_level_m_taw": [4.2, 3.8],
+        "station": ["OST", "OST"],
+        "source": ["forecast", "forecast"],
+    })
+    mock_client.get_water_levels.return_value = dummy_df
+
+    manager = HicTideManager(data_folder=tmp_path, client=mock_client)
+    t0 = datetime(2026, 10, 21, 0, 0, tzinfo=timezone.utc)
+    t1 = datetime(2026, 10, 21, 1, 0, tzinfo=timezone.utc)
+
+    # First call: should query client and write to disk + catalog
+    df1 = manager.get_water_levels("OST", t0, t1, source="forecast")
+    assert len(df1) == 2
+    mock_client.get_water_levels.assert_called_once()
+    assert manager.catalog_path.exists()
+
+    catalog = manager.get_catalog(force_reload=True)
+    assert len(catalog) == 1
+    assert catalog[0].metadata["station"] == "OST"
+    assert catalog[0].is_forecast is True
+
+    # Second call for the same interval: should hit cache without calling client again!
+    mock_client.get_water_levels.reset_mock()
+    df2 = manager.get_water_levels("OST", t0, t1, source="forecast")
+    assert len(df2) == 2
+    mock_client.get_water_levels.assert_not_called()

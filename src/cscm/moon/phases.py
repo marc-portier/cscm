@@ -1,12 +1,11 @@
-# src/cscm/moon/phases.py
-
-from skyfield import almanac
-from skyfield.api import load
 from datetime import datetime
+from skyfield import almanac
+from cscm.moon.manager import MoonDataManager
 
-# 1. Laad de astronomische data van NASA (JPL ephemeris)
-eph = load('de421.bsp')
-ts = load.timescale()
+# 1. Laad de astronomische data van NASA (JPL ephemeris) via MoonDataManager
+_moon_manager = MoonDataManager()
+eph = _moon_manager.get_ephemeris('de421.bsp')
+ts = _moon_manager.get_timescale()
 phases = [
     ("new moon", 0),
     ("1st qrtr", 90),

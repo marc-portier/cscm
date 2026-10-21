@@ -26,8 +26,19 @@ This project thrives on rapid, iterative co-design between Marc (human domain ex
 
 ---
 
-## 3. Dynamic Workflow Selection
+### 3. Asynchronous Inline Code Annotations & Review Markers (`# REVIEW:`)
+* **Context**: Ideal during code reviews, architectural audits, and pair-programming iterations where the user navigates the codebase directly in the IDE and annotates specific lines without modal interruptions.
+* **Protocol**:
+  * **User Annotations**: The user places `# REVIEW: <question, suggestion, critique>` directly above or on the relevant code lines.
+  * **File Completion Marker**: When a file review is complete, the user marks the end of the file with `# REVIEW: done` (or `# REVIEW: ready`).
+  * **Agent Sweep & Refactor**: The agent searches for all `# REVIEW:` tags (`grep_search`), synthesizes the feedback, implements the refactorings, removes the resolved markers, and validates with automated tests.
+  * **Persistence**: Architectural changes or trade-offs stemming from the review are captured in the relevant documentation or sub-plans.
+
+---
+
+## 4. Dynamic Workflow Selection
 The agent and user should mutually select the most effective mode for the challenge at hand:
 * **Deep Code Refactoring / Implementation**: Focused autonomous sprints with automated test validation.
 * **Architecture & Data Contract Design**: Guided Q&A dialogue followed by formal markdown sub-plans.
+* **Interactive Code Review**: Asynchronous `# REVIEW:` marker sweeps across files in IDE.
 * **Graphic & UX Ideation**: reMarkable sketch ingestion coupled with fast, iterative SVG/PNG visual verification.

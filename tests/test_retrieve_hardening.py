@@ -13,7 +13,7 @@ from cscm.moon.phases import get_newmoon_cycles
 from cscm.current.cmems.retrieve import (
     _cmems_start_date,
     _cmems_end_date,
-    CMEMSDataManager,
+    CmemsCurrentManager,
 )
 from cscm.simulation.__main__ import get_latest_forecast_nc
 
@@ -41,7 +41,7 @@ class TestCMEMSRetrieveHardening(unittest.TestCase):
     def test_historic_complete_saturation(self):
         """Verify that a cycle that has reached its trailing 5-day cap is marked complete."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            manager = CMEMSDataManager(storage_folder=Path(tmpdir))
+            manager = CmemsCurrentManager(storage_folder=Path(tmpdir))
 
             # Simulate a cycle: 2026-08-12 to 2026-09-11
             nwmn_start = datetime(2026, 8, 12, 17, 36, tzinfo=timezone.utc)
@@ -77,7 +77,7 @@ class TestCMEMSRetrieveHardening(unittest.TestCase):
         """Verify that when a download fails during update_cmems_data, existing files are NOT deleted."""
         with tempfile.TemporaryDirectory() as tmpdir:
             storage_path = Path(tmpdir)
-            manager = CMEMSDataManager(storage_folder=storage_path)
+            manager = CmemsCurrentManager(storage_folder=storage_path)
 
             # Create existing data and metadata files
             existing_nc = storage_path / "cmems_cycle.nc"
@@ -125,7 +125,7 @@ class TestCMEMSRetrieveHardening(unittest.TestCase):
         """Verify _download_cmems_data retries on transient errors and succeeds."""
         with tempfile.TemporaryDirectory() as tmpdir:
             storage_path = Path(tmpdir)
-            manager = CMEMSDataManager(storage_folder=storage_path)
+            manager = CmemsCurrentManager(storage_folder=storage_path)
 
             mock_response = MagicMock()
             mock_response.file_path = str(storage_path / ".staging" / "test.nc")

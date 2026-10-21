@@ -17,6 +17,8 @@ from dotenv import load_dotenv
 import pandas as pd
 import requests
 
+from cscm.storage.base import AbstractDataStoreManager, CatalogEntry
+
 logger = logging.getLogger(__name__)
 
 MDK_BASE_URL = "https://api.meetnetvlaamsebanken.be"
@@ -368,3 +370,118 @@ class MdkClient:
         pivot_col = "station_name" if use_names else "station_code"
         pivoted = df.pivot(index="timestamp", columns=pivot_col, values=val_col)
         return pivoted
+
+
+class MdkTideManager(AbstractDataStoreManager):
+    """
+    Manages local caching and retrieval of Meetnet Vlaamse Banken (MDK) tidal sensor data.
+    Indexes cached intervals in catalog.json.
+    """
+    env_var_name = "MDK_DATA_FOLDER"
+    default_subfolder_name = "data_store"
+
+    def __init__(
+        self,
+        data_folder: Optional[Union[str, Path]] = None,
+        client: Optional[MdkClient] = None,
+    ):
+        super().__init__(data_folder=data_folder)
+        self.client = client or MdkClient()
+
+    def retrieve(
+        self,
+        stations: Optional[List[str]] = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        force: bool = False,
+        **kwargs,
+    ) -> Path:
+        """Fetch water levels from MDK and save to CSV in data_store."""
+        now_utc = datetime.now(timezone.utc)
+        if start_time is None:
+            start_time = now_utc - timedelta(hours=24)
+        if end_time is None:
+            end_time = now_utc
+
+        if start_time.tzinfo is None:
+            start_time = start_time.replace(tzinfo=timezone.utc)
+        if end_time.tzinfo is None:
+            end_time = end_time.replace(tzinfo=timezone.utc)
+
+        target_stations = stations or ["OST"]
+        # Map OHM synonym to OST or keep original
+        canonical_stations = ["OHM" if s == "OST" else s for s in target_stations]
+
+        df = self.client.get_water_levels(
+            stations=canonical_stations,
+            start_time=start_time,
+            end_time=end_time,
+            in_meters=True,
+        )
+
+        st_tag = "_".join(sorted(target_stations)).lower()
+        s_str = start_time.strftime("%Y%m%d%H%M")
+        e_str = end_time.strftime("%Y%m%d%H%M")
+        file_name = f"mdk_{st_tag}_{s_str}_{e_str}.csv"
+        out_path = self.data_folder / file_name
+        df.to_csv(out_path, index=False)
+
+        file_hash = self.compute_file_hash(out_path)
+        entry = CatalogEntry(
+            file_name=file_name,
+            start_dt=start_time,
+            end_dt=end_time,
+            is_forecast=False,
+            file_hash=file_hash,
+            metadata={
+                "stations": target_stations,
+                "provider": "mdk",
+                "rows": len(df),
+            },
+        )
+        self.register_entry(entry)
+        return out_path
+
+    def get_water_levels(
+        self,
+        stations: Optional[List[str]] = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        force: bool = False,
+    ) -> pd.DataFrame:
+        """Get water levels consulting local cache first."""
+        target_stations = [s.upper() for s in (stations or ["OST"])]
+        now_utc = datetime.now(timezone.utc)
+        if start_time is None:
+            start_time = now_utc - timedelta(hours=24)
+        if end_time is None:
+            end_time = now_utc
+
+        if not force:
+            catalog = self.get_catalog()
+            for entry in catalog:
+                entry_sts = entry.metadata.get("stations", [])
+                if set(target_stations).issubset(set(entry_sts)) and entry.covers(start_time, end_time):
+                    file_path = self.data_folder / entry.file_name
+                    if file_path.exists():
+                        df = pd.read_csv(file_path)
+                        df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
+                        mask = (df["timestamp"] >= start_time) & (df["timestamp"] <= end_time)
+                        return df[mask].sort_values("timestamp").reset_index(drop=True)
+
+        csv_file = self.retrieve(stations=target_stations, start_time=start_time, end_time=end_time, force=force)
+        df = pd.read_csv(csv_file)
+        df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
+        mask = (df["timestamp"] >= start_time) & (df["timestamp"] <= end_time)
+        return df[mask].sort_values("timestamp").reset_index(drop=True)
+
+    def inspect(self) -> Dict[str, Any]:
+        """Returns architectural inspection metadata for MDK data store manager."""
+        return {
+            "manager": self.__class__.__name__,
+            "data_folder": str(self.data_folder),
+            "catalog_path": str(self.catalog_path),
+            "time_delimitation": "Historical sensor observation chunking indexed in catalog.json",
+            "supported_stations": sorted(list(COASTAL_TIDE_STATIONS.keys())),
+            "storage_status": self.status(),
+        }

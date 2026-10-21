@@ -1,6 +1,7 @@
 from cscm.moon.phases import get_newmoon_cycles, Mooncycle
+from cscm.storage.base import AbstractDataStoreManager, CatalogEntry
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Optional, Union, List, Dict, Any
 from pathlib import Path
 import os
 import json
@@ -93,7 +94,10 @@ def _cmems_geo_extent() -> GeoExtent:
         return (-180.0, 180.0, -90.0, 90.0)
 
 
-class CMEMSDataManager:
+class CmemsCurrentManager(AbstractDataStoreManager):
+    env_var_name = "CMEMS_DATA_FOLDER"
+    default_subfolder_name = "data_store"
+
     COLUMNS = [
         "data_start_dt",
         "data_end_dt",
@@ -111,34 +115,101 @@ class CMEMSDataManager:
     ]
     """
     Manages the retrieval and storage of Copernicus CMEMS data.
-    Maintains an internal catalog of downloaded data to avoid re-downloading.
-    Provides methods to download data for specific moon cycles and update the local storage based on new moon cycles.
+    Maintains a standardized catalog.json manifest as well as per-cycle metadata files.
+    Provides methods to download data for specific moon cycles and update the local storage.
     """
-    def __init__(self, *, storage_folder: Path = None):
-        self.storage_folder = storage_folder or _cmems_storage_folder()
+    def __init__(
+            self,
+            data_folder: Optional[Union[str, Path]] = None,
+            *,
+            storage_folder: Optional[Path] = None):
+        target_folder = data_folder or storage_folder
+        super().__init__(data_folder=target_folder)
+        # Backward-compatible attribute alias
+        self.storage_folder: Path = self.data_folder
         self.geo_extent: GeoExtent = _cmems_geo_extent()
+        self.catalog: pd.DataFrame = pd.DataFrame(columns=CmemsCurrentManager.COLUMNS)
         self.init_catalog()
 
     def init_catalog(self) -> None:
-        # Initialize the catalog of downloaded data
-        # glob over the storage folder and read metadata files to build the catalog
-        self.catalog: pd.DataFrame = None
-        all_md_json: list = []
-        for metadata_file in self.storage_folder.glob("*.json"):
-            # Skip any analysis JSON files (_analysis.json)
-            if metadata_file.name.endswith("_analysis.json"):
-                continue
-            # read metadata file and append to catalog
-            try:
-                with open(metadata_file, "r") as f:
-                    md_json = json.load(f)
-                all_md_json.append(md_json)
-            except Exception as e:
-                log.warning(f"Could not read metadata file {metadata_file}: {e}")
+        """
+        Initializes the catalog of downloaded CMEMS data.
+        Syncs existing legacy per-cycle *.json files into the unified catalog.json,
+        and maintains self.catalog (DataFrame) for backward-compatible operations.
+        """
+        entries = self.get_catalog(force_reload=True)
 
-        self.catalog = pd.DataFrame(all_md_json, columns=CMEMSDataManager.COLUMNS)
+        # Check if legacy metadata files exist that should be imported
+        legacy_files = [
+            f for f in self.storage_folder.glob("*.json")
+            if not f.name.endswith("_analysis.json") and f.name != "catalog.json"
+        ]
+
+        if not entries and legacy_files:
+            # Migrate legacy individual JSONs into CatalogEntries
+            for mf in legacy_files:
+                try:
+                    with open(mf, "r") as f:
+                        md = json.load(f)
+                    data_file_path = Path(md["data_file"])
+                    start_dt = datetime.fromisoformat(md["data_start_dt"])
+                    end_dt = datetime.fromisoformat(md["data_end_dt"])
+                    is_forecast = not bool(md.get("historic_complete", False))
+                    entry = CatalogEntry(
+                        file_name=data_file_path.name,
+                        start_dt=start_dt,
+                        end_dt=end_dt,
+                        is_forecast=is_forecast,
+                        metadata={
+                            "nwmn_start_dt": md.get("nwmn_start_dt"),
+                            "nwmn_end_dt": md.get("nwmn_end_dt"),
+                            "lunarperiod_d": md.get("lunarperiod_d"),
+                            "tidalperiod_h": md.get("tidalperiod_h"),
+                            "historic_complete": md.get("historic_complete", False),
+                            "data_variables": md.get("data_variables", "uo, vo"),
+                            "data_geo_extent": md.get("data_geo_extent"),
+                            "data_status": md.get("data_status"),
+                            "metadata_file": str(mf),
+                        }
+                    )
+                    entries.append(entry)
+                except Exception as e:
+                    log.warning(f"Could not migrate legacy metadata file {mf}: {e}")
+            if entries:
+                self.save_catalog(entries)
+
+        # Build DataFrame representation for self.catalog
+        all_rows = []
+        for mf in legacy_files:
+            try:
+                with open(mf, "r") as f:
+                    all_rows.append(json.load(f))
+            except Exception as e:
+                log.warning(f"Could not read metadata file {mf}: {e}")
+
+        # If legacy files weren't present but catalog.json entries are:
+        if not all_rows and entries:
+            for e in entries:
+                row = {
+                    "data_start_dt": e.start_dt.isoformat(),
+                    "data_end_dt": e.end_dt.isoformat(),
+                    "nwmn_start_dt": e.metadata.get("nwmn_start_dt"),
+                    "nwmn_end_dt": e.metadata.get("nwmn_end_dt"),
+                    "lunarperiod_d": e.metadata.get("lunarperiod_d"),
+                    "tidalperiod_h": e.metadata.get("tidalperiod_h"),
+                    "metadata_file": e.metadata.get("metadata_file", str(self.storage_folder / f"{Path(e.file_name).stem}.json")),
+                    "data_file": str(self.storage_folder / e.file_name),
+                    "data_size": (self.storage_folder / e.file_name).stat().st_size if (self.storage_folder / e.file_name).exists() else 0,
+                    "data_variables": e.metadata.get("data_variables", "uo, vo"),
+                    "data_geo_extent": e.metadata.get("data_geo_extent", ""),
+                    "data_status": e.metadata.get("data_status", "000"),
+                    "historic_complete": e.metadata.get("historic_complete", False),
+                }
+                all_rows.append(row)
+
+        self.catalog = pd.DataFrame(all_rows, columns=CmemsCurrentManager.COLUMNS)
         if self.catalog.empty:
-            self.catalog = pd.DataFrame(columns=CMEMSDataManager.COLUMNS)
+            self.catalog = pd.DataFrame(columns=CmemsCurrentManager.COLUMNS)
 
     @staticmethod
     def _metadata_filepath(data_file: Path) -> Path:
@@ -280,7 +351,7 @@ class CMEMSDataManager:
             nwmn_end_dt=nwmn_end_dt.isoformat(),
             lunarperiod_d=mc[2],
             tidalperiod_h=mc[3],
-            metadata_file=str(CMEMSDataManager._metadata_filepath(data_file)),
+            metadata_file=str(CmemsCurrentManager._metadata_filepath(data_file)),
             data_file=str(data_file),
             data_size=cmems_meta["data_size"],
             data_variables=", ".join(cmems_meta["data_variables"]),
@@ -289,8 +360,41 @@ class CMEMSDataManager:
             historic_complete=historic_complete,
         )
         self._write_metadata_file(metadict)
-        self.catalog = pd.concat([self.catalog, pd.DataFrame([metadict], columns=CMEMSDataManager.COLUMNS)], ignore_index=True)
+        self.catalog = pd.concat([self.catalog, pd.DataFrame([metadict], columns=CmemsCurrentManager.COLUMNS)], ignore_index=True)
+
+        # Register entry into unified catalog.json
+        entry = CatalogEntry(
+            file_name=data_file.name,
+            start_dt=datetime.fromisoformat(actual_data_start_dt),
+            end_dt=datetime.fromisoformat(actual_data_end_dt),
+            is_forecast=has_future_data,
+            metadata={
+                "nwmn_start_dt": nwmn_start_dt.isoformat(),
+                "nwmn_end_dt": nwmn_end_dt.isoformat(),
+                "lunarperiod_d": mc[2],
+                "tidalperiod_h": mc[3],
+                "historic_complete": historic_complete,
+                "data_variables": metadict["data_variables"],
+                "data_geo_extent": metadict["data_geo_extent"],
+                "data_status": metadict["data_status"],
+                "metadata_file": metadict["metadata_file"],
+            }
+        )
+        self.register_entry(entry)
+
         return metadict
+
+    def retrieve(
+            self,
+            start_date: Optional[datetime] = None,
+            end_date: Optional[datetime] = None,
+            force: bool = False,
+            limit: Optional[int] = None) -> bool:
+        """
+        AbstractDataStoreManager interface method.
+        Fetch or synchronize data from Copernicus CMEMS into the local data store.
+        """
+        return self.update_cmems_data(start_date=start_date, end_date=end_date, force=force, limit=limit)
 
     def update_cmems_data(
             self,
@@ -357,6 +461,7 @@ class CMEMSDataManager:
                                 old_data_file.unlink()
                             except Exception as e:
                                 log.warning(f"Could not delete obsolete {old_data_file}: {e}")
+                            self.remove_entry(old_data_file.name)
                         if old_metadata_file and old_metadata_file.exists() and old_metadata_file.resolve() != new_metadata_file.resolve():
                             try:
                                 old_metadata_file.unlink()

@@ -417,9 +417,9 @@ poetry run python -m cscm.simulation
         data_dir = Path("/workspace/scratch")
 
     # Delay heavy imports so dotenv is loaded and logger is configured first
-    from cscm.current.cmems.retrieve import CMEMSDataManager
+    from cscm.current.cmems.retrieve import CmemsCurrentManager
 
-    cmems_data_manager = CMEMSDataManager()
+    cmems_data_manager = CmemsCurrentManager()
 
     cmems_update_ok = True
     # Automatically fetch latest updates unless update is skipped

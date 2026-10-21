@@ -21,3 +21,9 @@ All git commits and pushes are strictly executed by the human user. Antigravity/
      - Propose a clean, conventional commit message (e.g. `feat: ...`, `fix: ...`, `docs: ...`).
      - Avoid accumulating unrelated modifications across multiple tracks into a single massive uncommitted diff.
      - Help grouping and structuring over different git branches to help achieve this.
+
+3. **SemVer v0.x & Compatibility Policy**:
+   - The project is currently in active early development (`v0.x`).
+   - Backward-compatibility aliases or legacy shims (e.g. for classes, URNs, or parameters that were never part of a released version) should NOT be introduced or accumulated.
+   - Refactor internal unreleased interfaces without hesitation if it improves code clarity, modularity, or naming precision.
+   - Prioritize referential consistency across the entire codebase and keep documentation (`docs/`, `README.md`) strictly synchronized with current code.

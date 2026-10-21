@@ -7,12 +7,15 @@ and predicted tidal extremes (HW/LW) for coastal stations (Nieuwpoort, Oostende,
 """
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import logging
-from typing import Dict, List, Optional, Union
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 from pywaterinfo import Waterinfo
+
+from cscm.storage.base import AbstractDataStoreManager, CatalogEntry
 
 logger = logging.getLogger(__name__)
 
@@ -301,3 +304,132 @@ class HicClient:
         df["timestamp"] = df["timestamp"] + delta
         df["target_offset_min"] = time_offset_minutes
         return df
+
+
+class HicTideManager(AbstractDataStoreManager):
+    """
+    Manages local caching and retrieval of HIC KiWIS tidal water levels and extremes.
+    Uses catalog.json manifest to track cached intervals and prevent redundant KiWIS API hits.
+    """
+    env_var_name = "HIC_DATA_FOLDER"
+    default_subfolder_name = "data_store"
+
+    def __init__(
+        self,
+        data_folder: Optional[Union[str, Path]] = None,
+        client: Optional[HicClient] = None,
+    ):
+        super().__init__(data_folder=data_folder)
+        self.client = client or HicClient()
+
+    def retrieve(
+        self,
+        station_code: str = "OST",
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        source: str = "forecast",
+        force: bool = False,
+        **kwargs,
+    ) -> Path:
+        """
+        Fetch water level timeseries from HIC KiWIS and save to local data store.
+        Registers the downloaded interval in catalog.json.
+        """
+        station = self.client.get_station(station_code)
+        now_utc = datetime.now(timezone.utc)
+        if start_time is None:
+            start_time = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
+        if end_time is None:
+            end_time = start_time + timedelta(days=2)
+
+        df = self.client.get_water_levels(
+            station_code=station.code,
+            start_time=start_time,
+            end_time=end_time,
+            source=source,
+        )
+
+        s_str = start_time.strftime("%Y%m%d%H%M")
+        e_str = end_time.strftime("%Y%m%d%H%M")
+        file_name = f"hic_{station.code.lower()}_{source}_{s_str}_{e_str}.csv"
+        out_path = self.data_folder / file_name
+        df.to_csv(out_path, index=False)
+
+        file_hash = self.compute_file_hash(out_path)
+        is_forecast = (source == "forecast")
+
+        entry = CatalogEntry(
+            file_name=file_name,
+            start_dt=start_time,
+            end_dt=end_time,
+            is_forecast=is_forecast,
+            file_hash=file_hash,
+            metadata={
+                "station": station.code,
+                "source": source,
+                "rows": len(df),
+            },
+        )
+        self.register_entry(entry)
+        return out_path
+
+    def get_water_levels(
+        self,
+        station_code: str,
+        start_time: datetime,
+        end_time: datetime,
+        source: str = "forecast",
+        force: bool = False,
+    ) -> pd.DataFrame:
+        """
+        Get water levels, consulting local cache first.
+        """
+        station = self.client.get_station(station_code)
+        source_clean = source.strip().lower()
+
+        if not force:
+            catalog = self.get_catalog()
+            now_utc = datetime.now(timezone.utc)
+            for entry in catalog:
+                if (
+                    entry.metadata.get("station") == station.code
+                    and entry.metadata.get("source") == source_clean
+                    and entry.covers(start_time, end_time)
+                ):
+                    # For forecast, check if stale (older than 6 hours)
+                    if entry.is_forecast and (now_utc - entry.retrieved_at).total_seconds() > 3600 * 6:
+                        continue
+                    file_path = self.data_folder / entry.file_name
+                    if file_path.exists():
+                        df = pd.read_csv(file_path)
+                        df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
+                        mask = (df["timestamp"] >= start_time) & (df["timestamp"] <= end_time)
+                        return df[mask].sort_values("timestamp").reset_index(drop=True)
+
+        # Cache miss or forced reload: retrieve fresh
+        csv_file = self.retrieve(
+            station_code=station.code,
+            start_time=start_time,
+            end_time=end_time,
+            source=source_clean,
+            force=force,
+        )
+        df = pd.read_csv(csv_file)
+        df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
+        mask = (df["timestamp"] >= start_time) & (df["timestamp"] <= end_time)
+        return df[mask].sort_values("timestamp").reset_index(drop=True)
+
+    def inspect(self) -> Dict[str, Any]:
+        """
+        Returns architectural inspection metadata for this data store manager:
+        time-delimitation strategy, retention/refresh policy, and storage status.
+        """
+        return {
+            "manager": self.__class__.__name__,
+            "data_folder": str(self.data_folder),
+            "catalog_path": str(self.catalog_path),
+            "time_delimitation": "Dynamic query window chunking (start_time to end_time) saved as CSV and indexed in catalog.json",
+            "forecast_refresh_threshold_seconds": 3600 * 6,  # 6 hours
+            "supported_stations": sorted(list(HIC_COASTAL_STATIONS.keys())),
+            "storage_status": self.status(),
+        }

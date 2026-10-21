@@ -11,17 +11,21 @@ from cscm.tide.be import (
     HIC_COASTAL_STATIONS,
     HicClient,
     HicStation,
+    HicTideManager,
     InterpolatedTidePoint,
     MdkClient,
     MdkStation,
+    MdkTideManager,
 )
 
 __all__ = [
     "MdkClient",
     "MdkStation",
+    "MdkTideManager",
     "COASTAL_TIDE_STATIONS",
     "HicClient",
     "HicStation",
+    "HicTideManager",
     "HIC_COASTAL_STATIONS",
     "AlongshoreTidalModel",
     "InterpolatedTidePoint",

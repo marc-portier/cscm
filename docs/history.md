@@ -86,3 +86,19 @@ Operational cron execution on local and remote servers revealed edge cases at th
 * **The Synodic Month Lookahead (35 vs. 29 Days)**: Because the synodic lunar period is ~29.53 days, a 29-day lookahead landed several hours short of the subsequent new moon when evaluated on the day of a new moon. Because cycle generation requires adjacent new moon pairs, the system was temporarily blind to the newly started cycle. Extending the lookahead to 35 days guarantees continuous, seamless discovery across new moon boundaries.
 * **Trailing Buffer Saturation**: A cycle whose trailing margin has already fully downloaded (`data_end_dt >= nwmn_end_dt + 5 days`) is now recognized as saturated, eliminating redundant daily re-downloads of ~190 MB files whose date ranges cannot expand further.
 * **Graceful Degradation with Cached Bulletins**: If remote updates fail after retries, simulations proceed using the latest available bulletin rather than halting, tagging the email with `[CMEMS Cache]` and explicitly displaying the date of the latest available data.
+
+---
+
+### Phase 8: Universal Data Access Layer (UDAL) & Physical Storage Architecture
+As the project evolved to incorporate multiple external hydrodynamic and tidal providers (Copernicus CMEMS, Flemish HIC KiWIS, MDK sensor observations, and Skyfield astronomical ephemeris), consumer modules (simulation engines, trajectory calculators, and visualization pipelines) required a uniform, provider-agnostic access layer:
+* **Physical Storage Layer (`cscm.storage`)**:
+  - Implemented `AbstractDataStoreManager` with zero-configuration subfolder paths (`data_store/`), atomic `catalog.json` indexing, SHA-256 hash validation, and environment variable overrides (`CMEMS_DATA_FOLDER`, `TIDE_DATA_FOLDER`, `MOON_DATA_FOLDER`).
+  - Encapsulated NASA JPL planetary ephemeris (`de421.bsp`, ~17 MB) inside the managed `cscm/moon/data_store/`, eliminating root-level repository pollution.
+  - Added CLI status inspection (`python -m cscm.current.cmems status`) for fast cache inspection without importing scientific computing dependencies.
+* **Universal Data Access Layer (UDAL) (`cscm.broker`)**:
+  - Established formal semantic query contracts (`urn:cscm:query:current`, `urn:cscm:query:tide`, `urn:cscm:query:moonphase`) with shorthand alias resolution (`"current"`, `"tide"`).
+  - Built-in multi-format negotiation on every `QueryResult`: seamless export to `pandas.DataFrame`, `xarray.Dataset`, list of record dicts, or column dictionaries.
+  - Fluent `QueryBuilder` with method chaining (`broker.build("current").param(...).execute()`).
+  - **Belgian Composite Tide Brokering**: Transparently splits queries spanning past and future across `now`: historical sensor data is retrieved from MDK, future operational forecasts are retrieved from HIC KiWIS, and both segments are merged into a continuous, deduplicated timeseries.
+  - **Domain Boundary Guards**: Explicit exceptions (`GeographicOutOfDomainError`, `TemporalOutOfDomainError`, `InvalidQueryParameterError`) protect downstream science models from invalid coordinates or impossible time horizons.
+

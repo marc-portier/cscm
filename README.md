@@ -19,40 +19,52 @@ The ultimate objective of `cscm` is to solve **Zermelo's Navigation Problem** fo
 
 ---
 
-## 🏗️ Current Project State
+## 🏗️ Architecture & Modular Layers
 
-The repository is organized under a modular Python package (`cscm`):
+The repository is organized under a modular Python package (`cscm`), structured into clean architectural layers:
 
-* **`cscm/model.py`:** Core domain kinematics representing coordinates, velocity vectors, swimmers, and the abstraction interfaces for trajectory calculation and pathfinders.
-* **`cscm/moon/phases.py`:** High-precision astronomical moon phase and cycle calculations using NASA JPL ephemeris files via `skyfield`. It groups time into synodic months, establishing a baseline for the astronomical Spring/Neap tide cycle.
-* **`cscm/current/cmems/retrieve.py`:** Robust data management layer that programmatically queries and downloads 1.5 km/15-minute resolution 2D hydrodynamic current forecast data from the Copernicus Marine Service (CMEMS). Downloads are dynamically partitioned into tidal-lag-safe lunar months with asymmetric margins (+5 days on the trailing end) to guarantee coverage of boundary spring tide lags.
-* **`cscm/current/cmems/analyse.py`:** An adaptive spatial analysis engine. To operate globally across changing coastlines (from Belgium to the UK), it computes a localized Principal Component Analysis (PCA) on the velocity vectors ($U$, $V$) of *every single grid cell* over time. This automatically determines each cell's unique principal tidal flow axis, projects the 2D currents onto it, and uses linear sub-step interpolation to pinpoint exact slack water reversals and peak ebbs/floods.
-* **`cscm/wellknown.py`:** Built-in configurations for notable coordinates (Koksijde, Nieuwpoort, Kingsgate, Orford Ness, Dover) and verified swimmer profiles (cruising paces, speed jitter, and headings).
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│                      Kinematics, Routing & Simulation                  │
+│       cscm.simulation  │  cscm.model  │  docs/experiments/graphics     │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+┌───────────────────────────────────▼────────────────────────────────────┐
+│                  Universal Data Access Layer (UDAL)                    │
+│      cscm.broker: CompositeDataBroker, NamedQuery / QueryBuilder       │
+│      Semantic URIs, Format Negotiation (pandas, xarray, records, dict) │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+┌───────────────────────────────────▼────────────────────────────────────┐
+│                    Physical Storage & Caching Layer                    │
+│      cscm.storage: AbstractDataStoreManager, atomic catalog.json        │
+├─────────────────────┬───────────────────────────┬──────────────────────┤
+│ cscm.current.cmems  │       cscm.tide.be        │      cscm.moon       │
+│ Copernicus 1.5 km   │ HIC KiWIS & MDK Sensors   │ NASA JPL Ephemeris   │
+│ Current NetCDFs     │ Alongshore Phase Models   │ Moon Phases & Cycles │
+└─────────────────────┴───────────────────────────┴──────────────────────┘
+```
+
+* **Universal Data Access Layer (UDAL) (`cscm.broker`):** Decouples consumer applications from upstream data sources. Offers one-line and fluent query access (`broker.query("current", ...)`, `broker.build("tide").param(...).execute()`), automatic format negotiation (`.to_dataframe()`, `.to_xarray()`, `.to_records()`), and composite brokering (merging past sensor data from MDK with future forecasts from HIC KiWIS across `now`).
+* **Physical Storage & Caching (`cscm.storage`):** Hash-validated, offline-first local data stores with atomic `catalog.json` indexing, zero-configuration local paths, and environment variable overrides.
+* **Hydrodynamic Currents (`cscm.current.cmems`):** Programmatic ingestion and caching of Copernicus Marine (CMEMS) 1.5 km hydrodynamic forecasts, paired with adaptive spatial Principal Component Analysis (PCA) to extract localized tidal flow axes and slack water timing.
+* **Coastal Tidal Models (`cscm.tide.be`):** Flemish coastal gauge connectors (HIC KiWIS forecasts and MDK historical observations) combined with alongshore coordinate interpolation and phase propagation models.
+* **Astronomical Ephemeris (`cscm.moon`):** High-precision lunar phase and synodic cycle calculations using NASA JPL ephemeris files via `skyfield`, establishing astronomical spring/neap tidal cycle baselines.
+* **Kinematics & Routing (`cscm.model`, `cscm.simulation`, `cscm.wellknown`):** Discrete trajectory calculation combining swimmer propulsion, endurance curves, and current fields.
 
 ---
 
-## 🚀 Future Ambitions & Architecture
+## 📖 Documentation, Demos & Experiments
 
-1. **Space-Time Trajectory Search ($x, y, t$):**
-   Implement a Time-Dependent Space-Time A* (STA*) or 3D Dijkstra graph search. Because currents are primarily a function of time rather than small spatial deviations on the human scale, searching the $(latitude, longitude, epoch\_seconds)$ grid will yield mathematically optimal routing directions.
+Detailed guides and interactive previews are maintained under `docs/`:
 
-2. **Serverless Big Data Frontend:**
-   To support a fast and cost-effective web app without heavy backend servers, tidal currents will be compressed into some goespatial and cloud-optimised format (parquet or zarr). The browser could then run DuckDB-Wasm, executing extremely efficient HTTP Range Requests to query only the precise geographic cells and time slices needed for the calculation of the swim.
-
-3. **Harmonical Tidal Prediction (UTide):**
-   Integrate the Python `UTide` package to perform harmonic analysis on historical Copernicus data. By resolving the amplitude and phase of dominant tidal constituents (e.g., $M_2, S_2$), the system will be capable of predicting tidal flows years into the future without relying on live Copernicus API forecast windows.
-
-4. **Swimmer and Physiological Fatigue Decay Modeling:**
-   Develop non-linear speed decay functions. While a swimmer might maintain a steady 3.6 km/h pace ($1.0 \text{ m/s}$) for 10 km, ultra-distances spanning 24 to 40 hours trigger immense physical toll, cold exposure, and sleep deprivation. Processing historical wearable data (Garmin/Polar FIT & TCX exports) will allow us to calibrate empirical fatigue models to accurately predict the late-stage speed decay down to the $2.5 \text{ -- } 2.8 \text{ km/h}$ range.
-
-5. **Environmental impact analysis:** 
-   Use additional environmental data (wind, waves, temperature, ...) to investigate possible other meaningful impact-factors on long distance swim performance. 
-
-6. **Connect to other initiatives:** 
-
-    Some random list of gathered ideas:
-
-    * https://openwaters.io/tides/
+* **[Feature Demos & Usage Guides (`docs/demos/`)](./docs/demos/README.md):**
+  - **[Physical Storage & Data Store Managers](./docs/demos/storage-datamanagers.md):** Managing cached NetCDFs, CSVs, and ephemeris files, CLI status checks, and environment variables.
+  - **[UDAL & Data Brokers](./docs/demos/broker-udal.md):** Querying currents and tides via semantic contracts, fluent builders, and format negotiation.
+* **[Visualizations & Experimental Profiles (`docs/experiments/`)](./docs/experiments/README.md):**
+  - **[Coastal Swim Trajectory Profile](./docs/experiments/graphics/kust-zwem-profiel/):** High-resolution DIN A3 landscape pacing and current profile (Bredene Post 4 ➔ Vosseslag).
+  - **[Beach Post Hydrodynamic Profile](./docs/experiments/graphics/strandpost-profiel/):** Daily swim-safety tidal curve and current forecast for beach lifeguard stations.
+* **[Project Roadmap & Backlog (`docs/plans.md`)](./docs/plans.md):** Active priorities, architectural sub-plans, and consolidated task backlog.
 
 ---
 
@@ -62,26 +74,29 @@ The codebase is built with modern Python tooling (Poetry, xarray, geopandas).
 
 ### Setup
 
-Steps you like to get over with:
-1. Install `poetry`  -- see [installation docs](https://python-poetry.org/docs/#installing-with-the-official-installer)
-2. Optionally (we recommend) use local env folder and enforce python3.14:
+1. Install `poetry` (see [Poetry documentation](https://python-poetry.org/docs/#installing-with-the-official-installer)).
+2. Configure local virtualenv:
 ```bash
-$ poetry config virtualenvs.in-project true --local
-$ poetry env use python3.14
+poetry config virtualenvs.in-project true --local
+poetry env use python3.14
+poetry install
 ```
-3. Copy `.env.example` to `.env` and add your personal settings there.
+3. Copy `.env.example` to `.env` and configure your credentials.
 
+### Inspecting Local Data Stores:
+To inspect the status of cached Copernicus datasets without running full simulations:
+```bash
+poetry run python -m cscm.current.cmems status
+```
 
 ### Processing Copernicus Data:
-To download/update the local CMEMS datastore and run the adaptive PCA current analysis on it to generate `_analysis.json` database files along with verification diagnostic plots:
+To download/update the local CMEMS datastore and run the adaptive PCA current analysis:
 ```bash
 poetry run python -m cscm.current.cmems
 ```
 
-
-### Running Simulation jobs
-
-This can now run simulation jobs - calculating the expected actual trajectories resulting from the intended movement (heading and speed) combined with the displacement by the currents.
+### Running Simulation Jobs
+Simulation jobs calculate expected ground tracks resulting from swimmer velocity combined with hydrodynamic drift.
 
 #### define jobs
 

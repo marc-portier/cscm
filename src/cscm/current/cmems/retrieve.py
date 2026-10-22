@@ -9,7 +9,10 @@ import time
 import shutil
 import pandas as pd
 import copernicusmarine as cmems
+from dotenv import load_dotenv
 from logging import getLogger
+
+load_dotenv()
 
 log = getLogger(__name__)
 
@@ -246,7 +249,11 @@ class CmemsCurrentManager(AbstractDataStoreManager):
         for attempt in range(1, retries + 1):
             try:
                 log.info(f"Downloading CMEMS data from {data_start_dt.isoformat()} to {data_end_dt.isoformat()} (attempt {attempt}/{retries})...")
+                username = os.environ.get("COPERNICUSMARINE_SERVICE_USERNAME")
+                password = os.environ.get("COPERNICUSMARINE_SERVICE_PASSWORD")
                 cmems_meta = cmems.subset(
+                    username=username,
+                    password=password,
                     output_directory=staging_dir,
                     dataset_id="cmems_mod_nws_phy-cur_anfc_1.5km-2D_PT15M-i",
                     dataset_version="202511",

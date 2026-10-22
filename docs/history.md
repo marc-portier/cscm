@@ -102,3 +102,22 @@ As the project evolved to incorporate multiple external hydrodynamic and tidal p
   - **Belgian Composite Tide Brokering**: Transparently splits queries spanning past and future across `now`: historical sensor data is retrieved from MDK, future operational forecasts are retrieved from HIC KiWIS, and both segments are merged into a continuous, deduplicated timeseries.
   - **Domain Boundary Guards**: Explicit exceptions (`GeographicOutOfDomainError`, `TemporalOutOfDomainError`, `InvalidQueryParameterError`) protect downstream science models from invalid coordinates or impossible time horizons.
 
+---
+
+### Phase 9: End-to-End Operational Trajectory Infographics & Coastal Kinematics (Saturday 24 Oct 2026 Delivery)
+With the UDAL broker and storage infrastructure operational, the system achieved its primary practical deliverable for Belgian coastal lifeguards and swim experts (BL-9):
+* **Alongshore Coastal Kinematics Engine (`docs/experiments/graphics/kust-zwem-profiel/hist/kinematics.py`)**:
+  - Implemented discrete 25m step-by-step numerical integration (`AlongshoreTrajectoryCalculator`) along actual Flemish beach chainage coordinates (Bredene Post 4 [34k500] ➔ Vosseslag [37k500] ➔ Bredene Post 4 [34k500], 6.0 km total).
+  - Continuous great-circle bearing calculation and dynamic projection of 2D Copernicus current vectors $(u_o, v_o)$ onto route leg tangents.
+  - Full trajectory sampling recording precise $(s_{\text{km}}, t_{\text{utc}})$ coordinates for arbitrary swimmer paces and departure window margins.
+  - Modularized inside the experiment directory per the model consistency rule until integrated into the core domain model (`Swimmer`, `MovingObject`) under BL-18.
+* **Authentic Saturday 24 October 2026 Hydrodynamic Scenarios**:
+  - Live HIC KiWIS operational water levels: High Water at 12:32 CEST (4.70 m TAW), Low Water at 19:22 CEST (0.20 m TAW) with +7 min phase shift for Bredene.
+  - Delivered the **v7 Scenario Triptych** illustrating the full multi-regime tidal spectrum across the day:
+    - **Variant 7a (09:00 CEST)**: Morning kentering & nascent flood (balanced 117.3 min swim; extreme 5–7 hour trap for slower swimmers turning into peak flood).
+    - **Variant 7b (13:00 CEST)**: Peak flood tailwind outbound (30.1 min, 6.2 km/h ground speed!) and receding flood headwind return (95.0 min).
+    - **Variant 7c (17:00 CEST)**: Ebb headwind outbound (82.3 min) and high-speed ebb-surf return (34.6 min).
+* **Print-Ready DIN A3 Infographics (v6 & v7 Suite)**:
+  - Delivered vector SVGs and high-resolution PNG previews with 10-minute isochrones, dynamic vertical scaling, and 8 vector breakdown cards (Schalingsbalken).
+  - Completely offline renderer architecture driven by clean YAML data contracts (`data_to_plot_v7a.yaml`, `v7b.yaml`, `v7c.yaml`).
+

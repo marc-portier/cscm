@@ -1,1 +1,1 @@
-../hist/generate_v7_suite.py
+../hist/generate_v8_suite.py

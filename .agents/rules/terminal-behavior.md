@@ -21,3 +21,11 @@ The user manually approves terminal commands in the IDE. To prevent unnecessary 
 
 ### 4. Leverage User-Supplied Context
 - When the user provides context (attached files, error traces, diffs via `@`), treat this information as current and authoritative rather than executing commands to re-verify it.
+
+### 5. Never Propose or Execute `sudo` Commands
+- The agent must **NEVER** run commands with `sudo` (e.g. `sudo chown`, `sudo apt`, `sudo rm`).
+- Sudo commands will either prompt interactively for a password (blocking the turn) or violate security boundaries.
+- If elevated permissions or system-level administrative actions are required, the agent must:
+  - Clearly explain why elevated permissions are needed.
+  - Ask the user to execute the command manually in their own host terminal, or
+  - Find an unprivileged user-space alternative (e.g., non-root Docker mappings, user-local directories).
